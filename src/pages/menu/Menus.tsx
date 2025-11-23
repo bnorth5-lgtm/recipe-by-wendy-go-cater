@@ -136,6 +136,9 @@ const Menus = () => {
     },
   });
 
+  // Watch the category field to adjust UI dynamically
+  const watchedCategory = form.watch("category");
+
   // Filter recipes by category for multi-select options
   const getRecipeOptions = (category: Recipe["category"]) => 
     recipes.filter(r => r.category === category).map(recipe => ({
@@ -181,7 +184,7 @@ const Menus = () => {
     }
   };
 
-  const renderRecipeList = (ids: string[] | undefined, title: string, Icon: React.ElementType) => {
+  const renderRecipeList = (ids: string[] | undefined, title: string, Icon: React.ElementType, isPlated: boolean) => {
     if (!ids || ids.length === 0) {
       return (
         <div className="mt-4">
@@ -195,7 +198,7 @@ const Menus = () => {
     return (
       <div className="mt-4">
         <h4 className="font-medium mb-2 flex items-center gap-2">
-          <Icon className="h-4 w-4 text-muted-foreground" /> {title}:
+          <Icon className="h-4 w-4 text-muted-foreground" /> {title} {isPlated ? "(Choices)" : "(Offerings)"}:
         </h4>
         <ul className="space-y-2">
           {ids.map(recipeId => {
@@ -218,6 +221,8 @@ const Menus = () => {
   };
 
   const selectedMenu = menus.find(menu => menu.id === selectedMenuId);
+  const isSelectedMenuPlated = selectedMenu?.category === "Plated";
+  const isSelectedMenuBuffet = selectedMenu?.category === "Buffet";
 
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
@@ -312,8 +317,22 @@ const Menus = () => {
                       )}
                     />
 
-                    {/* Categorized Recipe Selection */}
-                    <h3 className="text-lg font-medium mt-4">Select Recipes by Category</h3>
+                    {/* Categorized Recipe Selection - Conditional based on Menu Type */}
+                    <h3 className="text-lg font-medium mt-4">
+                      Select Recipes by Category {watchedCategory === "Plated" && "(Choose 1-2 per category)"}
+                      {watchedCategory === "Buffet" && "(Select multiple offerings per category)"}
+                    </h3>
+                    {watchedCategory === "Plated" && (
+                      <p className="text-sm text-muted-foreground -mt-2 mb-4">
+                        For a plated menu, select the specific dishes offered for each course.
+                      </p>
+                    )}
+                    {watchedCategory === "Buffet" && (
+                      <p className="text-sm text-muted-foreground -mt-2 mb-4">
+                        For a buffet menu, select all items that will be available in each category.
+                      </p>
+                    )}
+
                     <FormField
                       control={form.control}
                       name="appetizerIds"
@@ -325,7 +344,7 @@ const Menus = () => {
                               options={getRecipeOptions("Appetizer")}
                               selectedValues={field.value || []}
                               onChange={field.onChange}
-                              placeholder="Select appetizers"
+                              placeholder={watchedCategory === "Plated" ? "Select appetizer choices" : "Select buffet appetizers"}
                             />
                           </FormControl>
                           <FormMessage />
@@ -343,7 +362,7 @@ const Menus = () => {
                               options={getRecipeOptions("Main Course").concat(getRecipeOptions("Vegetarian Main"))}
                               selectedValues={field.value || []}
                               onChange={field.onChange}
-                              placeholder="Select main courses"
+                              placeholder={watchedCategory === "Plated" ? "Select main course choices" : "Select buffet main courses"}
                             />
                           </FormControl>
                           <FormMessage />
@@ -361,7 +380,7 @@ const Menus = () => {
                               options={getRecipeOptions("Side Dish")}
                               selectedValues={field.value || []}
                               onChange={field.onChange}
-                              placeholder="Select side dishes"
+                              placeholder={watchedCategory === "Plated" ? "Select side dish choices" : "Select buffet side dishes"}
                             />
                           </FormControl>
                           <FormMessage />
@@ -379,7 +398,7 @@ const Menus = () => {
                               options={getRecipeOptions("Dessert")}
                               selectedValues={field.value || []}
                               onChange={field.onChange}
-                              placeholder="Select desserts"
+                              placeholder={watchedCategory === "Plated" ? "Select dessert choices" : "Select buffet desserts"}
                             />
                           </FormControl>
                           <FormMessage />
@@ -397,7 +416,7 @@ const Menus = () => {
                               options={getRecipeOptions("Non-Alcoholic Beverage")}
                               selectedValues={field.value || []}
                               onChange={field.onChange}
-                              placeholder="Select non-alcoholic drinks"
+                              placeholder={watchedCategory === "Plated" ? "Select non-alcoholic drink choices" : "Select buffet non-alcoholic drinks"}
                             />
                           </FormControl>
                           <FormMessage />
@@ -415,7 +434,7 @@ const Menus = () => {
                               options={getRecipeOptions("Alcoholic Beverage")}
                               selectedValues={field.value || []}
                               onChange={field.onChange}
-                              placeholder="Select alcoholic drinks"
+                              placeholder={watchedCategory === "Plated" ? "Select alcoholic drink choices" : "Select buffet alcoholic drinks"}
                             />
                           </FormControl>
                           <FormMessage />
@@ -483,12 +502,18 @@ const Menus = () => {
                       </div>
                     </div>
                     <div className="border-t pt-4">
-                      {renderRecipeList(selectedMenu.appetizerIds, "Appetizers", Salad)}
-                      {renderRecipeList(selectedMenu.mainCourseIds, "Main Courses", Utensils)}
-                      {renderRecipeList(selectedMenu.sideDishIds, "Side Dishes", Utensils)}
-                      {renderRecipeList(selectedMenu.dessertIds, "Desserts", Cake)}
-                      {renderRecipeList(selectedMenu.nonAlcoholicBeverageIds, "Non-Alcoholic Beverages", Coffee)}
-                      {renderRecipeList(selectedMenu.alcoholicBeverageIds, "Alcoholic Beverages", Wine)}
+                      {isSelectedMenuPlated && (
+                        <p className="text-md font-semibold text-primary mb-4">This is a Plated Menu. Guests will choose from the following options:</p>
+                      )}
+                      {isSelectedMenuBuffet && (
+                        <p className="text-md font-semibold text-primary mb-4">This is a Buffet Menu. The following items will be available:</p>
+                      )}
+                      {renderRecipeList(selectedMenu.appetizerIds, "Appetizers", Salad, isSelectedMenuPlated)}
+                      {renderRecipeList(selectedMenu.mainCourseIds, "Main Courses", Utensils, isSelectedMenuPlated)}
+                      {renderRecipeList(selectedMenu.sideDishIds, "Side Dishes", Utensils, isSelectedMenuPlated)}
+                      {renderRecipeList(selectedMenu.dessertIds, "Desserts", Cake, isSelectedMenuPlated)}
+                      {renderRecipeList(selectedMenu.nonAlcoholicBeverageIds, "Non-Alcoholic Beverages", Coffee, isSelectedMenuPlated)}
+                      {renderRecipeList(selectedMenu.alcoholicBeverageIds, "Alcoholic Beverages", Wine, isSelectedMenuPlated)}
                     </div>
                   </div>
                 ) : (
