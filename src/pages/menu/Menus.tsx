@@ -34,7 +34,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Edit, Trash2, Utensils, ChevronDown, ChevronRight } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Utensils, ChevronDown, ChevronRight, Wine, Coffee, Cake, Salad } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, Menu, Recipe } from "@/store/cateringStore";
@@ -61,7 +61,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({ options, selectedValues, onCh
   return (
     <Select onValueChange={handleSelect} value=""> {/* Value is empty to allow re-selection */}
       <SelectTrigger className="w-full">
-        <SelectValue placeholder={selectedValues.length > 0 ? `${selectedValues.length} recipes selected` : placeholder} />
+        <SelectValue placeholder={selectedValues.length > 0 ? `${selectedValues.length} items selected` : placeholder} />
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (
@@ -89,8 +89,24 @@ const menuFormSchema = z.object({
   category: z.enum(["Wedding", "Corporate", "Seasonal", "Buffet", "Plated", "Other"], {
     required_error: "Please select a category.",
   }),
-  recipeIds: z.array(z.string()).min(1, "At least one recipe must be selected for the menu"),
-});
+  appetizerIds: z.array(z.string()).optional(),
+  mainCourseIds: z.array(z.string()).optional(),
+  dessertIds: z.array(z.string()).optional(),
+  alcoholicBeverageIds: z.array(z.string()).optional(),
+  nonAlcoholicBeverageIds: z.array(z.string()).optional(),
+  sideDishIds: z.array(z.string()).optional(),
+}).refine(data => 
+  (data.appetizerIds && data.appetizerIds.length > 0) ||
+  (data.mainCourseIds && data.mainCourseIds.length > 0) ||
+  (data.dessertIds && data.dessertIds.length > 0) ||
+  (data.alcoholicBeverageIds && data.alcoholicBeverageIds.length > 0) ||
+  (data.nonAlcoholicBeverageIds && data.nonAlcoholicBeverageIds.length > 0) ||
+  (data.sideDishIds && data.sideDishIds.length > 0),
+  {
+    message: "At least one item must be selected for the menu across all categories.",
+    path: ["appetizerIds"], // Attach error to one of the fields
+  }
+);
 
 type MenuFormData = z.infer<typeof menuFormSchema>;
 
@@ -111,21 +127,39 @@ const Menus = () => {
       name: "",
       description: "",
       category: "Other",
-      recipeIds: [],
+      appetizerIds: [],
+      mainCourseIds: [],
+      dessertIds: [],
+      alcoholicBeverageIds: [],
+      nonAlcoholicBeverageIds: [],
+      sideDishIds: [],
     },
   });
 
-  const recipeOptions = recipes.map(recipe => ({
-    label: recipe.name,
-    value: recipe.id,
-  }));
+  // Filter recipes by category for multi-select options
+  const getRecipeOptions = (category: Recipe["category"]) => 
+    recipes.filter(r => r.category === category).map(recipe => ({
+      label: recipe.name,
+      value: recipe.id,
+    }));
 
   const onSubmit = (data: MenuFormData) => {
+    // Ensure arrays are not undefined before passing to store
+    const menuData = {
+      ...data,
+      appetizerIds: data.appetizerIds || [],
+      mainCourseIds: data.mainCourseIds || [],
+      dessertIds: data.dessertIds || [],
+      alcoholicBeverageIds: data.alcoholicBeverageIds || [],
+      nonAlcoholicBeverageIds: data.nonAlcoholicBeverageIds || [],
+      sideDishIds: data.sideDishIds || [],
+    };
+
     if (editingMenu) {
-      updateMenu({ ...data, id: editingMenu.id } as Menu);
+      updateMenu({ ...menuData, id: editingMenu.id } as Menu);
       toast.success("Menu updated successfully!");
     } else {
-      addMenu(data as Omit<Menu, 'id' | 'createdAt' | 'updatedAt'>);
+      addMenu(menuData as Omit<Menu, 'id' | 'createdAt' | 'updatedAt'>);
       toast.success("Menu created successfully!");
     }
     form.reset();
@@ -146,6 +180,33 @@ const Menus = () => {
 
   const toggleMenuExpansion = (menuId: string) => {
     setExpandedMenuId(expandedMenuId === menuId ? null : menuId);
+  };
+
+  const renderRecipeList = (ids: string[], title: string, Icon: React.ElementType) => {
+    if (!ids || ids.length === 0) return null;
+    return (
+      <div className="mt-4">
+        <h4 className="font-medium mb-2 flex items-center gap-2">
+          <Icon className="h-4 w-4 text-muted-foreground" /> {title}:
+        </h4>
+        <ul className="space-y-2">
+          {ids.map(recipeId => {
+            const recipe = recipes.find(r => r.id === recipeId);
+            return recipe ? (
+              <li key={recipe.id} className="flex items-start gap-2 text-sm">
+                <Utensils className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
+                <div>
+                  <span className="font-medium">{recipe.name}</span>
+                  <p className="text-muted-foreground text-xs">{recipe.description}</p>
+                </div>
+              </li>
+            ) : (
+              <li key={recipeId} className="text-destructive text-sm">Unknown Recipe (ID: {recipeId})</li>
+            );
+          })}
+        </ul>
+      </div>
+    );
   };
 
   return (
@@ -214,7 +275,7 @@ const Menus = () => {
                       name="category"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Category</FormLabel>
+                          <FormLabel>Menu Type/Category</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -234,24 +295,118 @@ const Menus = () => {
                         </FormItem>
                       )}
                     />
+
+                    {/* Categorized Recipe Selection */}
+                    <h3 className="text-lg font-medium mt-4">Select Recipes by Category</h3>
                     <FormField
                       control={form.control}
-                      name="recipeIds"
+                      name="appetizerIds"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Select Recipes</FormLabel>
+                          <FormLabel>Appetizers</FormLabel>
                           <FormControl>
                             <MultiSelect
-                              options={recipeOptions}
-                              selectedValues={field.value}
+                              options={getRecipeOptions("Appetizer")}
+                              selectedValues={field.value || []}
                               onChange={field.onChange}
-                              placeholder="Select recipes for this menu"
+                              placeholder="Select appetizers"
                             />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="mainCourseIds"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Main Courses</FormLabel>
+                          <FormControl>
+                            <MultiSelect
+                              options={getRecipeOptions("Main Course").concat(getRecipeOptions("Vegetarian Main"))}
+                              selectedValues={field.value || []}
+                              onChange={field.onChange}
+                              placeholder="Select main courses"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="sideDishIds"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Side Dishes</FormLabel>
+                          <FormControl>
+                            <MultiSelect
+                              options={getRecipeOptions("Side Dish")}
+                              selectedValues={field.value || []}
+                              onChange={field.onChange}
+                              placeholder="Select side dishes"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="dessertIds"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Desserts</FormLabel>
+                          <FormControl>
+                            <MultiSelect
+                              options={getRecipeOptions("Dessert")}
+                              selectedValues={field.value || []}
+                              onChange={field.onChange}
+                              placeholder="Select desserts"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="nonAlcoholicBeverageIds"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Non-Alcoholic Beverages</FormLabel>
+                          <FormControl>
+                            <MultiSelect
+                              options={getRecipeOptions("Non-Alcoholic Beverage")}
+                              selectedValues={field.value || []}
+                              onChange={field.onChange}
+                              placeholder="Select non-alcoholic drinks"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="alcoholicBeverageIds"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Alcoholic Beverages</FormLabel>
+                          <FormControl>
+                            <MultiSelect
+                              options={getRecipeOptions("Alcoholic Beverage")}
+                              selectedValues={field.value || []}
+                              onChange={field.onChange}
+                              placeholder="Select alcoholic drinks"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
                     <DialogFooter>
                       <Button type="submit">{editingMenu ? "Save changes" : "Create Menu"}</Button>
                     </DialogFooter>
@@ -308,26 +463,19 @@ const Menus = () => {
                       </div>
                       {expandedMenuId === menu.id && (
                         <div className="mt-4 border-t pt-4">
-                          <h4 className="font-medium mb-2">Recipes in this Menu:</h4>
-                          {menu.recipeIds.length === 0 ? (
+                          {renderRecipeList(menu.appetizerIds, "Appetizers", Salad)}
+                          {renderRecipeList(menu.mainCourseIds, "Main Courses", Utensils)}
+                          {renderRecipeList(menu.sideDishIds, "Side Dishes", Utensils)}
+                          {renderRecipeList(menu.dessertIds, "Desserts", Cake)}
+                          {renderRecipeList(menu.nonAlcoholicBeverageIds, "Non-Alcoholic Beverages", Coffee)}
+                          {renderRecipeList(menu.alcoholicBeverageIds, "Alcoholic Beverages", Wine)}
+                          {(menu.appetizerIds?.length === 0 &&
+                            menu.mainCourseIds?.length === 0 &&
+                            menu.dessertIds?.length === 0 &&
+                            menu.alcoholicBeverageIds?.length === 0 &&
+                            menu.nonAlcoholicBeverageIds?.length === 0 &&
+                            menu.sideDishIds?.length === 0) && (
                             <p className="text-muted-foreground text-sm">No recipes selected for this menu.</p>
-                          ) : (
-                            <ul className="space-y-2">
-                              {menu.recipeIds.map(recipeId => {
-                                const recipe = recipes.find(r => r.id === recipeId);
-                                return recipe ? (
-                                  <li key={recipe.id} className="flex items-start gap-2 text-sm">
-                                    <Utensils className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
-                                    <div>
-                                      <span className="font-medium">{recipe.name}</span>
-                                      <p className="text-muted-foreground text-xs">{recipe.description}</p>
-                                    </div>
-                                  </li>
-                                ) : (
-                                  <li key={recipeId} className="text-destructive text-sm">Unknown Recipe (ID: {recipeId})</li>
-                                );
-                              })}
-                            </ul>
                           )}
                         </div>
                       )}

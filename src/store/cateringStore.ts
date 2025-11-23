@@ -119,13 +119,18 @@ export interface Estimate {
   updatedAt: string; // To track when the estimate was last updated
 }
 
-// Define the schema for a Menu
+// NEW: Define the schema for a Menu
 export interface Menu {
   id: string;
   name: string;
   description: string;
   category: "Wedding" | "Corporate" | "Seasonal" | "Buffet" | "Plated" | "Other";
-  recipeIds: string[]; // IDs of recipes included in this menu
+  appetizerIds: string[];
+  mainCourseIds: string[];
+  dessertIds: string[];
+  alcoholicBeverageIds: string[];
+  nonAlcoholicBeverageIds: string[];
+  sideDishIds: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -541,7 +546,12 @@ const initialMenus: Menu[] = [
     name: "Summer Wedding Package",
     description: "A delightful and elegant menu perfect for a summer wedding celebration.",
     category: "Wedding",
-    recipeIds: ["r3", "r6", "r7", "r9", "r10"], // Salmon, Risotto, Pork Loin, Lemonade, Caprese Skewers
+    appetizerIds: ["r10"], // Mini Caprese Skewers
+    mainCourseIds: ["r3", "r7"], // Herb-Crusted Roasted Salmon, Roasted Pork Loin with Apple Chutney
+    dessertIds: [], // No desserts in sample yet
+    alcoholicBeverageIds: ["r11"], // Classic Margarita
+    nonAlcoholicBeverageIds: ["r9"], // Sparkling Raspberry Lemonade
+    sideDishIds: ["r2"], // Garden Salad
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -550,7 +560,12 @@ const initialMenus: Menu[] = [
     name: "Corporate Lunch Buffet",
     description: "A versatile buffet menu suitable for corporate events and business lunches.",
     category: "Corporate",
-    recipeIds: ["r1", "r2", "r4"], // Beef Stroganoff, Garden Salad, Chicken Marsala
+    appetizerIds: [],
+    mainCourseIds: ["r1", "r4"], // Classic Beef Stroganoff, Chicken Marsala
+    dessertIds: [],
+    alcoholicBeverageIds: [],
+    nonAlcoholicBeverageIds: ["r9"], // Sparkling Raspberry Lemonade
+    sideDishIds: ["r2"], // Garden Salad
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -559,7 +574,12 @@ const initialMenus: Menu[] = [
     name: "Vegetarian Dinner Party",
     description: "An exquisite plant-based menu designed to impress at any dinner party.",
     category: "Plated",
-    recipeIds: ["r6", "r2", "r9"], // Wild Mushroom Risotto, Garden Salad, Sparkling Raspberry Lemonade
+    appetizerIds: ["r10"], // Mini Caprese Skewers
+    mainCourseIds: ["r6"], // Wild Mushroom Risotto
+    dessertIds: [],
+    alcoholicBeverageIds: [],
+    nonAlcoholicBeverageIds: ["r9"], // Sparkling Raspberry Lemonade
+    sideDishIds: ["r2"], // Garden Salad
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
