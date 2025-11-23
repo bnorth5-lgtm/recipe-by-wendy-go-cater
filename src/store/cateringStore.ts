@@ -199,7 +199,9 @@ const initialInventory: InventoryItem[] = [
   { id: "108", name: "Turkey Breast", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 6.00, markupPercentage: 0.20 },
 
   // Food Ingredients - Pork
-  { id: "32", name: "Pork Loin", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 6.50, markupPercentage: 0.20 },
+  { id: "32", name: "Pork Loin (raw, per lb)", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 6.50, markupPercentage: 0.20 },
+  { id: "32a", name: "Pork Loin (8oz cut)", category: "Food Ingredient", currentStock: 30, unit: "8oz cut", lowStockThreshold: 6, costPerUnit: (6.50 / 16) * 8, markupPercentage: 0.20 },
+  { id: "132", name: "Pork Chop (10oz)", category: "Food Ingredient", currentStock: 20, unit: "10oz chop", lowStockThreshold: 4, costPerUnit: (5.00 / 16) * 10, markupPercentage: 0.20 }, // Assuming raw pork chop at $5.00/lb
   { id: "109", name: "Pulled Pork", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 9.00, markupPercentage: 0.20 },
   { id: "110", name: "Bacon", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 7.50, markupPercentage: 0.20 },
   { id: "111", name: "Ham", category: "Food Ingredient", currentStock: 8, unit: "lb", lowStockThreshold: 1, costPerUnit: 6.00, markupPercentage: 0.20 },
@@ -212,8 +214,17 @@ const initialInventory: InventoryItem[] = [
   { id: "129", name: "Ground Lamb", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 9.50, markupPercentage: 0.20 },
 
   // Food Ingredients - Seafood
-  { id: "3", name: "Salmon Fillets", category: "Food Ingredient", currentStock: 20, unit: "lb", lowStockThreshold: 4, costPerUnit: 12.00, markupPercentage: 0.25 },
-  { id: "41", name: "Shrimp (Peeled & Deveined)", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 15.00, markupPercentage: 0.25 },
+  { id: "3", name: "Salmon Fillets (raw, per lb)", category: "Food Ingredient", currentStock: 20, unit: "lb", lowStockThreshold: 4, costPerUnit: 12.00, markupPercentage: 0.25 },
+  { id: "133", name: "Haddock (6oz fillet)", category: "Food Ingredient", currentStock: 30, unit: "6oz fillet", lowStockThreshold: 6, costPerUnit: (10.00 / 16) * 6, markupPercentage: 0.20 }, // Assuming raw haddock at $10.00/lb
+  { id: "134", name: "Haddock (8oz fillet)", category: "Food Ingredient", currentStock: 25, unit: "8oz fillet", lowStockThreshold: 5, costPerUnit: (10.00 / 16) * 8, markupPercentage: 0.20 },
+  { id: "135", name: "Haddock (10oz fillet)", category: "Food Ingredient", currentStock: 20, unit: "10oz fillet", lowStockThreshold: 4, costPerUnit: (10.00 / 16) * 10, markupPercentage: 0.20 },
+  { id: "41", name: "Shrimp (Peeled & Deveined, raw, per lb)", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 15.00, markupPercentage: 0.25 },
+  { id: "136", name: "Shrimp (Small, 51-60ct/lb, per count)", category: "Food Ingredient", currentStock: 500, unit: "count", lowStockThreshold: 100, costPerUnit: 8.00 / 55, markupPercentage: 0.20 }, // Avg 55 per lb
+  { id: "137", name: "Shrimp (Medium, 31-40ct/lb, per count)", category: "Food Ingredient", currentStock: 350, unit: "count", lowStockThreshold: 70, costPerUnit: 10.00 / 35, markupPercentage: 0.20 }, // Avg 35 per lb
+  { id: "138", name: "Shrimp (Large, 21-25ct/lb, per count)", category: "Food Ingredient", currentStock: 200, unit: "count", lowStockThreshold: 40, costPerUnit: 12.00 / 23, markupPercentage: 0.20 }, // Avg 23 per lb
+  { id: "139", name: "Shrimp (per serving, small, ~10ct)", category: "Food Ingredient", currentStock: 50, unit: "serving", lowStockThreshold: 10, costPerUnit: (8.00 / 55) * 10, markupPercentage: 0.20 },
+  { id: "140", name: "Shrimp (per serving, medium, ~8ct)", category: "Food Ingredient", currentStock: 40, unit: "serving", lowStockThreshold: 8, costPerUnit: (10.00 / 35) * 8, markupPercentage: 0.20 },
+  { id: "141", name: "Shrimp (per serving, large, ~5ct)", category: "Food Ingredient", currentStock: 30, unit: "serving", lowStockThreshold: 6, costPerUnit: (12.00 / 23) * 5, markupPercentage: 0.20 },
   { id: "114", name: "Cod", category: "Food Ingredient", currentStock: 8, unit: "lb", lowStockThreshold: 2, costPerUnit: 9.00, markupPercentage: 0.20 },
   { id: "115", name: "Smoked Salmon", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 22.00, markupPercentage: 0.25 },
   { id: "116", name: "Tuna (Fresh)", category: "Food Ingredient", currentStock: 7, unit: "lb", lowStockThreshold: 1, costPerUnit: 18.00, markupPercentage: 0.25 },
@@ -232,6 +243,7 @@ const initialInventory: InventoryItem[] = [
   { id: "5", name: "Potatoes (raw, per lb)", category: "Food Ingredient", currentStock: 100, unit: "lb", lowStockThreshold: 20, costPerUnit: 0.54, markupPercentage: 0.20 },
   { id: "130", name: "Baked Potato (Large)", category: "Food Ingredient", currentStock: 50, unit: "count", lowStockThreshold: 10, costPerUnit: 1.00, markupPercentage: 0.20 },
   { id: "131", name: "French Fries (per serving)", category: "Food Ingredient", currentStock: 75, unit: "serving", lowStockThreshold: 15, costPerUnit: 1.50, markupPercentage: 0.20 },
+  { id: "142", name: "Mashed Potato (per serving, ~6oz)", category: "Food Ingredient", currentStock: 60, unit: "serving", lowStockThreshold: 12, costPerUnit: 1.20, markupPercentage: 0.20 }, // Estimated cost per serving
   { id: "6", name: "Onions", category: "Food Ingredient", currentStock: 40, unit: "lb", lowStockThreshold: 8, costPerUnit: 0.36, markupPercentage: 0.20 },
   { id: "7", name: "Carrots", category: "Food Ingredient", currentStock: 35, unit: "lb", lowStockThreshold: 7, costPerUnit: 0.41, markupPercentage: 0.20 },
   { id: "8", name: "All-Purpose Flour", category: "Food Ingredient", currentStock: 25, unit: "lb", lowStockThreshold: 5, costPerUnit: 0.45, markupPercentage: 0.20 },
@@ -432,7 +444,7 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Salmon Fillets", quantity: "1.75 lb" },
+      { name: "Salmon Fillets (raw, per lb)", quantity: "1.75 lb" },
       { name: "Fresh Dill", quantity: "0.5 bunch" },
       { name: "Fresh Parsley", quantity: "0.5 bunch" },
       { name: "Fresh Thyme", quantity: "0.5 bunch" },
@@ -551,7 +563,7 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Main Course",
     ingredients: [
-      { name: "Pork Loin", quantity: "2.5 lb" },
+      { name: "Pork Loin (raw, per lb)", quantity: "2.5 lb" },
       { name: "Apples (Granny Smith)", quantity: "1 lb" },
       { name: "Red Onion", quantity: "0.5 lb" },
       { name: "Apple Cider Vinegar", quantity: "0.1 quart" },
@@ -581,7 +593,7 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Shrimp (Peeled & Deveined)", quantity: "1.25 lb" },
+      { name: "Shrimp (Peeled & Deveined, raw, per lb)", quantity: "1.25 lb" },
       { name: "Linguine Pasta", quantity: "1 lb" },
       { name: "Garlic", quantity: "4 head" },
       { name: "Butter", quantity: "8 tbsp" },
@@ -921,7 +933,7 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Appetizer",
     ingredients: [
-      { name: "Shrimp (Peeled & Deveined)", quantity: "1 lb" },
+      { name: "Shrimp (Peeled & Deveined, raw, per lb)", quantity: "1 lb" },
       { name: "Olive Oil", quantity: "3 tbsp" },
       { name: "Lemon", quantity: "1 count" },
       { name: "Garlic", quantity: "2 head" },
