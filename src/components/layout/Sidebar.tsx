@@ -44,7 +44,7 @@ export const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <aside className="hidden md:flex flex-col h-full w-64 border-r bg-sidebar text-sidebar-foreground">
+    <aside className="flex flex-col h-full w-64 border-r bg-sidebar text-sidebar-foreground">
       <div className="flex items-center justify-center h-16 border-b px-4">
         <h1 className="text-xl font-semibold text-sidebar-primary-foreground">
           Caterer's Planner
