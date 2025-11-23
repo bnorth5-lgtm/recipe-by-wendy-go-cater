@@ -41,9 +41,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, Recipe, RecipeIngredient, RecipeInstruction } from "@/store/cateringStore"; // Import from store
 
-// Define the form data type directly from the store's Recipe type
-type RecipeFormData = Omit<Recipe, 'id'>;
-
 // Define the main schema for a recipe
 const recipeFormSchema = z.object({
   name: z.string().min(1, "Recipe name is required"),
@@ -64,13 +61,14 @@ const recipeFormSchema = z.object({
   sourceUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")), // New: Source URL
 });
 
+type RecipeFormData = z.infer<typeof recipeFormSchema>; // Infer type directly from the schema
+
 const Recipes = () => {
   const recipes = useCateringStore((state) => state.recipes);
   const addRecipe = useCateringStore((state) => state.addRecipe);
   const deleteRecipe = useCateringStore((state) => state.deleteRecipe);
 
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false); // State for import dialog
-  const [importUrl, setImportUrl] = useState(""); // State for the URL input in the import dialog
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeFormSchema),
@@ -98,7 +96,7 @@ const Recipes = () => {
   });
 
   const onSubmit = (data: RecipeFormData) => {
-    addRecipe(data);
+    addRecipe(data as Omit<Recipe, 'id'>); // Explicitly cast data
     form.reset({
       name: "",
       description: "",
@@ -122,20 +120,15 @@ const Recipes = () => {
     // In a real scenario, you'd send the URL to a backend for scraping.
     // For this simulation, we'll just open the main form and pre-fill the URL.
     // The user would then manually fill the rest.
-    if (importUrl) {
-      // Validate URL format before setting
-      const urlValidation = z.string().url("Must be a valid URL").safeParse(importUrl);
-      if (urlValidation.success) {
-        toast.info(`Simulating import from: ${importUrl}. Please fill details manually.`);
-        form.setValue("sourceUrl", importUrl); // Set the sourceUrl in the main form
-        setIsImportDialogOpen(false); // Close the dialog after "import"
-        setImportUrl(""); // Clear the import URL input
-      } else {
-        toast.error(urlValidation.error.errors[0].message);
-      }
+    const url = form.getValues("sourceUrl");
+    if (url) {
+      toast.info(`Simulating import from: ${url}. Please fill details manually.`);
+      // For now, just set the URL in the main form and close the import dialog.
+      form.setValue("sourceUrl", url);
     } else {
       toast.error("Please enter a URL to import.");
     }
+    setIsImportDialogOpen(false);
   };
 
   return (
@@ -156,7 +149,7 @@ const Recipes = () => {
           <CardContent>
             <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="w-full mb-4">
+                <Button variant="outline" className="w-full mb-6">
                   <LinkIcon className="mr-2 h-4 w-4" /> Import Recipe from URL
                 </Button>
               </DialogTrigger>
@@ -164,20 +157,25 @@ const Recipes = () => {
                 <DialogHeader>
                   <DialogTitle>Import Recipe</DialogTitle>
                   <DialogDescription>
-                    Paste a recipe URL below. (Note: This is a simulated import. You will still need to manually fill the recipe details.)
+                    Paste a recipe URL. In a real app, this would fetch data. For now, you'll fill the form manually.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  <Label htmlFor="recipe-url">Recipe URL</Label>
-                  <Input
-                    id="recipe-url"
-                    placeholder="https://www.example.com/my-recipe"
-                    value={importUrl}
-                    onChange={(e) => setImportUrl(e.target.value)}
-                  />
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="recipeUrl" className="text-right">
+                      Recipe URL
+                    </Label>
+                    <Input
+                      id="recipeUrl"
+                      placeholder="https://www.example.com/recipe"
+                      className="col-span-3"
+                      value={form.watch("sourceUrl")} // Bind to form's sourceUrl
+                      onChange={(e) => form.setValue("sourceUrl", e.target.value)}
+                    />
+                  </div>
                 </div>
                 <DialogFooter>
-                  <Button type="button" onClick={handleImportRecipe}>Import (Simulated)</Button>
+                  <Button type="button" onClick={handleImportRecipe}>Simulate Import</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -382,7 +380,7 @@ const Recipes = () => {
                     <FormItem>
                       <FormLabel>Source URL (Optional)</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., https://www.foodblog.com/my-recipe" {...field} />
+                        <Input placeholder="e.g., https://www.allrecipes.com/my-recipe" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
