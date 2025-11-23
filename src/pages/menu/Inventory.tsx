@@ -291,9 +291,8 @@ const Inventory = () => {
                       <TableHead>Item Name</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Current Stock</TableHead>
-                      <TableHead>Unit</TableHead> {/* New Unit Column */}
+                      <TableHead>Cost per Unit</TableHead> {/* Combined column header */}
                       <TableHead>Low Stock Threshold</TableHead>
-                      <TableHead>Cost per Unit</TableHead>
                       <TableHead className="text-center">Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -331,9 +330,8 @@ const Inventory = () => {
                             </Button>
                           </div>
                         </TableCell>
-                        <TableCell>{item.unit}</TableCell> {/* Display Unit */}
+                        <TableCell>${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell> {/* Combined display */}
                         <TableCell>{item.lowStockThreshold}</TableCell>
-                        <TableCell>${item.costPerUnit.toFixed(2)}</TableCell> {/* Simplified Cost Display */}
                         <TableCell className="text-center">
                           {item.currentStock <= item.lowStockThreshold ? (
                             <Badge variant="destructive" className="flex items-center justify-center gap-1">
