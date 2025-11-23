@@ -103,7 +103,7 @@ export interface EventBooking {
   status: "pending" | "completed" | "cancelled";
 }
 
-// NEW: Define the schema for an Estimate
+// Define the schema for an Estimate
 export interface Estimate {
   id: string;
   eventName: string;
@@ -119,6 +119,17 @@ export interface Estimate {
   updatedAt: string; // To track when the estimate was last updated
 }
 
+// NEW: Define the schema for a Menu
+export interface Menu {
+  id: string;
+  name: string;
+  description: string;
+  category: "Wedding" | "Corporate" | "Seasonal" | "Buffet" | "Plated" | "Other";
+  recipeIds: string[]; // IDs of recipes included in this menu
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface CateringState {
   inventory: InventoryItem[];
   recipes: Recipe[];
@@ -126,7 +137,8 @@ interface CateringState {
   beverageInventory: BeverageItem[];
   clients: Client[]; // New: Clients state
   proposals: Proposal[]; // New: Proposals state
-  estimates: Estimate[]; // NEW: Estimates state
+  estimates: Estimate[]; // Estimates state
+  menus: Menu[]; // NEW: Menus state
 
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void;
   updateInventoryItem: (item: InventoryItem) => void;
@@ -147,20 +159,25 @@ interface CateringState {
   deleteBeverageItem: (id: string) => void;
   deductBeverageStock: (beverageId: string, quantity: number) => boolean;
 
-  // New: Client actions
+  // Client actions
   addClient: (client: Omit<Client, 'id'>) => void;
   updateClient: (client: Client) => void;
   deleteClient: (id: string) => void;
 
-  // New: Proposal actions
+  // Proposal actions
   addProposal: (proposal: Omit<Proposal, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>) => void;
   updateProposal: (proposal: Proposal) => void;
   deleteProposal: (id: string) => void;
 
-  // NEW: Estimate actions
+  // Estimate actions
   addEstimate: (estimate: Omit<Estimate, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>) => void;
   updateEstimate: (estimate: Estimate) => void;
   deleteEstimate: (id: string) => void;
+
+  // NEW: Menu actions
+  addMenu: (menu: Omit<Menu, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateMenu: (menu: Menu) => void;
+  deleteMenu: (id: string) => void;
 }
 
 const initialInventory: InventoryItem[] = [
@@ -462,7 +479,8 @@ export const useCateringStore = create<CateringState>()(
       beverageInventory: initialBeverageInventory,
       clients: [], // Initialize clients
       proposals: [], // Initialize proposals
-      estimates: [], // NEW: Initialize estimates
+      estimates: [], // Estimates state
+      menus: [], // NEW: Initialize menus
 
       addInventoryItem: (item) => set((state) => ({
         inventory: [...state.inventory, { ...item, id: crypto.randomUUID() }],
@@ -640,7 +658,7 @@ export const useCateringStore = create<CateringState>()(
         proposals: state.proposals.filter((proposal) => proposal.id !== id),
       })),
 
-      // NEW: Estimate actions
+      // Estimate actions
       addEstimate: (estimate) => set((state) => {
         const now = new Date().toISOString();
         const itemsCost = estimate.items.reduce((sum, item) => sum + item.totalCost, 0);
@@ -671,6 +689,27 @@ export const useCateringStore = create<CateringState>()(
       }),
       deleteEstimate: (id) => set((state) => ({
         estimates: state.estimates.filter((estimate) => estimate.id !== id),
+      })),
+
+      // NEW: Menu actions
+      addMenu: (menu) => set((state) => {
+        const now = new Date().toISOString();
+        return {
+          menus: [...state.menus, {
+            ...menu,
+            id: crypto.randomUUID(),
+            createdAt: now,
+            updatedAt: now,
+          }],
+        };
+      }),
+      updateMenu: (updatedMenu) => set((state) => ({
+        menus: state.menus.map((m) =>
+          m.id === updatedMenu.id ? { ...updatedMenu, updatedAt: new Date().toISOString() } : m
+        ),
+      })),
+      deleteMenu: (id) => set((state) => ({
+        menus: state.menus.filter((menu) => menu.id !== id),
       })),
     }),
     {
