@@ -75,7 +75,7 @@ const Inventory = () => {
       name: "",
       category: "Food Ingredient", // Default category
       currentStock: 0,
-      unit: "kg",
+      unit: "lb", // Changed default unit
       lowStockThreshold: 10,
       costPerUnit: 0.00,
     },
@@ -214,10 +214,10 @@ const Inventory = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value="lb">Pounds (lb)</SelectItem>
+                              <SelectItem value="oz">Ounces (oz)</SelectItem>
                               <SelectItem value="kg">Kilograms (kg)</SelectItem>
                               <SelectItem value="g">Grams (g)</SelectItem>
-                              <SelectItem value="lbs">Pounds (lbs)</SelectItem>
-                              <SelectItem value="oz">Ounces (oz)</SelectItem>
                               <SelectItem value="L">Liters (L)</SelectItem>
                               <SelectItem value="ml">Milliliters (ml)</SelectItem>
                               <SelectItem value="count">Count</SelectItem>
@@ -291,9 +291,8 @@ const Inventory = () => {
                       <TableHead>Item Name</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Current Stock</TableHead>
-                      <TableHead>Unit</TableHead>
                       <TableHead>Low Stock Threshold</TableHead>
-                      <TableHead>Cost/Unit</TableHead>
+                      <TableHead>Cost per Unit</TableHead>
                       <TableHead className="text-center">Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -331,9 +330,8 @@ const Inventory = () => {
                             </Button>
                           </div>
                         </TableCell>
-                        <TableCell>{item.unit}</TableCell>
                         <TableCell>{item.lowStockThreshold}</TableCell>
-                        <TableCell>${item.costPerUnit.toFixed(2)}</TableCell>
+                        <TableCell>${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell>
                         <TableCell className="text-center">
                           {item.currentStock <= item.lowStockThreshold ? (
                             <Badge variant="destructive" className="flex items-center justify-center gap-1">
