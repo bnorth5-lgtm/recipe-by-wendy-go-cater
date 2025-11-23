@@ -106,7 +106,7 @@ export interface EventBooking {
 // Define the schema for an Estimate
 export interface Estimate {
   id: string;
-  eventName: string;
+  eventName: string; // Changed from number to string
   numberOfGuests: number;
   items: ProposalItem[]; // Reusing ProposalItem for consistency
   laborCost: number;
@@ -175,7 +175,7 @@ interface CateringState {
   deleteProposal: (id: string) => void;
 
   // Estimate actions
-  addEstimate: (estimate: Omit<Estimate, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>) => void;
+  addEstimate: (estimate: Omit<Estimate, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>) => void; // Corrected Omit type
   updateEstimate: (estimate: Estimate) => void;
   deleteEstimate: (id: string) => void;
 
@@ -243,6 +243,16 @@ const initialInventory: InventoryItem[] = [
   { id: "54", name: "Green Tea Bags", currentStock: 100, unit: "count", lowStockThreshold: 20, costPerUnit: 0.15 },
   { id: "55", name: "Honey", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 10.00 },
   { id: "56", name: "Oranges", currentStock: 15, unit: "count", lowStockThreshold: 3, costPerUnit: 0.80 },
+  { id: "57", name: "Cream Cheese", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 7.00 },
+  { id: "58", name: "Graham Cracker Crumbs", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 4.00 },
+  { id: "59", name: "Espresso Powder", currentStock: 0.1, unit: "kg", lowStockThreshold: 0.02, costPerUnit: 30.00 },
+  { id: "60", name: "Ladyfingers", currentStock: 10, unit: "pack", lowStockThreshold: 2, costPerUnit: 5.00 },
+  { id: "61", name: "Mascarpone Cheese", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 25.00 },
+  { id: "62", name: "Whiskey (Bourbon)", currentStock: 3, unit: "bottle", lowStockThreshold: 0.5, costPerUnit: 30.00 },
+  { id: "63", name: "Angostura Bitters", currentStock: 0.1, unit: "bottle", lowStockThreshold: 0.02, costPerUnit: 15.00 },
+  { id: "64", name: "Club Soda", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.50 },
+  { id: "65", name: "White Rum", currentStock: 4, unit: "bottle", lowStockThreshold: 1, costPerUnit: 22.00 },
+  { id: "66", name: "Fresh Limes", currentStock: 20, unit: "count", lowStockThreshold: 5, costPerUnit: 0.60 },
 ];
 
 const initialBeverageInventory: BeverageItem[] = [
@@ -420,7 +430,7 @@ const initialRecipes: Recipe[] = [
       { step: "Sauté chopped onions and garlic in olive oil and butter." },
       { step: "Add Arborio rice, toast for 2 minutes. Deglaze with white wine." },
       { step: "Gradually add warm vegetable broth, stirring constantly, until absorbed." },
-      { step: "Stir in sautéed wild mushrooms and Parmesan cheese. Season to taste." },
+      { step: "Stir in sautéed wild mushrooms and Parmesan Cheese. Season to taste." },
       { step: "Garnish with fresh parsley before serving." },
     ],
     baseCost: 25.00,
@@ -648,6 +658,106 @@ const initialRecipes: Recipe[] = [
     ],
     baseCost: 7.00,
   },
+  // NEW DESSERTS
+  {
+    id: "r16",
+    name: "New York Cheesecake",
+    description: "Classic rich and creamy cheesecake with a graham cracker crust.",
+    prepTime: "45 mins",
+    cookTime: "70 mins",
+    servings: "12",
+    category: "Dessert",
+    ingredients: [
+      { name: "Cream Cheese", quantity: "1 kg" },
+      { name: "Sugar", quantity: "0.3 kg" },
+      { name: "Eggs", quantity: "4 count" },
+      { name: "Heavy Cream (Dessert)", quantity: "0.1 L" },
+      { name: "Vanilla Extract", quantity: "10 ml" },
+      { name: "Graham Cracker Crumbs", quantity: "0.2 kg" },
+      { name: "Butter", quantity: "0.08 kg" },
+      { name: "Lemon", quantity: "1 count" },
+    ],
+    instructions: [
+      { step: "Preheat oven to 325°F (160°C). Prepare springform pan with graham cracker crust." },
+      { step: "Beat cream cheese and sugar until smooth. Add eggs one at a time, then heavy cream, vanilla, and lemon zest." },
+      { step: "Pour batter into crust. Bake for 60-70 minutes until edges are set and center is slightly jiggly." },
+      { step: "Cool completely, then chill for at least 4 hours or overnight before serving." },
+    ],
+    baseCost: 25.00,
+  },
+  {
+    id: "r17",
+    name: "Tiramisu",
+    description: "Classic Italian dessert with layers of coffee-soaked ladyfingers and mascarpone cream.",
+    prepTime: "30 mins",
+    cookTime: "0 mins",
+    servings: "8",
+    category: "Dessert",
+    ingredients: [
+      { name: "Mascarpone Cheese", quantity: "0.5 kg" },
+      { name: "Eggs", quantity: "4 count" }, // Yolks only
+      { name: "Sugar", quantity: "0.15 kg" },
+      { name: "Espresso Powder", quantity: "20 g" },
+      { name: "Ladyfingers", quantity: "1 pack" },
+      { name: "Cocoa Powder", quantity: "20 g" },
+      { name: "Dark Chocolate", quantity: "50 g" }, // For shaving
+      { name: "Coffee Liqueur (optional)", quantity: "50 ml" },
+    ],
+    instructions: [
+      { step: "Brew strong espresso and let cool. Mix with coffee liqueur if using." },
+      { step: "Whisk egg yolks and sugar over a double boiler until pale and thick. Remove from heat, stir in mascarpone." },
+      { step: "In a separate bowl, whip egg whites to soft peaks and gently fold into mascarpone mixture." },
+      { step: "Quickly dip ladyfingers in espresso, arrange a layer in a dish. Spread half the mascarpone cream over." },
+      { step: "Repeat layers. Chill for at least 4 hours. Dust with cocoa powder and chocolate shavings before serving." },
+    ],
+    baseCost: 30.00,
+  },
+  // NEW ALCOHOLIC BEVERAGES
+  {
+    id: "r18",
+    name: "Old Fashioned",
+    description: "A classic cocktail made with whiskey, bitters, sugar, and an orange peel.",
+    prepTime: "2 mins",
+    cookTime: "0 mins",
+    servings: "1",
+    category: "Alcoholic Beverage",
+    ingredients: [
+      { name: "Whiskey (Bourbon)", quantity: "60 ml" },
+      { name: "Angostura Bitters", quantity: "2 dashes" },
+      { name: "Sugar", quantity: "1 cube" },
+      { name: "Orange", quantity: "1 peel" },
+      { name: "Ice", quantity: "large cube" },
+    ],
+    instructions: [
+      { step: "Place sugar cube in an Old Fashioned glass, add bitters and a splash of water. Muddle until sugar dissolves." },
+      { step: "Add whiskey and a large ice cube. Stir gently for 30 seconds to chill and dilute." },
+      { step: "Express the oil from an orange peel over the drink, then drop it in. Serve." },
+    ],
+    baseCost: 10.00,
+  },
+  {
+    id: "r19",
+    name: "Mojito",
+    description: "A refreshing Cuban highball with white rum, lime juice, sugar, mint, and soda water.",
+    prepTime: "5 mins",
+    cookTime: "0 mins",
+    servings: "1",
+    category: "Alcoholic Beverage",
+    ingredients: [
+      { name: "White Rum", quantity: "60 ml" },
+      { name: "Fresh Limes", quantity: "1 count" },
+      { name: "Fresh Mint", quantity: "10 leaves" },
+      { name: "Sugar", quantity: "2 tsp" },
+      { name: "Club Soda", quantity: "90 ml" },
+      { name: "Ice", quantity: "crushed" },
+    ],
+    instructions: [
+      { step: "In a sturdy glass, gently muddle mint leaves with sugar and lime juice." },
+      { step: "Add rum and fill the glass with crushed ice." },
+      { step: "Top with club soda. Stir gently to combine. Garnish with a lime wedge and mint sprig." },
+    ],
+    baseCost: 9.00,
+  },
 ];
 
 const initialMenus: Menu[] = [
@@ -658,8 +768,8 @@ const initialMenus: Menu[] = [
     category: "Wedding",
     appetizerIds: ["r10"], // Mini Caprese Skewers
     mainCourseIds: ["r3", "r7"], // Herb-Crusted Roasted Salmon, Roasted Pork Loin with Apple Chutney
-    dessertIds: ["r13"], // Seasonal Fruit Tart
-    alcoholicBeverageIds: ["r11"], // Classic Margarita
+    dessertIds: ["r13", "r16"], // Seasonal Fruit Tart, New York Cheesecake
+    alcoholicBeverageIds: ["r11", "r19"], // Classic Margarita, Mojito
     nonAlcoholicBeverageIds: ["r9", "r15"], // Sparkling Raspberry Lemonade, Sparkling Orange Blossom Water
     sideDishIds: ["r2"], // Garden Salad
     createdAt: new Date().toISOString(),
@@ -672,7 +782,7 @@ const initialMenus: Menu[] = [
     category: "Corporate",
     appetizerIds: [],
     mainCourseIds: ["r1", "r4"], // Classic Beef Stroganoff, Chicken Marsala
-    dessertIds: ["r12"], // Chocolate Lava Cake
+    dessertIds: ["r12", "r17"], // Chocolate Lava Cake, Tiramisu
     alcoholicBeverageIds: [],
     nonAlcoholicBeverageIds: ["r9", "r14"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea
     sideDishIds: ["r2"], // Garden Salad
@@ -687,7 +797,7 @@ const initialMenus: Menu[] = [
     appetizerIds: ["r10"], // Mini Caprese Skewers
     mainCourseIds: ["r6"], // Wild Mushroom Risotto
     dessertIds: ["r13"], // Seasonal Fruit Tart
-    alcoholicBeverageIds: [],
+    alcoholicBeverageIds: ["r18"], // Old Fashioned
     nonAlcoholicBeverageIds: ["r9", "r14"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea
     sideDishIds: ["r2"], // Garden Salad
     createdAt: new Date().toISOString(),
@@ -773,7 +883,7 @@ export const useCateringStore = create<CateringState>()(
       })),
       updateBooking: (updatedBooking) => set((state) => ({
         bookings: state.bookings.map((booking) =>
-          booking.id === updatedBooking.id ? updatedBooking : booking
+          booking.id === updatedItem.id ? updatedBooking : booking
         ),
       })),
       deleteBooking: (id) => set((state) => ({
