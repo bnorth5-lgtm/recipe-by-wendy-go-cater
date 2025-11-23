@@ -22,7 +22,7 @@ export interface Recipe {
   prepTime: string;
   cookTime: string;
   servings: string;
-  category: "Appetizer" | "Main Course" | "Dessert" | "Beverage" | "Side Dish" | "Breakfast" | "Other" | "Vegetarian Main";
+  category: "Appetizer" | "Main Course" | "Dessert" | "Alcoholic Beverage" | "Non-Alcoholic Beverage" | "Side Dish" | "Breakfast" | "Vegetarian Main" | "Other";
   ingredients: RecipeIngredient[];
   instructions: RecipeInstruction[];
   sourceUrl?: string; // Added for recipe import simulation
@@ -119,7 +119,7 @@ export interface Estimate {
   updatedAt: string; // To track when the estimate was last updated
 }
 
-// NEW: Define the schema for a Menu
+// Define the schema for a Menu
 export interface Menu {
   id: string;
   name: string;
@@ -288,7 +288,6 @@ const initialRecipes: Recipe[] = [
     ],
     baseCost: 8.00, // Example base cost
   },
-  // New Recipes
   {
     id: "r3",
     name: "Herb-Crusted Roasted Salmon",
@@ -380,11 +379,11 @@ const initialRecipes: Recipe[] = [
   {
     id: "r6",
     name: "Wild Mushroom Risotto",
-    description: "Creamy Arborio rice cooked with a medley of earthy wild mushrooms. (Vegetarian)",
+    description: "Creamy Arborio rice cooked with a medley of earthy wild mushrooms.",
     prepTime: "20 mins",
     cookTime: "40 mins",
     servings: "4",
-    category: "Vegetarian Main",
+    category: "Vegetarian Main", // Updated category
     ingredients: [
       { name: "Arborio Rice", quantity: "0.3 kg" },
       { name: "Mixed Wild Mushrooms", quantity: "0.4 kg" },
@@ -466,6 +465,73 @@ const initialRecipes: Recipe[] = [
       { step: "Toss cooked linguine with shrimp sauce. Add a splash of pasta water if needed. Garnish with fresh parsley." },
     ],
     baseCost: 30.00,
+  },
+  {
+    id: "r9",
+    name: "Sparkling Raspberry Lemonade",
+    description: "A refreshing non-alcoholic drink with fresh raspberries and lemon.",
+    prepTime: "10 mins",
+    cookTime: "0 mins",
+    servings: "6",
+    category: "Non-Alcoholic Beverage", // New category
+    ingredients: [
+      { name: "Raspberries", quantity: "0.2 kg" },
+      { name: "Lemons", quantity: "4 count" },
+      { name: "Sugar", quantity: "0.1 kg" },
+      { name: "Sparkling Water", quantity: "1 L" },
+      { name: "Mint Sprigs", quantity: "6 count" },
+    ],
+    instructions: [
+      { step: "Muddle raspberries and sugar in a pitcher." },
+      { step: "Add fresh lemon juice and stir well." },
+      { step: "Top with sparkling water and ice." },
+      { step: "Garnish with mint sprigs and lemon slices." },
+    ],
+    baseCost: 6.00,
+  },
+  {
+    id: "r10",
+    name: "Mini Caprese Skewers",
+    description: "Bite-sized skewers with cherry tomatoes, fresh mozzarella, and basil.",
+    prepTime: "15 mins",
+    cookTime: "0 mins",
+    servings: "12",
+    category: "Appetizer", // Existing category, good example
+    ingredients: [
+      { name: "Cherry Tomatoes", quantity: "0.3 kg" },
+      { name: "Fresh Mozzarella Balls (mini)", quantity: "0.2 kg" },
+      { name: "Fresh Basil Leaves", quantity: "20 count" },
+      { name: "Balsamic Glaze", quantity: "0.05 L" },
+    ],
+    instructions: [
+      { step: "Thread cherry tomato, mozzarella ball, and basil leaf onto small skewers." },
+      { step: "Arrange on a platter." },
+      { step: "Drizzle with balsamic glaze just before serving." },
+    ],
+    baseCost: 12.00,
+  },
+  {
+    id: "r11",
+    name: "Classic Margarita",
+    description: "A timeless cocktail with tequila, lime, and triple sec.",
+    prepTime: "5 mins",
+    cookTime: "0 mins",
+    servings: "1",
+    category: "Alcoholic Beverage", // New category
+    ingredients: [
+      { name: "Tequila", quantity: "60 ml" },
+      { name: "Fresh Lime Juice", quantity: "30 ml" },
+      { name: "Triple Sec", quantity: "20 ml" },
+      { name: "Salt (for rim)", quantity: "5 g" },
+      { name: "Lime Wedge", quantity: "1 count" },
+    ],
+    instructions: [
+      { step: "Rim a chilled margarita glass with salt." },
+      { step: "Combine tequila, lime juice, and triple sec in a shaker with ice." },
+      { step: "Shake well until thoroughly chilled." },
+      { step: "Strain into the prepared glass over fresh ice. Garnish with a lime wedge." },
+    ],
+    baseCost: 8.00,
   },
 ];
 

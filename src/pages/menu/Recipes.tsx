@@ -48,7 +48,7 @@ const recipeFormSchema = z.object({
   prepTime: z.string().min(1, "Preparation time is required"),
   cookTime: z.string().min(1, "Cook time is required"),
   servings: z.string().min(1, "Servings is required"),
-  category: z.enum(["Appetizer", "Main Course", "Dessert", "Beverage", "Side Dish", "Breakfast", "Other"], {
+  category: z.enum(["Appetizer", "Main Course", "Dessert", "Alcoholic Beverage", "Non-Alcoholic Beverage", "Side Dish", "Breakfast", "Vegetarian Main", "Other"], {
     required_error: "Please select a category.",
   }),
   ingredients: z.array(z.object({
@@ -265,9 +265,11 @@ const Recipes = () => {
                           <SelectItem value="Appetizer">Appetizer</SelectItem>
                           <SelectItem value="Main Course">Main Course</SelectItem>
                           <SelectItem value="Dessert">Dessert</SelectItem>
-                          <SelectItem value="Beverage">Beverage</SelectItem>
+                          <SelectItem value="Alcoholic Beverage">Alcoholic Beverage</SelectItem>
+                          <SelectItem value="Non-Alcoholic Beverage">Non-Alcoholic Beverage</SelectItem>
                           <SelectItem value="Side Dish">Side Dish</SelectItem>
                           <SelectItem value="Breakfast">Breakfast</SelectItem>
+                          <SelectItem value="Vegetarian Main">Vegetarian Main</SelectItem>
                           <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
