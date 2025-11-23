@@ -116,6 +116,10 @@ const Inventory = () => {
 
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
+      {/* DIAGNOSTIC: If you see this, the file is updating! */}
+      <h2 className="text-red-500 text-2xl font-bold mb-4">DIAGNOSTIC: INVENTORY PAGE UPDATE TEST</h2>
+      {/* END DIAGNOSTIC */}
+
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-4">Inventory Management</h1>
         <p className="text-xl text-muted-foreground">
