@@ -31,12 +31,21 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, Recipe, RecipeIngredient, RecipeInstruction } from "@/store/cateringStore"; // Import from store
+import RecipeImporter from "@/components/RecipeImporter"; // Import the new component
 
-// Define the form data type directly from the store's Recipe type
-type RecipeFormData = Omit<Recipe, 'id'>;
+// Define the schema for a single ingredient
+const ingredientSchema = z.object({
+  name: z.string().min(1, "Ingredient name is required"),
+  quantity: z.string().min(1, "Quantity is required"),
+});
 
-// Define the main schema for a recipe, explicitly typed to RecipeFormData
-const recipeFormSchema: z.ZodType<RecipeFormData> = z.object({
+// Define the schema for a single instruction step
+const instructionSchema = z.object({
+  step: z.string().min(1, "Instruction step is required"),
+});
+
+// Define the main schema for a recipe
+const recipeFormSchema = z.object({
   name: z.string().min(1, "Recipe name is required"),
   description: z.string().min(1, "Description is required"),
   prepTime: z.string().min(1, "Preparation time is required"),
@@ -45,14 +54,12 @@ const recipeFormSchema: z.ZodType<RecipeFormData> = z.object({
   category: z.enum(["Appetizer", "Main Course", "Dessert", "Beverage", "Side Dish", "Breakfast", "Other"], {
     required_error: "Please select a category.",
   }),
-  ingredients: z.array(z.object({
-    name: z.string().min(1, "Ingredient name is required"),
-    quantity: z.string().min(1, "Quantity is required"),
-  })).min(1, "At least one ingredient is required"),
-  instructions: z.array(z.object({
-    step: z.string().min(1, "Instruction step is required"),
-  })).min(1, "At least one instruction step is required"),
+  ingredients: z.array(ingredientSchema).min(1, "At least one ingredient is required"),
+  instructions: z.array(instructionSchema).min(1, "At least one instruction step is required"),
 });
+
+// Infer the form data type directly from the schema
+type RecipeFormData = z.infer<typeof recipeFormSchema>;
 
 const Recipes = () => {
   const recipes = useCateringStore((state) => state.recipes);
@@ -84,7 +91,7 @@ const Recipes = () => {
   });
 
   const onSubmit = (data: RecipeFormData) => {
-    addRecipe(data);
+    addRecipe(data as Omit<Recipe, 'id'>); // Explicitly cast data
     form.reset({
       name: "",
       description: "",
@@ -103,6 +110,12 @@ const Recipes = () => {
     toast.info("Recipe deleted.");
   };
 
+  const handleImportedRecipe = (importedRecipe: Omit<Recipe, 'id'>) => {
+    // Set the form values with the imported recipe data
+    form.reset(importedRecipe);
+    toast.info("Recipe data loaded into form. Review and click 'Add Recipe' to save.");
+  };
+
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
       <div className="text-center mb-8">
@@ -113,6 +126,8 @@ const Recipes = () => {
       </div>
 
       <div className="w-full max-w-4xl space-y-8">
+        <RecipeImporter onRecipeImport={handleImportedRecipe} /> {/* Integrate the importer */}
+
         <Card className="bg-card p-6 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Add New Recipe</CardTitle>

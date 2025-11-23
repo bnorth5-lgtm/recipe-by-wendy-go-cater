@@ -36,6 +36,16 @@ export interface InventoryItem {
   lowStockThreshold: number;
 }
 
+// Define the schema for a beverage item (similar to InventoryItem)
+export interface BeverageItem {
+  id: string;
+  name: string;
+  type: "Cocktail" | "Wine" | "Beer" | "Non-Alcoholic" | "Spirit" | "Other";
+  currentStock: number;
+  unit: string;
+  lowStockThreshold: number;
+}
+
 // Define the schema for an event booking
 export interface EventBooking {
   id: string;
@@ -51,6 +61,7 @@ interface CateringState {
   inventory: InventoryItem[];
   recipes: Recipe[];
   bookings: EventBooking[];
+  beverages: BeverageItem[]; // New beverage state
   
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void;
   updateInventoryItem: (item: InventoryItem) => void;
@@ -65,6 +76,12 @@ interface CateringState {
   updateBooking: (booking: EventBooking) => void;
   deleteBooking: (id: string) => void;
   completeBooking: (id: string) => boolean; // Returns true if completed and inventory deducted, false otherwise
+
+  // New beverage actions
+  addBeverageItem: (item: Omit<BeverageItem, 'id'>) => void;
+  updateBeverageItem: (item: BeverageItem) => void;
+  deleteBeverageItem: (id: string) => void;
+  deductBeverage: (beverageId: string, quantity: number) => boolean; // Deduct specific quantity
 }
 
 const initialInventory: InventoryItem[] = [
@@ -85,12 +102,29 @@ const initialInventory: InventoryItem[] = [
   { id: "15", name: "Rice (Basmati)", currentStock: 50, unit: "kg", lowStockThreshold: 10 },
 ];
 
+const initialBeverages: BeverageItem[] = [
+  { id: "b1", name: "Coca-Cola", type: "Non-Alcoholic", currentStock: 100, unit: "can", lowStockThreshold: 20 },
+  { id: "b2", name: "Orange Juice", type: "Non-Alcoholic", currentStock: 15, unit: "L", lowStockThreshold: 3 },
+  { id: "b3", name: "Still Water", type: "Non-Alcoholic", currentStock: 200, unit: "bottle", lowStockThreshold: 50 },
+  { id: "b4", name: "Espresso Roast Coffee", type: "Non-Alcoholic", currentStock: 5, unit: "kg", lowStockThreshold: 1 },
+  { id: "b5", name: "Merlot (Red Wine)", type: "Wine", currentStock: 20, unit: "bottle", lowStockThreshold: 5 },
+  { id: "b6", name: "Chardonnay (White Wine)", type: "Wine", currentStock: 25, unit: "bottle", lowStockThreshold: 5 },
+  { id: "b7", name: "Heineken Lager", type: "Beer", currentStock: 60, unit: "bottle", lowStockThreshold: 12 },
+  { id: "b8", name: "IPA Craft Beer", type: "Beer", currentStock: 30, unit: "can", lowStockThreshold: 6 },
+  { id: "b9", name: "Vodka (Absolut)", type: "Spirit", currentStock: 10, unit: "L", lowStockThreshold: 2 },
+  { id: "b10", name: "Gin (Bombay Sapphire)", type: "Spirit", currentStock: 8, unit: "L", lowStockThreshold: 1 },
+  { id: "b11", name: "Whiskey (Jack Daniel's)", type: "Spirit", currentStock: 7, unit: "L", lowStockThreshold: 1 },
+  { id: "b12", name: "Mojito Mix", type: "Cocktail", currentStock: 5, unit: "L", lowStockThreshold: 1 },
+];
+
+
 export const useCateringStore = create<CateringState>()(
   persist(
     (set, get) => ({
       inventory: initialInventory,
       recipes: [],
       bookings: [],
+      beverages: initialBeverages, // Initialize beverages
 
       addInventoryItem: (item) => set((state) => ({
         inventory: [...state.inventory, { ...item, id: crypto.randomUUID() }],
@@ -187,6 +221,38 @@ export const useCateringStore = create<CateringState>()(
           return true;
         }
         return false;
+      },
+
+      // Beverage actions implementation
+      addBeverageItem: (item) => set((state) => ({
+        beverages: [...state.beverages, { ...item, id: crypto.randomUUID() }],
+      })),
+      updateBeverageItem: (updatedItem) => set((state) => ({
+        beverages: state.beverages.map((item) =>
+          item.id === updatedItem.id ? updatedItem : item
+        ),
+      })),
+      deleteBeverageItem: (id) => set((state) => ({
+        beverages: state.beverages.filter((item) => item.id !== id),
+      })),
+      deductBeverage: (beverageId, quantity) => {
+        const updatedBeverages = get().beverages.map(item => {
+          if (item.id === beverageId) {
+            if (item.currentStock >= quantity) {
+              return { ...item, currentStock: item.currentStock - quantity };
+            } else {
+              return item; // Not enough stock
+            }
+          }
+          return item;
+        });
+
+        const beverage = updatedBeverages.find(item => item.id === beverageId);
+        if (beverage && beverage.currentStock < get().beverages.find(item => item.id === beverageId)!.currentStock) {
+          set({ beverages: updatedBeverages });
+          return true; // Deduction successful
+        }
+        return false; // Deduction failed (not enough stock)
       },
     }),
     {

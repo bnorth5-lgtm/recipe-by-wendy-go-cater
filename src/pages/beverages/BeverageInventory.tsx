@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,68 +44,72 @@ import * as z from "zod";
 import { PlusCircle, Edit, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { useCateringStore, InventoryItem } from "@/store/cateringStore"; // Import from store
+import { useCateringStore, BeverageItem } from "@/store/cateringStore";
 
-// Define the schema for an inventory item
-const inventoryItemSchema = z.object({
-  name: z.string().min(1, "Item name is required"),
+// Define the schema for a beverage item
+const beverageItemSchema = z.object({
+  name: z.string().min(1, "Beverage name is required"),
+  type: z.enum(["Cocktail", "Wine", "Beer", "Non-Alcoholic", "Spirit", "Other"], {
+    required_error: "Beverage type is required.",
+  }),
   currentStock: z.coerce.number().min(0, "Stock cannot be negative"),
   unit: z.string().min(1, "Unit is required"),
   lowStockThreshold: z.coerce.number().min(0, "Threshold cannot be negative"),
 });
 
 // Infer the form data type directly from the schema
-type InventoryFormData = z.infer<typeof inventoryItemSchema>;
+type BeverageFormData = z.infer<typeof beverageItemSchema>;
 
-const Inventory = () => {
-  const inventory = useCateringStore((state) => state.inventory);
-  const addInventoryItem = useCateringStore((state) => state.addInventoryItem);
-  const updateInventoryItem = useCateringStore((state) => state.updateInventoryItem);
-  const deleteInventoryItem = useCateringStore((state) => state.deleteInventoryItem);
+const BeverageInventory = () => {
+  const beverages = useCateringStore((state) => state.beverages);
+  const addBeverageItem = useCateringStore((state) => state.addBeverageItem);
+  const updateBeverageItem = useCateringStore((state) => state.updateBeverageItem);
+  const deleteBeverageItem = useCateringStore((state) => state.deleteBeverageItem);
 
-  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [editingItem, setEditingItem] = useState<BeverageItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const form = useForm<InventoryFormData>({
-    resolver: zodResolver(inventoryItemSchema),
+  const form = useForm<BeverageFormData>({
+    resolver: zodResolver(beverageItemSchema),
     defaultValues: {
       name: "",
+      type: "Non-Alcoholic",
       currentStock: 0,
-      unit: "kg",
+      unit: "bottle",
       lowStockThreshold: 10,
     },
   });
 
-  const onSubmit = (data: InventoryFormData) => {
+  const onSubmit = (data: BeverageFormData) => {
     if (editingItem) {
-      updateInventoryItem({ ...data, id: editingItem.id } as InventoryItem); // Explicitly cast data
-      toast.success("Inventory item updated successfully!");
+      updateBeverageItem({ ...data, id: editingItem.id } as BeverageItem); // Explicitly cast data
+      toast.success("Beverage item updated successfully!");
     } else {
-      addInventoryItem(data as Omit<InventoryItem, 'id'>); // Explicitly cast data
-      toast.success("Inventory item added successfully!");
+      addBeverageItem(data as Omit<BeverageItem, 'id'>); // Explicitly cast data
+      toast.success("Beverage item added successfully!");
     }
     form.reset();
     setEditingItem(null);
     setIsDialogOpen(false);
   };
 
-  const handleEdit = (item: InventoryItem) => {
+  const handleEdit = (item: BeverageItem) => {
     setEditingItem(item);
     form.reset(item); // Populate form with item data
     setIsDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
-    deleteInventoryItem(id);
-    toast.info("Inventory item deleted.");
+    deleteBeverageItem(id);
+    toast.info("Beverage item deleted.");
   };
 
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4">Inventory Management</h1>
+        <h1 className="text-4xl font-bold mb-4">Beverage Inventory Management</h1>
         <p className="text-xl text-muted-foreground">
-          Track your ingredient stock levels, manage suppliers, and monitor usage.
+          Track your beverage stock levels, manage types, and monitor usage.
         </p>
       </div>
 
@@ -113,24 +117,24 @@ const Inventory = () => {
         <Card className="bg-card p-6 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
-              {editingItem ? "Edit Inventory Item" : "Add New Inventory Item"}
+              {editingItem ? "Edit Beverage Item" : "Add New Beverage Item"}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              {editingItem ? "Update the details of your inventory item." : "Fill in the details to add a new item to your inventory."}
+              {editingItem ? "Update the details of your beverage item." : "Fill in the details to add a new item to your beverage inventory."}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="w-full mb-6">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add New Item
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add New Beverage
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle>{editingItem ? "Edit Inventory Item" : "Add New Inventory Item"}</DialogTitle>
+                  <DialogTitle>{editingItem ? "Edit Beverage Item" : "Add New Beverage Item"}</DialogTitle>
                   <DialogDescription>
-                    {editingItem ? "Make changes to the inventory item here. Click save when you're done." : "Add a new item to your inventory. Click save when you're done."}
+                    {editingItem ? "Make changes to the beverage item here. Click save when you're done." : "Add a new item to your beverage inventory. Click save when you're done."}
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -140,10 +144,35 @@ const Inventory = () => {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Item Name</FormLabel>
+                          <FormLabel>Beverage Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., Chicken Breast" {...field} />
+                            <Input placeholder="e.g., Coca-Cola" {...field} />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Beverage Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Cocktail">Cocktail</SelectItem>
+                              <SelectItem value="Wine">Wine</SelectItem>
+                              <SelectItem value="Beer">Beer</SelectItem>
+                              <SelectItem value="Non-Alcoholic">Non-Alcoholic</SelectItem>
+                              <SelectItem value="Spirit">Spirit</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -174,15 +203,12 @@ const Inventory = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="kg">Kilograms (kg)</SelectItem>
-                              <SelectItem value="g">Grams (g)</SelectItem>
-                              <SelectItem value="lbs">Pounds (lbs)</SelectItem>
-                              <SelectItem value="oz">Ounces (oz)</SelectItem>
+                              <SelectItem value="bottle">Bottle</SelectItem>
+                              <SelectItem value="can">Can</SelectItem>
                               <SelectItem value="L">Liters (L)</SelectItem>
                               <SelectItem value="ml">Milliliters (ml)</SelectItem>
-                              <SelectItem value="count">Count</SelectItem>
-                              <SelectItem value="box">Box</SelectItem>
-                              <SelectItem value="can">Can</SelectItem>
+                              <SelectItem value="pack">Pack</SelectItem>
+                              <SelectItem value="keg">Keg</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -212,21 +238,22 @@ const Inventory = () => {
           </CardContent>
         </Card>
 
-        {/* Display Existing Inventory */}
+        {/* Display Existing Beverages */}
         <Card className="bg-card p-6 rounded-lg shadow-md">
           <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-primary">Current Inventory</CardTitle>
-            <CardDescription className="text-muted-foreground">A list of all items in your inventory.</CardDescription>
+            <CardTitle className="text-2xl font-semibold text-primary">Current Beverage Inventory</CardTitle>
+            <CardDescription className="text-muted-foreground">A list of all items in your beverage inventory.</CardDescription>
           </CardHeader>
           <CardContent>
-            {inventory.length === 0 ? (
-              <p className="text-muted-foreground text-center">No inventory items added yet. Click "Add New Item" to get started!</p>
+            {beverages.length === 0 ? (
+              <p className="text-muted-foreground text-center">No beverage items added yet. Click "Add New Beverage" to get started!</p>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Item Name</TableHead>
+                      <TableHead>Beverage Name</TableHead>
+                      <TableHead>Type</TableHead>
                       <TableHead>Current Stock</TableHead>
                       <TableHead>Unit</TableHead>
                       <TableHead>Low Stock Threshold</TableHead>
@@ -235,9 +262,10 @@ const Inventory = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {inventory.map((item) => (
+                    {beverages.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell>{item.type}</TableCell>
                         <TableCell>{item.currentStock}</TableCell>
                         <TableCell>{item.unit}</TableCell>
                         <TableCell>{item.lowStockThreshold}</TableCell>
@@ -281,4 +309,4 @@ const Inventory = () => {
   );
 };
 
-export default Inventory;
+export default BeverageInventory;

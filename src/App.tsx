@@ -27,7 +27,15 @@ import BEOs from "./pages/events/BEOs.tsx";
 import GeneralSettings from "./pages/settings/General.tsx";
 import UsersSettings from "./pages/settings/Users.tsx";
 import BrandingSettings from "./pages/settings/Branding.tsx";
-import CateringAverages from "./pages/settings/CateringAverages.tsx"; // New import
+import CateringAverages from "./pages/settings/CateringAverages.tsx";
+
+// Import new beverage pages
+import BeverageInventory from "./pages/beverages/BeverageInventory.tsx";
+import Cocktails from "./pages/beverages/Cocktails.tsx";
+import Wine from "./pages/beverages/Wine.tsx";
+import Beer from "./pages/beverages/Beer.tsx";
+import GeneralBeverages from "./pages/beverages/GeneralBeverages.tsx";
+
 
 const App = () => {
   return (
@@ -57,12 +65,20 @@ const App = () => {
             <Route path="/events/bookings" element={<Bookings />} />
             <Route path="/events/beos" element={<BEOs />} />
 
+            {/* Beverages Routes */}
+            <Route path="/beverages" element={<Navigate to="/beverages/inventory" replace />} />
+            <Route path="/beverages/inventory" element={<BeverageInventory />} />
+            <Route path="/beverages/cocktails" element={<Cocktails />} />
+            <Route path="/beverages/wine" element={<Wine />} />
+            <Route path="/beverages/beer" element={<Beer />} />
+            <Route path="/beverages/general" element={<GeneralBeverages />} />
+
             {/* Settings Routes */}
             <Route path="/settings" element={<Navigate to="/settings/general" replace />} />
             <Route path="/settings/general" element={<GeneralSettings />} />
             <Route path="/settings/users" element={<UsersSettings />} />
             <Route path="/settings/branding" element={<BrandingSettings />} />
-            <Route path="/settings/catering-averages" element={<CateringAverages />} /> {/* New route */}
+            <Route path="/settings/catering-averages" element={<CateringAverages />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
