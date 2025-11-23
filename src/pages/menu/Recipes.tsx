@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,10 +22,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, Link as LinkIcon } from "lucide-react"; // Added LinkIcon
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
@@ -35,8 +44,8 @@ import { useCateringStore, Recipe, RecipeIngredient, RecipeInstruction } from "@
 // Define the form data type directly from the store's Recipe type
 type RecipeFormData = Omit<Recipe, 'id'>;
 
-// Define the main schema for a recipe, explicitly typed to RecipeFormData
-const recipeFormSchema: z.ZodType<RecipeFormData> = z.object({
+// Define the main schema for a recipe
+const recipeFormSchema = z.object({
   name: z.string().min(1, "Recipe name is required"),
   description: z.string().min(1, "Description is required"),
   prepTime: z.string().min(1, "Preparation time is required"),
@@ -52,12 +61,16 @@ const recipeFormSchema: z.ZodType<RecipeFormData> = z.object({
   instructions: z.array(z.object({
     step: z.string().min(1, "Instruction step is required"),
   })).min(1, "At least one instruction step is required"),
+  sourceUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")), // New: Source URL
 });
 
 const Recipes = () => {
   const recipes = useCateringStore((state) => state.recipes);
   const addRecipe = useCateringStore((state) => state.addRecipe);
   const deleteRecipe = useCateringStore((state) => state.deleteRecipe);
+
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false); // State for import dialog
+  const [importUrl, setImportUrl] = useState(""); // State for the URL input in the import dialog
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeFormSchema),
@@ -70,6 +83,7 @@ const Recipes = () => {
       category: "Main Course",
       ingredients: [{ name: "", quantity: "" }],
       instructions: [{ step: "" }],
+      sourceUrl: "", // Initialize sourceUrl
     },
   });
 
@@ -94,6 +108,7 @@ const Recipes = () => {
       category: "Main Course",
       ingredients: [{ name: "", quantity: "" }],
       instructions: [{ step: "" }],
+      sourceUrl: "",
     }); // Reset the form after submission
     toast.success("Recipe added successfully!");
   };
@@ -101,6 +116,26 @@ const Recipes = () => {
   const handleDeleteRecipe = (id: string) => {
     deleteRecipe(id);
     toast.info("Recipe deleted.");
+  };
+
+  const handleImportRecipe = () => {
+    // In a real scenario, you'd send the URL to a backend for scraping.
+    // For this simulation, we'll just open the main form and pre-fill the URL.
+    // The user would then manually fill the rest.
+    if (importUrl) {
+      // Validate URL format before setting
+      const urlValidation = z.string().url("Must be a valid URL").safeParse(importUrl);
+      if (urlValidation.success) {
+        toast.info(`Simulating import from: ${importUrl}. Please fill details manually.`);
+        form.setValue("sourceUrl", importUrl); // Set the sourceUrl in the main form
+        setIsImportDialogOpen(false); // Close the dialog after "import"
+        setImportUrl(""); // Clear the import URL input
+      } else {
+        toast.error(urlValidation.error.errors[0].message);
+      }
+    } else {
+      toast.error("Please enter a URL to import.");
+    }
   };
 
   return (
@@ -119,6 +154,34 @@ const Recipes = () => {
             <CardDescription className="text-muted-foreground">Fill in the details to create a new recipe.</CardDescription>
           </CardHeader>
           <CardContent>
+            <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full mb-4">
+                  <LinkIcon className="mr-2 h-4 w-4" /> Import Recipe from URL
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Import Recipe</DialogTitle>
+                  <DialogDescription>
+                    Paste a recipe URL below. (Note: This is a simulated import. You will still need to manually fill the recipe details.)
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <Label htmlFor="recipe-url">Recipe URL</Label>
+                  <Input
+                    id="recipe-url"
+                    placeholder="https://www.example.com/my-recipe"
+                    value={importUrl}
+                    onChange={(e) => setImportUrl(e.target.value)}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button type="button" onClick={handleImportRecipe}>Import (Simulated)</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -312,6 +375,20 @@ const Recipes = () => {
                   </Button>
                 </div>
 
+                <FormField
+                  control={form.control}
+                  name="sourceUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Source URL (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., https://www.foodblog.com/my-recipe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <Button type="submit" className="w-full">Add Recipe</Button>
               </form>
             </Form>
@@ -338,6 +415,14 @@ const Recipes = () => {
                         <div className="mt-2 text-sm">
                           <p><strong>Category:</strong> {recipe.category}</p>
                           <p><strong>Prep:</strong> {recipe.prepTime} | <strong>Cook:</strong> {recipe.cookTime} | <strong>Servings:</strong> {recipe.servings}</p>
+                          {recipe.sourceUrl && (
+                            <p>
+                              <strong>Source:</strong>{" "}
+                              <a href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                                {new URL(recipe.sourceUrl).hostname}
+                              </a>
+                            </p>
+                          )}
                         </div>
                         <div className="mt-2">
                           <h4 className="font-medium">Ingredients:</h4>

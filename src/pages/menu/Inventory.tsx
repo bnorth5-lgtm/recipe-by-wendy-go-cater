@@ -49,8 +49,8 @@ import { useCateringStore, InventoryItem } from "@/store/cateringStore"; // Impo
 // Define the form data type directly from the store's InventoryItem type
 type InventoryFormData = Omit<InventoryItem, 'id'>;
 
-// Define the schema for an inventory item, explicitly typed to InventoryFormData
-const inventoryItemSchema: z.ZodType<InventoryFormData> = z.object({
+// Define the schema for an inventory item
+const inventoryItemSchema = z.object({
   name: z.string().min(1, "Item name is required"),
   currentStock: z.coerce.number().min(0, "Stock cannot be negative"),
   unit: z.string().min(1, "Unit is required"),
