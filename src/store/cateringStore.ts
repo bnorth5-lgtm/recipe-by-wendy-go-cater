@@ -177,25 +177,32 @@ const initialInventory: InventoryItem[] = [
   { id: "1a", name: "Beef Sirloin (8oz cut)", category: "Food Ingredient", currentStock: 40, unit: "8oz cut", lowStockThreshold: 10, costPerUnit: (10.50 / 16) * 8, markupPercentage: 0.20 },
   { id: "1b", name: "Beef Sirloin (12oz cut)", category: "Food Ingredient", currentStock: 30, unit: "12oz cut", lowStockThreshold: 8, costPerUnit: (10.50 / 16) * 12, markupPercentage: 0.20 },
   { id: "1c", name: "Beef Sirloin (16oz cut)", category: "Food Ingredient", currentStock: 20, unit: "16oz cut", lowStockThreshold: 5, costPerUnit: 10.50, markupPercentage: 0.20 },
-  { id: "25", name: "Beef Tenderloin", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 25.00, markupPercentage: 0.25 },
-  { id: "96", name: "Porterhouse Steak", category: "Food Ingredient", currentStock: 15, unit: "16oz", lowStockThreshold: 3, costPerUnit: 30.00, markupPercentage: 0.25 },
-  { id: "97", name: "Filet Mignon", category: "Food Ingredient", currentStock: 20, unit: "8oz", lowStockThreshold: 4, costPerUnit: 23.00, markupPercentage: 0.25 },
-  { id: "98", name: "Top Round Roast", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 8.50, markupPercentage: 0.20 },
-  { id: "99", name: "Strip Steak", category: "Food Ingredient", currentStock: 18, unit: "12oz", lowStockThreshold: 4, costPerUnit: 20.00, markupPercentage: 0.25 },
-  { id: "100", name: "Rib-Eye Steak", category: "Food Ingredient", currentStock: 12, unit: "16oz", lowStockThreshold: 3, costPerUnit: 26.00, markupPercentage: 0.25 },
+  { id: "25a", name: "Filet Mignon (8oz)", category: "Food Ingredient", currentStock: 20, unit: "8oz cut", lowStockThreshold: 4, costPerUnit: (23.00 / 16) * 8, markupPercentage: 0.25 },
+  { id: "25b", name: "Filet Mignon (12oz)", category: "Food Ingredient", currentStock: 15, unit: "12oz cut", lowStockThreshold: 3, costPerUnit: (23.00 / 16) * 12, markupPercentage: 0.25 },
+  { id: "25c", name: "Filet Mignon (16oz)", category: "Food Ingredient", currentStock: 10, unit: "16oz cut", lowStockThreshold: 2, costPerUnit: (23.00 / 16) * 16, markupPercentage: 0.25 },
+  { id: "98a", name: "Top Round Roast (8oz)", category: "Food Ingredient", currentStock: 25, unit: "8oz cut", lowStockThreshold: 5, costPerUnit: (8.50 / 16) * 8, markupPercentage: 0.20 },
+  { id: "98b", name: "Top Round Roast (12oz)", category: "Food Ingredient", currentStock: 20, unit: "12oz cut", lowStockThreshold: 4, costPerUnit: (8.50 / 16) * 12, markupPercentage: 0.20 },
+  { id: "98c", name: "Top Round Roast (16oz)", category: "Food Ingredient", currentStock: 15, unit: "16oz cut", lowStockThreshold: 3, costPerUnit: (8.50 / 16) * 16, markupPercentage: 0.20 },
+  { id: "99a", name: "Strip Steak (8oz)", category: "Food Ingredient", currentStock: 20, unit: "8oz cut", lowStockThreshold: 4, costPerUnit: (20.00 / 16) * 8, markupPercentage: 0.25 },
+  { id: "99b", name: "Strip Steak (12oz)", category: "Food Ingredient", currentStock: 18, unit: "12oz cut", lowStockThreshold: 4, costPerUnit: (20.00 / 16) * 12, markupPercentage: 0.25 },
+  { id: "99c", name: "Strip Steak (16oz)", category: "Food Ingredient", currentStock: 15, unit: "16oz cut", lowStockThreshold: 3, costPerUnit: (20.00 / 16) * 16, markupPercentage: 0.25 },
+  { id: "100a", name: "Rib-Eye Steak (8oz)", category: "Food Ingredient", currentStock: 15, unit: "8oz cut", lowStockThreshold: 3, costPerUnit: (26.00 / 16) * 8, markupPercentage: 0.25 },
+  { id: "100b", name: "Rib-Eye Steak (12oz)", category: "Food Ingredient", currentStock: 12, unit: "12oz cut", lowStockThreshold: 2, costPerUnit: (26.00 / 16) * 12, markupPercentage: 0.25 },
+  { id: "100c", name: "Rib-Eye Steak (16oz)", category: "Food Ingredient", currentStock: 10, unit: "16oz cut", lowStockThreshold: 2, costPerUnit: (26.00 / 16) * 16, markupPercentage: 0.25 },
   { id: "101", name: "Ground Beef (80/20)", category: "Food Ingredient", currentStock: 40, unit: "lb", lowStockThreshold: 10, costPerUnit: 5.50, markupPercentage: 0.20 },
   { id: "124", name: "Hamburger Patty (6oz)", category: "Food Ingredient", currentStock: 50, unit: "6oz patty", lowStockThreshold: 15, costPerUnit: (5.50 / 16) * 6, markupPercentage: 0.20 },
   { id: "125", name: "Hamburger Patty (8oz)", category: "Food Ingredient", currentStock: 40, unit: "8oz patty", lowStockThreshold: 10, costPerUnit: (5.50 / 16) * 8, markupPercentage: 0.20 },
   { id: "126", name: "Hamburger Patty (12oz)", category: "Food Ingredient", currentStock: 25, unit: "12oz patty", lowStockThreshold: 5, costPerUnit: (5.50 / 16) * 12, markupPercentage: 0.20 },
 
   // Food Ingredients - Chicken
-  { id: "102", name: "Chicken Breast (raw, per lb)", category: "Food Ingredient", currentStock: 50, unit: "lb", lowStockThreshold: 10, costPerUnit: 4.50, markupPercentage: 0.20 },
-  { id: "102a", name: "Chicken Breast (per breast)", category: "Food Ingredient", currentStock: 100, unit: "count", lowStockThreshold: 20, costPerUnit: (4.50 / 16) * 7, markupPercentage: 0.20 }, // Assuming average 7oz per breast
-  { id: "103", name: "Chicken Half", category: "Food Ingredient", currentStock: 20, unit: "count", lowStockThreshold: 5, costPerUnit: 4.00, markupPercentage: 0.20 },
-  { id: "104", name: "Whole Chicken", category: "Food Ingredient", currentStock: 15, unit: "count", lowStockThreshold: 3, costPerUnit: 8.00, markupPercentage: 0.20 },
-  { id: "105", name: "Chicken Thighs", category: "Food Ingredient", currentStock: 30, unit: "lb", lowStockThreshold: 6, costPerUnit: 3.00, markupPercentage: 0.20 },
-  { id: "106", name: "Chicken Wings", category: "Food Ingredient", currentStock: 25, unit: "lb", lowStockThreshold: 5, costPerUnit: 4.50, markupPercentage: 0.20 },
-  { id: "107", name: "Ground Chicken", category: "Food Ingredient", currentStock: 20, unit: "lb", lowStockThreshold: 4, costPerUnit: 5.00, markupPercentage: 0.20 },
+  { id: "102a", name: "Chicken Breast (per breast, ~7oz)", category: "Food Ingredient", currentStock: 100, unit: "7oz breast", lowStockThreshold: 20, costPerUnit: (4.50 / 16) * 7, markupPercentage: 0.20 }, // Assuming average 7oz per breast
+  { id: "103", name: "Chicken Half (~1.5lb)", category: "Food Ingredient", currentStock: 20, unit: "1.5lb half", lowStockThreshold: 5, costPerUnit: 4.00, markupPercentage: 0.20 },
+  { id: "104", name: "Whole Chicken (~3lb)", category: "Food Ingredient", currentStock: 15, unit: "3lb whole", lowStockThreshold: 3, costPerUnit: 8.00, markupPercentage: 0.20 },
+  { id: "105a", name: "Chicken Thighs (per serving, ~2 thighs/8oz)", category: "Food Ingredient", currentStock: 60, unit: "serving", lowStockThreshold: 12, costPerUnit: (3.00 / 16) * 8, markupPercentage: 0.20 },
+  { id: "106a", name: "Chicken Wings (per serving, ~8 wings/1lb)", category: "Food Ingredient", currentStock: 50, unit: "serving", lowStockThreshold: 10, costPerUnit: 4.50, markupPercentage: 0.20 },
+  { id: "107a", name: "Ground Chicken (8oz serving)", category: "Food Ingredient", currentStock: 20, unit: "8oz serving", lowStockThreshold: 4, costPerUnit: (5.00 / 16) * 8, markupPercentage: 0.20 },
+  { id: "107b", name: "Ground Chicken (10oz serving)", category: "Food Ingredient", currentStock: 15, unit: "10oz serving", lowStockThreshold: 3, costPerUnit: (5.00 / 16) * 10, markupPercentage: 0.20 },
+  { id: "107c", name: "Ground Chicken (12oz serving)", category: "Food Ingredient", currentStock: 10, unit: "12oz serving", lowStockThreshold: 2, costPerUnit: (5.00 / 16) * 12, markupPercentage: 0.20 },
   { id: "108", name: "Turkey Breast", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 6.00, markupPercentage: 0.20 },
 
   // Food Ingredients - Pork
@@ -241,7 +248,7 @@ const initialInventory: InventoryItem[] = [
   // Other Food Ingredients (existing)
   { id: "4", name: "Mixed Salad Greens", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 1.59, markupPercentage: 0.20 },
   { id: "5", name: "Potatoes (raw, per lb)", category: "Food Ingredient", currentStock: 100, unit: "lb", lowStockThreshold: 20, costPerUnit: 0.54, markupPercentage: 0.20 },
-  { id: "130", name: "Baked Potato (Large)", category: "Food Ingredient", currentStock: 50, unit: "count", lowStockThreshold: 10, costPerUnit: 1.00, markupPercentage: 0.20 },
+  { id: "130", name: "Baked Potato (Large, ~10oz)", category: "Food Ingredient", currentStock: 50, unit: "10oz count", lowStockThreshold: 10, costPerUnit: 1.00, markupPercentage: 0.20 },
   { id: "131", name: "French Fries (per serving)", category: "Food Ingredient", currentStock: 75, unit: "serving", lowStockThreshold: 15, costPerUnit: 1.50, markupPercentage: 0.20 },
   { id: "142", name: "Mashed Potato (per serving, ~6oz)", category: "Food Ingredient", currentStock: 60, unit: "serving", lowStockThreshold: 12, costPerUnit: 1.20, markupPercentage: 0.20 }, // Estimated cost per serving
   { id: "6", name: "Onions", category: "Food Ingredient", currentStock: 40, unit: "lb", lowStockThreshold: 8, costPerUnit: 0.36, markupPercentage: 0.20 },
@@ -331,6 +338,13 @@ const initialInventory: InventoryItem[] = [
   { id: "93", name: "Kalamata Olives", category: "Food Ingredient", currentStock: 1, unit: "lb", lowStockThreshold: 0.2, costPerUnit: 4.08, markupPercentage: 0.20 },
   { id: "94", name: "Simple Syrup", category: "Food Ingredient", currentStock: 2, unit: "quart", lowStockThreshold: 0.5, costPerUnit: 6.00, markupPercentage: 0.20 },
   { id: "95", name: "Coffee Liqueur", category: "Food Ingredient", currentStock: 1, unit: "bottle", lowStockThreshold: 0.2, costPerUnit: 25.00, markupPercentage: 0.20 },
+
+  // Food Ingredients - Breads/Rolls
+  { id: "b17", name: "Slider Buns (per bun)", category: "Food Ingredient", currentStock: 60, unit: "bun", lowStockThreshold: 12, costPerUnit: 0.33, markupPercentage: 0.20 },
+  { id: "b18", name: "Brioche Buns (per bun)", category: "Food Ingredient", currentStock: 40, unit: "bun", lowStockThreshold: 8, costPerUnit: 0.63, markupPercentage: 0.20 },
+  { id: "b19", name: "Ciabatta Rolls (per roll)", category: "Food Ingredient", currentStock: 30, unit: "roll", lowStockThreshold: 6, costPerUnit: 1.00, markupPercentage: 0.20 },
+  { id: "b20", name: "White Bread (per slice)", category: "Food Ingredient", currentStock: 200, unit: "slice", lowStockThreshold: 40, costPerUnit: 0.15, markupPercentage: 0.20 },
+  { id: "b21", name: "Wheat Bread (per slice)", category: "Food Ingredient", currentStock: 150, unit: "slice", lowStockThreshold: 30, costPerUnit: 0.18, markupPercentage: 0.20 },
 
   // Beverages
   { id: "b1", name: "Cabernet Sauvignon", category: "Beverage", currentStock: 12, unit: "bottle", lowStockThreshold: 3, costPerUnit: 15.00, markupPercentage: 0.30 },
@@ -472,7 +486,7 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Chicken Breast (raw, per lb)", quantity: "1.5 lb" },
+      { name: "Chicken Breast (per breast, ~7oz)", quantity: "3 count" }, // Using specific breast item
       { name: "All-Purpose Flour", quantity: "0.25 cup" },
       { name: "Olive Oil", quantity: "2 tbsp" },
       { name: "Butter", quantity: "4 tbsp" },
@@ -502,7 +516,7 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Beef Tenderloin", quantity: "1.75 lb" },
+      { name: "Beef Tenderloin", quantity: "1.75 lb" }, // This is still generic, but user asked for specific cuts in inventory, not necessarily in recipes
       { name: "Olive Oil", quantity: "3 tbsp" },
       { name: "Butter", quantity: "4 tbsp" },
       { name: "Shallots", quantity: "0.25 lb" },
