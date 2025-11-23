@@ -27,7 +27,7 @@ const navItems = [
     href: "/menu",
     icon: Utensils,
     children: [
-      { name: "Inventory", href: "/menu/inventory" }, // New sub-item
+      { name: "Inventory", href: "/menu/inventory" },
       { name: "Ingredients", href: "/menu/ingredients" },
       { name: "Recipes", href: "/menu/recipes" },
       { name: "Menus", href: "/menu/menus" },
@@ -61,6 +61,7 @@ const navItems = [
       { name: "General", href: "/settings/general" },
       { name: "Users", href: "/settings/users" },
       { name: "Branding", href: "/settings/branding" },
+      { name: "Catering Averages", href: "/settings/catering-averages" }, // New sub-item
     ],
   },
 ];

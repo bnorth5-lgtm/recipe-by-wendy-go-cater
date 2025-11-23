@@ -14,7 +14,7 @@ import NotFound from "./pages/NotFound";
 import Ingredients from "./pages/menu/Ingredients.tsx";
 import Recipes from "./pages/menu/Recipes.tsx";
 import Menus from "./pages/menu/Menus.tsx";
-import Inventory from "./pages/menu/Inventory.tsx"; // New import
+import Inventory from "./pages/menu/Inventory.tsx";
 
 import Clients from "./pages/quoting/Clients.tsx";
 import Proposals from "./pages/quoting/Proposals.tsx";
@@ -27,6 +27,7 @@ import BEOs from "./pages/events/BEOs.tsx";
 import GeneralSettings from "./pages/settings/General.tsx";
 import UsersSettings from "./pages/settings/Users.tsx";
 import BrandingSettings from "./pages/settings/Branding.tsx";
+import CateringAverages from "./pages/settings/CateringAverages.tsx"; // New import
 
 const App = () => {
   return (
@@ -38,8 +39,8 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
 
             {/* Menu & Recipes Routes */}
-            <Route path="/menu" element={<Navigate to="/menu/inventory" replace />} /> {/* Changed redirect */}
-            <Route path="/menu/inventory" element={<Inventory />} /> {/* New route */}
+            <Route path="/menu" element={<Navigate to="/menu/inventory" replace />} />
+            <Route path="/menu/inventory" element={<Inventory />} />
             <Route path="/menu/ingredients" element={<Ingredients />} />
             <Route path="/menu/recipes" element={<Recipes />} />
             <Route path="/menu/menus" element={<Menus />} />
@@ -61,6 +62,7 @@ const App = () => {
             <Route path="/settings/general" element={<GeneralSettings />} />
             <Route path="/settings/users" element={<UsersSettings />} />
             <Route path="/settings/branding" element={<BrandingSettings />} />
+            <Route path="/settings/catering-averages" element={<CateringAverages />} /> {/* New route */}
 
             <Route path="*" element={<NotFound />} />
           </Routes>
