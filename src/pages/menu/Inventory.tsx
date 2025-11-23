@@ -41,7 +41,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Edit, Trash2, AlertCircle } from "lucide-react";
+import { PlusCircle, Edit, Trash2, AlertCircle, Minus, Plus } from "lucide-react"; // Added Minus, Plus icons
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useCateringStore, InventoryItem } from "@/store/cateringStore"; // Import from store
@@ -103,6 +103,13 @@ const Inventory = () => {
   const handleDelete = (id: string) => {
     deleteInventoryItem(id);
     toast.info("Inventory item deleted.");
+  };
+
+  const handleStockChange = (itemId: string, newStock: number) => {
+    const itemToUpdate = inventory.find(item => item.id === itemId);
+    if (itemToUpdate) {
+      updateInventoryItem({ ...itemToUpdate, currentStock: newStock });
+    }
   };
 
   return (
@@ -296,7 +303,34 @@ const Inventory = () => {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>{item.category}</TableCell>
-                        <TableCell>{item.currentStock}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => handleStockChange(item.id, item.currentStock - 1)}
+                              disabled={item.currentStock <= 0}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <Input
+                              type="number"
+                              value={item.currentStock}
+                              onChange={(e) => handleStockChange(item.id, parseFloat(e.target.value) || 0)}
+                              className="w-20 text-center h-7"
+                              min="0"
+                            />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => handleStockChange(item.id, item.currentStock + 1)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                         <TableCell>{item.unit}</TableCell>
                         <TableCell>{item.lowStockThreshold}</TableCell>
                         <TableCell>${item.costPerUnit.toFixed(2)}</TableCell>

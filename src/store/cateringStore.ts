@@ -1225,7 +1225,7 @@ export const useCateringStore = create<CateringState>()(
       })),
       updateInventoryItem: (updatedItem) => set((state) => ({
         inventory: state.inventory.map((item) =>
-          item.id === updatedItem.id ? updatedItem : item
+          item.id === updatedItem.id ? { ...updatedItem, currentStock: Math.max(0, updatedItem.currentStock) } : item // Ensure stock doesn't go below 0
         ),
       })),
       deleteInventoryItem: (id) => set((state) => ({
