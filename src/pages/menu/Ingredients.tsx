@@ -1,8 +1,31 @@
 "use client";
 
 import { MadeWithDyad } from "@/components/made-with-dyad";
+import { Link } from "react-router-dom"; // Import Link
 
 const Ingredients = () => {
+  // Helper function to render a list of items with links
+  const renderIngredientList = (items: string[]) => (
+    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+      {items.map((item, index) => (
+        <li key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <span className="mb-1 sm:mb-0">{item}</span>
+          <div className="flex flex-wrap gap-2 mt-1 sm:mt-0">
+            <Link to="/menu/inventory" className="text-xs text-blue-500 hover:underline">
+              Inventory
+            </Link>
+            <Link to="/quoting/estimates" className="text-xs text-green-500 hover:underline">
+              Add to Quote
+            </Link>
+            <Link to="/menu/recipes" className="text-xs text-purple-500 hover:underline">
+              Find Recipes
+            </Link>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
       <div className="text-center mb-8">
@@ -19,33 +42,23 @@ const Ingredients = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">Poultry</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Chicken breast, chicken thighs, turkey breast, ground chicken.</li>
-              </ul>
+              {renderIngredientList(["Chicken breast", "Chicken thighs", "Turkey breast", "Ground chicken"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Beef</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Roast beef (sirloin, tenderloin), ground beef, steak (flank, skirt), short ribs.</li>
-              </ul>
+              {renderIngredientList(["Roast beef (sirloin, tenderloin)", "Ground beef", "Steak (flank, skirt)", "Short ribs"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Pork</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Pulled pork, bacon, ham, sausage, pork shoulder.</li>
-              </ul>
+              {renderIngredientList(["Pulled pork", "Bacon", "Ham", "Sausage", "Pork shoulder"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Seafood</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Salmon, shrimp, cod, smoked salmon, tuna, oysters.</li>
-              </ul>
+              {renderIngredientList(["Salmon", "Shrimp", "Cod", "Smoked salmon", "Tuna", "Oysters"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Vegetarian/Vegan</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Tofu, tempeh, chickpeas, black beans, lentils, nutritional yeast.</li>
-              </ul>
+              {renderIngredientList(["Tofu", "Tempeh", "Chickpeas", "Black beans", "Lentils", "Nutritional yeast"])}
             </div>
           </div>
         </section>
@@ -56,27 +69,19 @@ const Ingredients = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">Grains</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Rice (white, brown, wild), quinoa, couscous, farro, oats.</li>
-              </ul>
+              {renderIngredientList(["Rice (white, brown, wild)", "Quinoa", "Couscous", "Farro", "Oats"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Starches</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Potatoes (russet, red, sweet), pasta (penne, spaghetti, lasagna sheets), corn, cornstarch.</li>
-              </ul>
+              {renderIngredientList(["Potatoes (russet, red, sweet)", "Pasta (penne, spaghetti, lasagna sheets)", "Corn", "Cornstarch"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Flours/Baking</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>All-purpose flour, bread flour, cornmeal, breadcrumbs, baking powder, baking soda.</li>
-              </ul>
+              {renderIngredientList(["All-purpose flour", "Bread flour", "Cornmeal", "Breadcrumbs", "Baking powder", "Baking soda"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Breads</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Slider buns, various rolls, baguettes, tortillas, pita bread.</li>
-              </ul>
+              {renderIngredientList(["Slider buns", "Various rolls", "Baguettes", "Tortillas", "Pita bread"])}
             </div>
           </div>
         </section>
@@ -87,27 +92,19 @@ const Ingredients = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">Dairy</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Milk, butter, heavy cream, sour cream, yogurt (plain, Greek), eggs.</li>
-              </ul>
+              {renderIngredientList(["Milk", "Butter", "Heavy cream", "Sour cream", "Yogurt (plain, Greek)", "Eggs"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Cheeses (Hard/Aged)</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Parmesan, Gruyère, aged cheddar.</li>
-              </ul>
+              {renderIngredientList(["Parmesan", "Gruyère", "Aged cheddar"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Cheeses (Soft/Fresh)</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Mozzarella, feta, goat cheese, cream cheese, ricotta, brie.</li>
-              </ul>
+              {renderIngredientList(["Mozzarella", "Feta", "Goat cheese", "Cream cheese", "Ricotta", "Brie"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Sauces/Mixes</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Cheddar cheese sauce mix, dry milk.</li>
-              </ul>
+              {renderIngredientList(["Cheddar cheese sauce mix", "Dry milk"])}
             </div>
           </div>
         </section>
@@ -118,21 +115,21 @@ const Ingredients = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">Vegetables</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Greens: Mixed salad greens, spinach, romaine lettuce, kale, cabbage.</li>
-                <li>Root Vegetables: Carrots, onions (red, white, yellow), garlic, beets, radishes.</li>
-                <li>Cruciferous/Fruiting Veg: Broccoli, cauliflower, bell peppers (assorted colors), zucchini, eggplant, mushrooms.</li>
-                <li>Alliums: Scallions, leeks, shallots, chives.</li>
-                <li>Dips/Sides: Potatoes, celery, cucumbers (for veggie platters), avocados.</li>
-              </ul>
+              {renderIngredientList([
+                "Greens: Mixed salad greens, spinach, romaine lettuce, kale, cabbage.",
+                "Root Vegetables: Carrots, onions (red, white, yellow), garlic, beets, radishes.",
+                "Cruciferous/Fruiting Veg: Broccoli, cauliflower, bell peppers (assorted colors), zucchini, eggplant, mushrooms.",
+                "Alliums: Scallions, leeks, shallots, chives.",
+                "Dips/Sides: Potatoes, celery, cucumbers (for veggie platters), avocados.",
+              ])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Fruits</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Berries: Strawberries, blueberries, raspberries, blackberries.</li>
-                <li>Citrus: Lemons, limes, oranges, grapefruits.</li>
-                <li>Other: Apples, bananas, grapes, melon (watermelon, cantaloupe), peaches, pineapple, tomatoes (botanically a fruit!).</li>
-              </ul>
+              {renderIngredientList([
+                "Berries: Strawberries, blueberries, raspberries, blackberries.",
+                "Citrus: Lemons, limes, oranges, grapefruits.",
+                "Other: Apples, bananas, grapes, melon (watermelon, cantaloupe), peaches, pineapple, tomatoes (botanically a fruit!).",
+              ])}
             </div>
           </div>
         </section>
@@ -143,34 +140,40 @@ const Ingredients = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">Oils, Fats, & Liquids</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Olive oil (extra virgin and regular), vegetable oil, canola oil, sesame oil, vinegar (balsamic, red wine, white wine, apple cider), soy sauce, vegetable/chicken/beef broth.</li>
-              </ul>
+              {renderIngredientList([
+                "Olive oil (extra virgin and regular)", "Vegetable oil", "Canola oil", "Sesame oil",
+                "Vinegar (balsamic, red wine, white wine, apple cider)", "Soy sauce", "Vegetable/chicken/beef broth.",
+              ])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Spices & Herbs</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Salt (kosher, sea), black pepper, granulated garlic, granulated onion, dried parsley, oregano, cumin, chili powder, paprika (smoked/sweet), cinnamon, nutmeg, bay leaves.</li>
-                <li>Fresh Herbs: Basil, mint, rosemary, thyme, cilantro, dill.</li>
-              </ul>
+              {renderIngredientList([
+                "Salt (kosher, sea)", "Black pepper", "Granulated garlic", "Granulated onion",
+                "Dried parsley", "Oregano", "Cumin", "Chili powder", "Paprika (smoked/sweet)",
+                "Cinnamon", "Nutmeg", "Bay leaves.",
+              ])}
+              <h3 className="text-lg font-medium mb-2 mt-4">Fresh Herbs</h3>
+              {renderIngredientList(["Basil", "Mint", "Rosemary", "Thyme", "Cilantro", "Dill."])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Condiments & Sauces</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Mayonnaise, mustard (Dijon, yellow), ketchup, BBQ sauce, hot sauce (like Cayenne pepper sauce), honey, maple syrup, chocolate syrup.</li>
-              </ul>
+              {renderIngredientList([
+                "Mayonnaise", "Mustard (Dijon, yellow)", "Ketchup", "BBQ sauce",
+                "Hot sauce (like Cayenne pepper sauce)", "Honey", "Maple syrup", "Chocolate syrup.",
+              ])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Baking/Dessert</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Sugar (granulated, brown, powdered), vanilla extract, chocolate chips, cocoa powder, nuts (almonds, walnuts, pecans), raisins, dried cranberries.</li>
-              </ul>
+              {renderIngredientList([
+                "Sugar (granulated, brown, powdered)", "Vanilla extract", "Chocolate chips",
+                "Cocoa powder", "Nuts (almonds, walnuts, pecans)", "Raisins", "Dried cranberries.",
+              ])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Canned/Jarred</h3>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>Canned tomatoes, tomato paste, olives, capers, pickles/relish, dried fruits.</li>
-              </ul>
+              {renderIngredientList([
+                "Canned tomatoes", "Tomato paste", "Olives", "Capers", "Pickles/relish", "Dried fruits.",
+              ])}
             </div>
           </div>
         </section>

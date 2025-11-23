@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import Ingredients from "./pages/menu/Ingredients.tsx";
 import Recipes from "./pages/menu/Recipes.tsx";
 import Menus from "./pages/menu/Menus.tsx";
+import Inventory from "./pages/menu/Inventory.tsx"; // New import
 
 import Clients from "./pages/quoting/Clients.tsx";
 import Proposals from "./pages/quoting/Proposals.tsx";
@@ -37,7 +38,8 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
 
             {/* Menu & Recipes Routes */}
-            <Route path="/menu" element={<Navigate to="/menu/ingredients" replace />} />
+            <Route path="/menu" element={<Navigate to="/menu/inventory" replace />} /> {/* Changed redirect */}
+            <Route path="/menu/inventory" element={<Inventory />} /> {/* New route */}
             <Route path="/menu/ingredients" element={<Ingredients />} />
             <Route path="/menu/recipes" element={<Recipes />} />
             <Route path="/menu/menus" element={<Menus />} />

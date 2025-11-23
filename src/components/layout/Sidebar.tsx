@@ -27,6 +27,7 @@ const navItems = [
     href: "/menu",
     icon: Utensils,
     children: [
+      { name: "Inventory", href: "/menu/inventory" }, // New sub-item
       { name: "Ingredients", href: "/menu/ingredients" },
       { name: "Recipes", href: "/menu/recipes" },
       { name: "Menus", href: "/menu/menus" },
