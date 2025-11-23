@@ -12,6 +12,10 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
+  Warehouse, // For Inventory
+  Leaf, // For Ingredients
+  BookText, // For Recipes
+  MenuIcon, // For Menus
 } from "lucide-react";
 import React from "react";
 
@@ -23,16 +27,28 @@ const navItems = [
     children: [],
   },
   {
-    name: "Menu & Recipes",
-    href: "/menu",
-    icon: Utensils,
-    children: [
-      { name: "Inventory", href: "/menu/inventory" },
-      { name: "Ingredients", href: "/menu/ingredients" },
-      { name: "Recipes", href: "/menu/recipes" },
-      { name: "Menus", href: "/menu/menus" },
-      // Removed Beverage Inventory as it's now part of main Inventory
-    ],
+    name: "Inventory",
+    href: "/menu/inventory",
+    icon: Warehouse,
+    children: [],
+  },
+  {
+    name: "Ingredients",
+    href: "/menu/ingredients",
+    icon: Leaf,
+    children: [],
+  },
+  {
+    name: "Recipes",
+    href: "/menu/recipes",
+    icon: BookText,
+    children: [],
+  },
+  {
+    name: "Menus",
+    href: "/menu/menus",
+    icon: MenuIcon,
+    children: [],
   },
   {
     name: "Quoting & Proposals",

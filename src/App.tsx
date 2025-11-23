@@ -4,7 +4,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 
 // Import your page components
 import Dashboard from "./pages/Dashboard";
-import MenuManagement from "./pages/MenuManagement";
+// Removed MenuManagement as its sub-pages are now direct links
 import QuotingGenerator from "./pages/QuotingGenerator";
 import EventsPlanning from "./pages/EventsPlanning";
 import Settings from "./pages/Settings";
@@ -15,7 +15,6 @@ import Ingredients from "./pages/menu/Ingredients.tsx";
 import Recipes from "./pages/menu/Recipes.tsx";
 import Menus from "./pages/menu/Menus.tsx";
 import Inventory from "./pages/menu/Inventory.tsx";
-// Removed BeverageInventory import
 
 import Clients from "./pages/quoting/Clients.tsx";
 import Proposals from "./pages/quoting/Proposals.tsx";
@@ -39,13 +38,12 @@ const App = () => {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
 
-            {/* Menu & Recipes Routes */}
-            <Route path="/menu" element={<Navigate to="/menu/inventory" replace />} />
+            {/* Menu & Recipes Routes (now direct) */}
+            {/* Removed /menu top-level route */}
             <Route path="/menu/inventory" element={<Inventory />} />
             <Route path="/menu/ingredients" element={<Ingredients />} />
             <Route path="/menu/recipes" element={<Recipes />} />
             <Route path="/menu/menus" element={<Menus />} />
-            {/* Removed /menu/beverages route */}
 
             {/* Quoting & Proposals Routes */}
             <Route path="/quoting" element={<Navigate to="/quoting/clients" replace />} />
