@@ -298,6 +298,11 @@ const initialBeverageInventory: BeverageItem[] = [
   // NEW BEVERAGE INVENTORY ITEMS
   { id: "b10", name: "Local Craft Beer (Assorted)", type: "Beer", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 3.00 },
   { id: "b11", name: "Sparkling Wine (Prosecco)", type: "Wine", currentStock: 8, unit: "bottle", lowStockThreshold: 2, costPerUnit: 18.00 },
+  { id: "b12", name: "Diet Cola", type: "Other", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
+  { id: "b13", name: "Lemon-Lime Soda", type: "Other", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
+  { id: "b14", name: "Cranberry Juice", type: "Mixer", currentStock: 8, unit: "L", lowStockThreshold: 2, costPerUnit: 3.50 },
+  { id: "b15", name: "Apple Juice", type: "Mixer", currentStock: 8, unit: "L", lowStockThreshold: 2, costPerUnit: 3.00 },
+  { id: "b16", name: "Sparkling Water (Lime)", type: "Other", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.80 },
 ];
 
 const initialRecipes: Recipe[] = [
@@ -1151,7 +1156,7 @@ const initialMenus: Menu[] = [
     mainCourseIds: ["r3", "r7", "r5"], // Herb-Crusted Roasted Salmon, Roasted Pork Loin with Apple Chutney, Beef Tenderloin
     dessertIds: ["r13", "r16", "r29"], // Seasonal Fruit Tart, New York Cheesecake, Lemon Raspberry Mousse
     alcoholicBeverageIds: ["r11", "r19", "r33"], // Classic Margarita, Mojito, Whiskey Sour
-    nonAlcoholicBeverageIds: ["r9", "r15", "r26"], // Sparkling Raspberry Lemonade, Sparkling Orange Blossom Water, Cucumber Mint Cooler
+    nonAlcoholicBeverageIds: ["r9", "r15", "r26", "b12", "b14"], // Sparkling Raspberry Lemonade, Sparkling Orange Blossom Water, Cucumber Mint Cooler, Diet Cola, Cranberry Juice
     sideDishIds: ["r2", "r23", "r25"], // Garden Salad, Garlic Parmesan Roasted Asparagus, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -1165,7 +1170,7 @@ const initialMenus: Menu[] = [
     mainCourseIds: ["r1", "r4", "r6"], // Classic Beef Stroganoff, Chicken Marsala, Wild Mushroom Risotto
     dessertIds: ["r12", "r17", "r30"], // Chocolate Lava Cake, Tiramisu, Mini Cheesecakes
     alcoholicBeverageIds: ["b3", "b10"], // Pilsner Beer, Local Craft Beer
-    nonAlcoholicBeverageIds: ["r9", "r14", "r28"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Iced Coffee Bar
+    nonAlcoholicBeverageIds: ["r9", "r14", "r28", "b13", "b15", "b16"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Iced Coffee Bar, Lemon-Lime Soda, Apple Juice, Sparkling Water (Lime)
     sideDishIds: ["r2", "r24", "r25"], // Garden Salad, Creamy Mashed Potatoes, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -1179,7 +1184,7 @@ const initialMenus: Menu[] = [
     mainCourseIds: ["r6"], // Wild Mushroom Risotto
     dessertIds: ["r13", "r31"], // Seasonal Fruit Tart, Apple Crumble
     alcoholicBeverageIds: ["r18", "b11"], // Old Fashioned, Sparkling Wine
-    nonAlcoholicBeverageIds: ["r9", "r14", "r27"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Spiced Apple Cider
+    nonAlcoholicBeverageIds: ["r9", "r14", "r27", "b12"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Spiced Apple Cider, Diet Cola
     sideDishIds: ["r2", "r25"], // Garden Salad, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
