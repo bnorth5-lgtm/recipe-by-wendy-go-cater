@@ -48,18 +48,18 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Edit, Trash2, CalendarIcon, Eye, Send, CheckCircle, XCircle, Archive, Utensils, Wine } from "lucide-react";
+import { PlusCircle, Edit, Trash2, CalendarIcon, Eye, Send, CheckCircle, XCircle, Archive, Utensils, Wine, Package } from "lucide-react"; // Added Package icon
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useCateringStore, Client, Recipe, BeverageItem, Proposal, ProposalItem } from "@/store/cateringStore";
+import { useCateringStore, Client, Recipe, InventoryItem, Proposal, ProposalItem } from "@/store/cateringStore";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { ProposalDocument } from "@/components/ProposalDocument"; // Import the new component
 
 // Define the schema for a proposal item within the form
 const proposalItemSchema = z.object({
-  id: z.string().min(1, "Item ID is required"), // ID of the recipe or beverage
-  type: z.enum(["recipe", "beverage"], { required_error: "Item type is required" }),
+  id: z.string().min(1, "Item ID is required"), // ID of the recipe or inventory item
+  type: z.enum(["recipe", "inventoryItem"], { required_error: "Item type is required" }), // Changed from "beverage" to "inventoryItem"
   name: z.string().min(1, "Item name is required"),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
   unitCost: z.coerce.number().min(0, "Unit cost cannot be negative"),
@@ -74,7 +74,7 @@ const proposalFormSchema = z.object({
     required_error: "An event date is required.",
   }),
   numberOfGuests: z.coerce.number().min(1, "Number of guests must be at least 1"),
-  items: z.array(proposalItemSchema).min(1, "At least one item (recipe or beverage) is required"),
+  items: z.array(proposalItemSchema).min(1, "At least one item (recipe or inventory item) is required"),
   laborCost: z.coerce.number().min(0, "Labor cost cannot be negative").default(0),
   equipmentCost: z.coerce.number().min(0, "Equipment cost cannot be negative").default(0),
   otherCosts: z.coerce.number().min(0, "Other costs cannot be negative").default(0),
@@ -88,7 +88,7 @@ type ProposalFormData = z.infer<typeof proposalFormSchema>;
 const Proposals = () => {
   const clients = useCateringStore((state) => state.clients);
   const recipes = useCateringStore((state) => state.recipes);
-  const beverageInventory = useCateringStore((state) => state.beverageInventory);
+  const inventory = useCateringStore((state) => state.inventory); // Use unified inventory
   const proposals = useCateringStore((state) => state.proposals);
   const addProposal = useCateringStore((state) => state.addProposal);
   const updateProposal = useCateringStore((state) => state.updateProposal);
@@ -187,7 +187,7 @@ const Proposals = () => {
     }
   };
 
-  const handleAddItem = (type: "recipe" | "beverage", selectedId: string) => {
+  const handleAddItem = (type: "recipe" | "inventoryItem", selectedId: string) => { // Changed type
     if (type === "recipe") {
       const recipe = recipes.find(r => r.id === selectedId);
       if (recipe) {
@@ -199,18 +199,20 @@ const Proposals = () => {
           unitCost: recipe.baseCost, // Use baseCost from recipe
           totalCost: recipe.baseCost,
         });
+        toast.success(`Added recipe: ${recipe.name}`);
       }
-    } else if (type === "beverage") {
-      const beverage = beverageInventory.find(b => b.id === selectedId);
-      if (beverage) {
+    } else if (type === "inventoryItem") { // Handle generic inventory items
+      const invItem = inventory.find(i => i.id === selectedId);
+      if (invItem) {
         appendItem({
-          id: beverage.id,
-          type: "beverage",
-          name: beverage.name,
+          id: invItem.id,
+          type: "inventoryItem",
+          name: invItem.name,
           quantity: 1,
-          unitCost: beverage.costPerUnit, // Use costPerUnit from beverage
-          totalCost: beverage.costPerUnit,
+          unitCost: invItem.costPerUnit, // Use costPerUnit from inventory item
+          totalCost: invItem.costPerUnit,
         });
+        toast.success(`Added inventory item: ${invItem.name}`);
       }
     }
   };
@@ -219,6 +221,23 @@ const Proposals = () => {
     const currentItem = itemFields[index];
     const newTotalCost = newQuantity * currentItem.unitCost;
     updateItem(index, { ...currentItem, quantity: newQuantity, totalCost: newTotalCost });
+  };
+
+  const getIconForItemType = (type: "recipe" | "inventoryItem", category?: InventoryItem["category"]) => {
+    if (type === "recipe") return <Utensils className="h-4 w-4 text-muted-foreground" />;
+    if (type === "inventoryItem") {
+      switch (category) {
+        case "Beverage": return <Wine className="h-4 w-4 text-muted-foreground" />;
+        case "Furniture": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for furniture
+        case "Tableware": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for tableware
+        case "Silverware": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for silverware
+        case "Glassware": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for glassware
+        case "Linens": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for linens
+        case "Serving Equipment": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for serving equipment
+        default: return <Package className="h-4 w-4 text-muted-foreground" />;
+      }
+    }
+    return null;
   };
 
   return (
@@ -353,7 +372,7 @@ const Proposals = () => {
                       />
                     </div>
 
-                    {/* Items (Recipes & Beverages) */}
+                    {/* Items (Recipes & Inventory Items) */}
                     <div>
                       <h3 className="text-lg font-medium mb-3">Items Included</h3>
                       <div className="flex gap-2 mb-4">
@@ -370,15 +389,15 @@ const Proposals = () => {
                             ))}
                           </SelectContent>
                         </Select>
-                        <Select onValueChange={(value) => handleAddItem("beverage", value)}>
+                        <Select onValueChange={(value) => handleAddItem("inventoryItem", value)}>
                           <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Add Beverage" />
+                            <SelectValue placeholder="Add Inventory Item" />
                           </SelectTrigger>
                           <SelectContent>
-                            {beverageInventory.length === 0 && <p className="p-2 text-sm text-muted-foreground">No beverages available.</p>}
-                            {beverageInventory.map((beverage) => (
-                              <SelectItem key={beverage.id} value={beverage.id}>
-                                {beverage.name} (${beverage.costPerUnit.toFixed(2)}/{beverage.unit})
+                            {inventory.length === 0 && <p className="p-2 text-sm text-muted-foreground">No inventory items available.</p>}
+                            {inventory.map((item) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.name} ({item.category}) (${item.costPerUnit.toFixed(2)}/{item.unit})
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -386,32 +405,35 @@ const Proposals = () => {
                       </div>
 
                       {itemFields.length === 0 ? (
-                        <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add recipes or beverages.</p>
+                        <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add recipes or inventory items.</p>
                       ) : (
                         <div className="space-y-3">
-                          {itemFields.map((item, index) => (
-                            <div key={item.id} className="flex items-center gap-2 border p-2 rounded-md bg-secondary/20">
-                              {item.type === "recipe" ? <Utensils className="h-4 w-4 text-muted-foreground" /> : <Wine className="h-4 w-4 text-muted-foreground" />}
-                              <span className="font-medium flex-1">{item.name}</span>
-                              <Input
-                                type="number"
-                                value={item.quantity}
-                                onChange={(e) => handleItemQuantityChange(index, parseFloat(e.target.value) || 0)}
-                                className="w-24 text-right"
-                                min="1"
-                              />
-                              <span className="text-muted-foreground">x ${item.unitCost.toFixed(2)}</span>
-                              <span className="font-semibold w-20 text-right">${item.totalCost.toFixed(2)}</span>
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                onClick={() => removeItem(index)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
+                          {itemFields.map((item, index) => {
+                            const inventoryItemDetails = item.type === "inventoryItem" ? inventory.find(inv => inv.id === item.id) : undefined;
+                            return (
+                              <div key={item.id} className="flex items-center gap-2 border p-2 rounded-md bg-secondary/20">
+                                {getIconForItemType(item.type, inventoryItemDetails?.category)}
+                                <span className="font-medium flex-1">{item.name}</span>
+                                <Input
+                                  type="number"
+                                  value={item.quantity}
+                                  onChange={(e) => handleItemQuantityChange(index, parseFloat(e.target.value) || 0)}
+                                  className="w-24 text-right"
+                                  min="1"
+                                />
+                                <span className="text-muted-foreground">x ${item.unitCost.toFixed(2)}</span>
+                                <span className="font-semibold w-20 text-right">${item.totalCost.toFixed(2)}</span>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="icon"
+                                  onClick={() => removeItem(index)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>

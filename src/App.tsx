@@ -15,7 +15,7 @@ import Ingredients from "./pages/menu/Ingredients.tsx";
 import Recipes from "./pages/menu/Recipes.tsx";
 import Menus from "./pages/menu/Menus.tsx";
 import Inventory from "./pages/menu/Inventory.tsx";
-import BeverageInventory from "./pages/menu/BeverageInventory.tsx"; // New import
+// Removed BeverageInventory import
 
 import Clients from "./pages/quoting/Clients.tsx";
 import Proposals from "./pages/quoting/Proposals.tsx";
@@ -45,7 +45,7 @@ const App = () => {
             <Route path="/menu/ingredients" element={<Ingredients />} />
             <Route path="/menu/recipes" element={<Recipes />} />
             <Route path="/menu/menus" element={<Menus />} />
-            <Route path="/menu/beverages" element={<BeverageInventory />} /> {/* New route */}
+            {/* Removed /menu/beverages route */}
 
             {/* Quoting & Proposals Routes */}
             <Route path="/quoting" element={<Navigate to="/quoting/clients" replace />} />

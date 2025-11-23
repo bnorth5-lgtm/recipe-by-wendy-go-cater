@@ -49,9 +49,13 @@ import { useCateringStore, InventoryItem } from "@/store/cateringStore"; // Impo
 // Define the schema for an inventory item
 const inventoryItemSchema = z.object({
   name: z.string().min(1, "Item name is required"),
+  category: z.enum(["Food Ingredient", "Beverage", "Furniture", "Tableware", "Silverware", "Glassware", "Linens", "Serving Equipment", "Other"], {
+    required_error: "Category is required.",
+  }),
   currentStock: z.coerce.number().min(0, "Stock cannot be negative"),
   unit: z.string().min(1, "Unit is required"),
   lowStockThreshold: z.coerce.number().min(0, "Threshold cannot be negative"),
+  costPerUnit: z.coerce.number().min(0, "Cost per unit cannot be negative"),
 });
 
 type InventoryFormData = z.infer<typeof inventoryItemSchema>; // Infer type directly from the schema
@@ -69,9 +73,11 @@ const Inventory = () => {
     resolver: zodResolver(inventoryItemSchema),
     defaultValues: {
       name: "",
+      category: "Food Ingredient", // Default category
       currentStock: 0,
       unit: "kg",
       lowStockThreshold: 10,
+      costPerUnit: 0.00,
     },
   });
 
@@ -104,7 +110,7 @@ const Inventory = () => {
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-4">Inventory Management</h1>
         <p className="text-xl text-muted-foreground">
-          Track your ingredient stock levels, manage suppliers, and monitor usage.
+          Track all your items, from ingredients and beverages to furniture and tableware.
         </p>
       </div>
 
@@ -149,6 +155,34 @@ const Inventory = () => {
                     />
                     <FormField
                       control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a category" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Food Ingredient">Food Ingredient</SelectItem>
+                              <SelectItem value="Beverage">Beverage</SelectItem>
+                              <SelectItem value="Furniture">Furniture</SelectItem>
+                              <SelectItem value="Tableware">Tableware</SelectItem>
+                              <SelectItem value="Silverware">Silverware</SelectItem>
+                              <SelectItem value="Glassware">Glassware</SelectItem>
+                              <SelectItem value="Linens">Linens</SelectItem>
+                              <SelectItem value="Serving Equipment">Serving Equipment</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="currentStock"
                       render={({ field }) => (
                         <FormItem>
@@ -180,8 +214,17 @@ const Inventory = () => {
                               <SelectItem value="L">Liters (L)</SelectItem>
                               <SelectItem value="ml">Milliliters (ml)</SelectItem>
                               <SelectItem value="count">Count</SelectItem>
-                              <SelectItem value="box">Box</SelectItem>
+                              <SelectItem value="bottle">Bottle</SelectItem>
                               <SelectItem value="can">Can</SelectItem>
+                              <SelectItem value="box">Box</SelectItem>
+                              <SelectItem value="unit">Unit</SelectItem>
+                              <SelectItem value="chair">Chair</SelectItem>
+                              <SelectItem value="table">Table</SelectItem>
+                              <SelectItem value="plate">Plate</SelectItem>
+                              <SelectItem value="piece">Piece</SelectItem>
+                              <SelectItem value="glass">Glass</SelectItem>
+                              <SelectItem value="linen">Linen</SelectItem>
+                              <SelectItem value="napkin">Napkin</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -196,6 +239,19 @@ const Inventory = () => {
                           <FormLabel>Low Stock Threshold</FormLabel>
                           <FormControl>
                             <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="costPerUnit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cost Per Unit</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -226,9 +282,11 @@ const Inventory = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Item Name</TableHead>
+                      <TableHead>Category</TableHead>
                       <TableHead>Current Stock</TableHead>
                       <TableHead>Unit</TableHead>
                       <TableHead>Low Stock Threshold</TableHead>
+                      <TableHead>Cost/Unit</TableHead>
                       <TableHead className="text-center">Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -237,9 +295,11 @@ const Inventory = () => {
                     {inventory.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell>{item.category}</TableCell>
                         <TableCell>{item.currentStock}</TableCell>
                         <TableCell>{item.unit}</TableCell>
                         <TableCell>{item.lowStockThreshold}</TableCell>
+                        <TableCell>${item.costPerUnit.toFixed(2)}</TableCell>
                         <TableCell className="text-center">
                           {item.currentStock <= item.lowStockThreshold ? (
                             <Badge variant="destructive" className="flex items-center justify-center gap-1">

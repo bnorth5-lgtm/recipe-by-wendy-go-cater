@@ -31,7 +31,7 @@ const navItems = [
       { name: "Ingredients", href: "/menu/ingredients" },
       { name: "Recipes", href: "/menu/recipes" },
       { name: "Menus", href: "/menu/menus" },
-      { name: "Beverage Inventory", href: "/menu/beverages" }, // New sub-item
+      // Removed Beverage Inventory as it's now part of main Inventory
     ],
   },
   {

@@ -41,15 +41,15 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Edit, Trash2, Utensils, Wine } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Utensils, Wine, Package } from "lucide-react"; // Added Package icon
 import { toast } from "sonner";
-import { useCateringStore, Estimate, ProposalItem } from "@/store/cateringStore";
+import { useCateringStore, Estimate, ProposalItem, Recipe, InventoryItem } from "@/store/cateringStore";
 import { format } from "date-fns";
 
-// Define the schema for an estimated item (recipe or beverage)
+// Define the schema for an estimated item (recipe or inventory item)
 const estimatedItemSchema = z.object({
   id: z.string().min(1, "Item ID is required"),
-  type: z.enum(["recipe", "beverage"], { required_error: "Item type is required" }),
+  type: z.enum(["recipe", "inventoryItem"], { required_error: "Item type is required" }), // Changed from "beverage" to "inventoryItem"
   name: z.string().min(1, "Item name is required"),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
   unitCost: z.coerce.number().min(0, "Unit cost cannot be negative"),
@@ -71,7 +71,7 @@ type EstimateFormData = z.infer<typeof estimateFormSchema>;
 
 const Estimates = () => {
   const recipes = useCateringStore((state) => state.recipes);
-  const beverageInventory = useCateringStore((state) => state.beverageInventory);
+  const inventory = useCateringStore((state) => state.inventory); // Use unified inventory
   const estimates = useCateringStore((state) => state.estimates);
   const addEstimate = useCateringStore((state) => state.addEstimate);
   const updateEstimate = useCateringStore((state) => state.updateEstimate);
@@ -114,7 +114,7 @@ const Estimates = () => {
 
   const { subtotal, totalAmount } = calculateTotals();
 
-  const handleAddItem = (type: "recipe" | "beverage", selectedId: string) => {
+  const handleAddItem = (type: "recipe" | "inventoryItem", selectedId: string) => { // Changed type
     if (type === "recipe") {
       const recipe = recipes.find(r => r.id === selectedId);
       if (recipe) {
@@ -128,18 +128,18 @@ const Estimates = () => {
         });
         toast.success(`Added ${recipe.name} to estimate.`);
       }
-    } else if (type === "beverage") {
-      const beverage = beverageInventory.find(b => b.id === selectedId);
-      if (beverage) {
+    } else if (type === "inventoryItem") { // Handle generic inventory items
+      const invItem = inventory.find(i => i.id === selectedId);
+      if (invItem) {
         appendItem({
-          id: beverage.id,
-          type: "beverage",
-          name: beverage.name,
+          id: invItem.id,
+          type: "inventoryItem",
+          name: invItem.name,
           quantity: 1,
-          unitCost: beverage.costPerUnit,
-          totalCost: beverage.costPerUnit,
+          unitCost: invItem.costPerUnit,
+          totalCost: invItem.costPerUnit,
         });
-        toast.success(`Added ${beverage.name} to estimate.`);
+        toast.success(`Added ${invItem.name} to estimate.`);
       }
     }
   };
@@ -184,6 +184,23 @@ const Estimates = () => {
   const handleDelete = (id: string) => {
     deleteEstimate(id);
     toast.info("Estimate deleted.");
+  };
+
+  const getIconForItemType = (type: "recipe" | "inventoryItem", category?: InventoryItem["category"]) => {
+    if (type === "recipe") return <Utensils className="h-4 w-4 text-muted-foreground" />;
+    if (type === "inventoryItem") {
+      switch (category) {
+        case "Beverage": return <Wine className="h-4 w-4 text-muted-foreground" />;
+        case "Furniture": return <Package className="h-4 w-4 text-muted-foreground" />;
+        case "Tableware": return <Package className="h-4 w-4 text-muted-foreground" />;
+        case "Silverware": return <Package className="h-4 w-4 text-muted-foreground" />;
+        case "Glassware": return <Package className="h-4 w-4 text-muted-foreground" />;
+        case "Linens": return <Package className="h-4 w-4 text-muted-foreground" />;
+        case "Serving Equipment": return <Package className="h-4 w-4 text-muted-foreground" />;
+        default: return <Package className="h-4 w-4 text-muted-foreground" />;
+      }
+    }
+    return null;
   };
 
   return (
@@ -269,15 +286,15 @@ const Estimates = () => {
                             ))}
                           </SelectContent>
                         </Select>
-                        <Select onValueChange={(value) => handleAddItem("beverage", value)}>
+                        <Select onValueChange={(value) => handleAddItem("inventoryItem", value)}>
                           <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Add Beverage" />
+                            <SelectValue placeholder="Add Inventory Item" />
                           </SelectTrigger>
                           <SelectContent>
-                            {beverageInventory.length === 0 && <p className="p-2 text-sm text-muted-foreground">No beverages available.</p>}
-                            {beverageInventory.map((beverage) => (
-                              <SelectItem key={beverage.id} value={beverage.id}>
-                                {beverage.name} (${beverage.costPerUnit.toFixed(2)}/{beverage.unit})
+                            {inventory.length === 0 && <p className="p-2 text-sm text-muted-foreground">No inventory items available.</p>}
+                            {inventory.map((item) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.name} ({item.category}) (${item.costPerUnit.toFixed(2)}/{item.unit})
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -285,7 +302,7 @@ const Estimates = () => {
                       </div>
 
                       {itemFields.length === 0 ? (
-                        <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add recipes or beverages.</p>
+                        <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add recipes or inventory items.</p>
                       ) : (
                         <div className="overflow-x-auto">
                           <Table>
@@ -300,36 +317,39 @@ const Estimates = () => {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {itemFields.map((item, index) => (
-                                <TableRow key={item.id}>
-                                  <TableCell className="font-medium flex items-center gap-2">
-                                    {item.type === "recipe" ? <Utensils className="h-4 w-4 text-muted-foreground" /> : <Wine className="h-4 w-4 text-muted-foreground" />}
-                                    {item.name}
-                                  </TableCell>
-                                  <TableCell className="capitalize">{item.type}</TableCell>
-                                  <TableCell className="text-right">${item.unitCost.toFixed(2)}</TableCell>
-                                  <TableCell className="text-right">
-                                    <Input
-                                      type="number"
-                                      value={item.quantity}
-                                      onChange={(e) => handleItemQuantityChange(index, parseFloat(e.target.value) || 0)}
-                                      className="w-24 text-right inline-flex"
-                                      min="1"
-                                    />
-                                  </TableCell>
-                                  <TableCell className="font-semibold text-right">${item.totalCost.toFixed(2)}</TableCell>
-                                  <TableCell className="text-right">
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="icon"
-                                      onClick={() => handleRemoveItem(index, item.name)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
+                              {itemFields.map((item, index) => {
+                                const inventoryItemDetails = item.type === "inventoryItem" ? inventory.find(inv => inv.id === item.id) : undefined;
+                                return (
+                                  <TableRow key={item.id}>
+                                    <TableCell className="font-medium flex items-center gap-2">
+                                      {getIconForItemType(item.type, inventoryItemDetails?.category)}
+                                      {item.name}
+                                    </TableCell>
+                                    <TableCell className="capitalize">{item.type === "inventoryItem" ? inventoryItemDetails?.category : item.type}</TableCell>
+                                    <TableCell className="text-right">${item.unitCost.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">
+                                      <Input
+                                        type="number"
+                                        value={item.quantity}
+                                        onChange={(e) => handleItemQuantityChange(index, parseFloat(e.target.value) || 0)}
+                                        className="w-24 text-right inline-flex"
+                                        min="1"
+                                      />
+                                    </TableCell>
+                                    <TableCell className="font-semibold text-right">${item.totalCost.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">
+                                      <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={() => handleRemoveItem(index, item.name)}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
                             </TableBody>
                           </Table>
                         </div>

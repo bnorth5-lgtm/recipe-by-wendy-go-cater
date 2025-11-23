@@ -29,25 +29,15 @@ export interface Recipe {
   baseCost: number; // New: Base cost for the recipe
 }
 
-// Define the schema for an inventory item
+// Define the schema for an inventory item (now includes all types of items)
 export interface InventoryItem {
   id: string;
   name: string;
+  category: "Food Ingredient" | "Beverage" | "Furniture" | "Tableware" | "Silverware" | "Glassware" | "Linens" | "Serving Equipment" | "Other";
   currentStock: number;
-  unit: string;
+  unit: string; // e.g., "kg", "L", "count", "bottle", "chair", "set"
   lowStockThreshold: number;
-  costPerUnit: number; // New: Cost per unit for inventory tracking
-}
-
-// Define the schema for a beverage item
-export interface BeverageItem {
-  id: string;
-  name: string;
-  type: "Cocktail" | "Wine" | "Beer" | "Spirit" | "Mixer" | "Other";
-  currentStock: number;
-  unit: string; // e.g., "bottle", "can", "ml", "L"
-  lowStockThreshold: number;
-  costPerUnit: number; // New: Cost per unit for beverage tracking
+  costPerUnit: number; // Cost per unit for inventory tracking
 }
 
 // Define the schema for a client
@@ -61,10 +51,10 @@ export interface Client {
   notes?: string;
 }
 
-// Define the schema for an item within a proposal (recipe or beverage)
+// Define the schema for an item within a proposal (recipe or direct inventory item)
 export interface ProposalItem {
-  id: string; // ID of the recipe or beverage
-  type: "recipe" | "beverage";
+  id: string; // ID of the recipe or inventory item
+  type: "recipe" | "inventoryItem"; // Changed from "beverage" to "inventoryItem"
   name: string;
   quantity: number; // How many servings/units of this item
   unitCost: number; // Cost per serving/unit at the time of proposal
@@ -78,7 +68,7 @@ export interface Proposal {
   eventName: string;
   eventDate: string; // Storing as string for simplicity, can be Date object
   numberOfGuests: number;
-  items: ProposalItem[]; // Recipes and beverages included
+  items: ProposalItem[]; // Recipes and inventory items included
   laborCost: number;
   equipmentCost: number;
   otherCosts: number;
@@ -106,7 +96,7 @@ export interface EventBooking {
 // Define the schema for an Estimate
 export interface Estimate {
   id: string;
-  eventName: string; // Changed from number to string
+  eventName: string;
   numberOfGuests: number;
   items: ProposalItem[]; // Reusing ProposalItem for consistency
   laborCost: number;
@@ -139,7 +129,6 @@ interface CateringState {
   inventory: InventoryItem[];
   recipes: Recipe[];
   bookings: EventBooking[];
-  beverageInventory: BeverageItem[];
   clients: Client[]; // New: Clients state
   proposals: Proposal[]; // New: Proposals state
   estimates: Estimate[]; // Estimates state
@@ -149,6 +138,7 @@ interface CateringState {
   updateInventoryItem: (item: InventoryItem) => void;
   deleteInventoryItem: (id: string) => void;
   deductInventory: (recipeId: string) => boolean; // Returns true if deduction successful, false otherwise
+  deductInventoryItem: (itemId: string, quantity: number) => boolean; // For direct inventory item deduction
 
   addRecipe: (recipe: Omit<Recipe, 'id'>) => void;
   updateRecipe: (recipe: Recipe) => void;
@@ -158,11 +148,6 @@ interface CateringState {
   updateBooking: (booking: EventBooking) => void;
   deleteBooking: (id: string) => void;
   completeBooking: (id: string) => boolean; // Returns true if completed and inventory deducted, false otherwise
-
-  addBeverageItem: (item: Omit<BeverageItem, 'id'>) => void;
-  updateBeverageItem: (item: BeverageItem) => void;
-  deleteBeverageItem: (id: string) => void;
-  deductBeverageStock: (beverageId: string, quantity: number) => boolean;
 
   // Client actions
   addClient: (client: Omit<Client, 'id'>) => void;
@@ -186,123 +171,155 @@ interface CateringState {
 }
 
 const initialInventory: InventoryItem[] = [
-  { id: "1", name: "Chicken Breast", currentStock: 50, unit: "kg", lowStockThreshold: 10, costPerUnit: 5.00 },
-  { id: "2", name: "Beef Sirloin", currentStock: 30, unit: "kg", lowStockThreshold: 5, costPerUnit: 15.00 },
-  { id: "3", name: "Salmon Fillets", currentStock: 20, unit: "kg", lowStockThreshold: 4, costPerUnit: 12.00 },
-  { id: "4", name: "Mixed Salad Greens", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 3.50 },
-  { id: "5", name: "Potatoes", currentStock: 100, unit: "kg", lowStockThreshold: 20, costPerUnit: 1.20 },
-  { id: "6", name: "Onions", currentStock: 40, unit: "kg", lowStockThreshold: 8, costPerUnit: 0.80 },
-  { id: "7", name: "Carrots", currentStock: 35, unit: "kg", lowStockThreshold: 7, costPerUnit: 0.90 },
-  { id: "8", name: "All-Purpose Flour", currentStock: 25, unit: "kg", lowStockThreshold: 5, costPerUnit: 1.00 },
-  { id: "9", name: "Sugar", currentStock: 20, unit: "kg", lowStockThreshold: 4, costPerUnit: 0.70 },
-  { id: "10", name: "Olive Oil", currentStock: 10, unit: "L", lowStockThreshold: 2, costPerUnit: 8.00 },
-  { id: "11", name: "Heavy Cream", currentStock: 8, unit: "L", lowStockThreshold: 1, costPerUnit: 4.50 },
-  { id: "12", name: "Eggs", currentStock: 120, unit: "count", lowStockThreshold: 24, costPerUnit: 0.20 },
-  { id: "13", name: "Parmesan Cheese", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 18.00 },
-  { id: "14", name: "Tomatoes (Canned)", currentStock: 30, unit: "can", lowStockThreshold: 6, costPerUnit: 1.10 },
-  { id: "15", name: "Rice (Basmati)", currentStock: 50, unit: "kg", lowStockThreshold: 10, costPerUnit: 2.50 },
-  // New ingredients for recipes
-  { id: "16", name: "Fresh Dill", currentStock: 10, unit: "bunch", lowStockThreshold: 2, costPerUnit: 2.50 },
-  { id: "17", name: "Fresh Parsley", currentStock: 10, unit: "bunch", lowStockThreshold: 2, costPerUnit: 2.00 },
-  { id: "18", name: "Fresh Thyme", currentStock: 10, unit: "bunch", lowStockThreshold: 2, costPerUnit: 2.50 },
-  { id: "19", name: "Lemon", currentStock: 20, unit: "count", lowStockThreshold: 5, costPerUnit: 0.75 },
-  { id: "20", name: "Garlic", currentStock: 30, unit: "head", lowStockThreshold: 6, costPerUnit: 0.50 },
-  { id: "21", name: "Cremini Mushrooms", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 8.00 },
-  { id: "22", name: "Marsala Wine (cooking)", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 10.00 },
-  { id: "23", name: "Chicken Broth", currentStock: 20, unit: "L", lowStockThreshold: 4, costPerUnit: 3.00 },
-  { id: "24", name: "Butter", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 12.00 },
-  { id: "25", name: "Beef Tenderloin", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 35.00 },
-  { id: "26", name: "Shallots", currentStock: 8, unit: "kg", lowStockThreshold: 2, costPerUnit: 7.00 },
-  { id: "27", name: "Fresh Rosemary", currentStock: 10, unit: "bunch", lowStockThreshold: 2, costPerUnit: 3.00 },
-  { id: "28", name: "Arborio Rice", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 4.00 },
-  { id: "29", name: "Mixed Wild Mushrooms", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 25.00 },
-  { id: "30", name: "Vegetable Broth", currentStock: 20, unit: "L", lowStockThreshold: 4, costPerUnit: 2.50 },
-  { id: "31", name: "Dry White Wine (cooking)", currentStock: 5, unit: "bottle", lowStockThreshold: 1, costPerUnit: 10.00 },
-  { id: "32", name: "Pork Loin", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 18.00 },
-  { id: "33", name: "Apples (Granny Smith)", currentStock: 25, unit: "kg", lowStockThreshold: 5, costPerUnit: 3.00 },
-  { id: "34", name: "Red Onion", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 2.00 },
-  { id: "35", name: "Apple Cider Vinegar", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 4.00 },
-  { id: "36", name: "Brown Sugar", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 2.50 },
-  { id: "37", name: "Fresh Ginger", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 10.00 },
-  { id: "38", name: "Mustard Seeds", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 8.00 },
-  { id: "39", name: "Ground Cinnamon", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 15.00 },
-  { id: "40", name: "Ground Cloves", currentStock: 0.5, unit: "kg", lowStockThreshold: 0.1, costPerUnit: 20.00 },
-  { id: "41", name: "Shrimp (Peeled & Deveined)", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 25.00 },
-  { id: "42", name: "Linguine Pasta", currentStock: 20, unit: "kg", lowStockThreshold: 4, costPerUnit: 3.00 },
-  { id: "43", name: "Red Pepper Flakes", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 12.00 },
-  { id: "44", name: "Heavy Cream (Dessert)", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 4.50 },
-  { id: "45", name: "Dark Chocolate", currentStock: 3, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 20.00 },
-  { id: "46", name: "All-Purpose Flour (Dessert)", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 1.00 },
-  { id: "47", name: "Cocoa Powder", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 18.00 },
-  { id: "48", name: "Vanilla Extract", currentStock: 0.5, unit: "L", lowStockThreshold: 0.1, costPerUnit: 25.00 },
-  { id: "49", name: "Fresh Berries (Mixed)", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 15.00 },
-  { id: "50", name: "Pie Crust (Pre-made)", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 3.00 },
-  { id: "51", name: "Gelatin Powder", currentStock: 0.2, unit: "kg", lowStockThreshold: 0.05, costPerUnit: 30.00 },
-  { id: "52", name: "Sparkling Water (Extra)", currentStock: 20, unit: "L", lowStockThreshold: 5, costPerUnit: 1.00 },
-  { id: "53", name: "Fresh Mint", currentStock: 5, unit: "bunch", lowStockThreshold: 1, costPerUnit: 2.00 },
-  { id: "54", name: "Green Tea Bags", currentStock: 100, unit: "count", lowStockThreshold: 20, costPerUnit: 0.15 },
-  { id: "55", name: "Honey", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 10.00 },
-  { id: "56", name: "Oranges", currentStock: 15, unit: "count", lowStockThreshold: 3, costPerUnit: 0.80 },
-  { id: "57", name: "Cream Cheese", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 7.00 },
-  { id: "58", name: "Graham Cracker Crumbs", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 4.00 },
-  { id: "59", name: "Espresso Powder", currentStock: 0.1, unit: "kg", lowStockThreshold: 0.02, costPerUnit: 30.00 },
-  { id: "60", name: "Ladyfingers", currentStock: 10, unit: "pack", lowStockThreshold: 2, costPerUnit: 5.00 },
-  { id: "61", name: "Mascarpone Cheese", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 25.00 },
-  { id: "62", name: "Whiskey (Bourbon)", currentStock: 3, unit: "bottle", lowStockThreshold: 0.5, costPerUnit: 30.00 },
-  { id: "63", name: "Angostura Bitters", currentStock: 0.1, unit: "bottle", lowStockThreshold: 0.02, costPerUnit: 15.00 },
-  { id: "64", name: "Club Soda", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.50 },
-  { id: "65", name: "White Rum", currentStock: 4, unit: "bottle", lowStockThreshold: 1, costPerUnit: 22.00 },
-  { id: "66", name: "Fresh Limes", currentStock: 20, unit: "count", lowStockThreshold: 5, costPerUnit: 0.60 },
-  { id: "67", name: "Spinach (Fresh)", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 6.00 },
-  { id: "68", name: "Artichoke Hearts (Canned)", currentStock: 10, unit: "can", lowStockThreshold: 2, costPerUnit: 3.00 },
-  { id: "69", name: "Mayonnaise", currentStock: 2, unit: "L", lowStockThreshold: 0.5, costPerUnit: 5.00 },
-  { id: "70", name: "Parmesan Cheese (grated)", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 18.00 },
-  { id: "71", name: "Cream Cheese (softened)", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 7.00 },
-  { id: "72", name: "Crostini/Baguette", currentStock: 10, unit: "pack", lowStockThreshold: 2, costPerUnit: 4.00 },
-  { id: "73", name: "Cantaloupe", currentStock: 5, unit: "count", lowStockThreshold: 1, costPerUnit: 4.00 },
-  { id: "74", name: "Honeydew Melon", currentStock: 5, unit: "count", lowStockThreshold: 1, costPerUnit: 4.00 },
-  { id: "75", name: "Prosciutto", currentStock: 0.5, unit: "kg", lowStockThreshold: 0.1, costPerUnit: 30.00 },
-  { id: "76", name: "Asparagus", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 7.00 },
-  { id: "77", name: "Potatoes (Russet)", currentStock: 20, unit: "kg", lowStockThreshold: 5, costPerUnit: 1.50 },
-  { id: "78", name: "Milk", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 2.00 },
-  { id: "79", name: "Quinoa", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 8.00 },
-  { id: "80", name: "Bell Peppers (Assorted)", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 1.00 },
-  { id: "81", name: "Zucchini", currentStock: 8, unit: "count", lowStockThreshold: 2, costPerUnit: 0.80 },
-  { id: "82", name: "Red Wine Vinegar", currentStock: 1, unit: "L", lowStockThreshold: 0.2, costPerUnit: 4.00 },
-  // NEW INGREDIENTS
-  { id: "83", name: "Cucumber", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 1.20 },
-  { id: "84", name: "Apple Cider", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 4.00 },
-  { id: "85", name: "Cinnamon Sticks", currentStock: 0.1, unit: "kg", lowStockThreshold: 0.02, costPerUnit: 10.00 },
-  { id: "86", name: "Coffee Beans (Ground)", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 20.00 },
-  { id: "87", name: "Oats (Rolled)", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 3.00 },
-  { id: "88", name: "Parsnips", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 2.50 },
-  { id: "89", name: "Sweet Potatoes", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 1.80 },
-  { id: "90", name: "Nutmeg (Ground)", currentStock: 0.1, unit: "kg", lowStockThreshold: 0.02, costPerUnit: 15.00 },
-  { id: "91", name: "Couscous (Medium)", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 4.50 },
-  { id: "92", name: "Feta Cheese (Crumbled)", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 12.00 },
-  { id: "93", name: "Kalamata Olives", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 9.00 },
-  { id: "94", name: "Simple Syrup", currentStock: 2, unit: "L", lowStockThreshold: 0.5, costPerUnit: 6.00 },
-  { id: "95", name: "Coffee Liqueur", currentStock: 1, unit: "bottle", lowStockThreshold: 0.2, costPerUnit: 25.00 },
-];
+  // Food Ingredients
+  { id: "1", name: "Chicken Breast", category: "Food Ingredient", currentStock: 50, unit: "kg", lowStockThreshold: 10, costPerUnit: 5.00 },
+  { id: "2", name: "Beef Sirloin", category: "Food Ingredient", currentStock: 30, unit: "kg", lowStockThreshold: 5, costPerUnit: 15.00 },
+  { id: "3", name: "Salmon Fillets", category: "Food Ingredient", currentStock: 20, unit: "kg", lowStockThreshold: 4, costPerUnit: 12.00 },
+  { id: "4", name: "Mixed Salad Greens", category: "Food Ingredient", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 3.50 },
+  { id: "5", name: "Potatoes", category: "Food Ingredient", currentStock: 100, unit: "kg", lowStockThreshold: 20, costPerUnit: 1.20 },
+  { id: "6", name: "Onions", category: "Food Ingredient", currentStock: 40, unit: "kg", lowStockThreshold: 8, costPerUnit: 0.80 },
+  { id: "7", name: "Carrots", category: "Food Ingredient", currentStock: 35, unit: "kg", lowStockThreshold: 7, costPerUnit: 0.90 },
+  { id: "8", name: "All-Purpose Flour", category: "Food Ingredient", currentStock: 25, unit: "kg", lowStockThreshold: 5, costPerUnit: 1.00 },
+  { id: "9", name: "Sugar", category: "Food Ingredient", currentStock: 20, unit: "kg", lowStockThreshold: 4, costPerUnit: 0.70 },
+  { id: "10", name: "Olive Oil", category: "Food Ingredient", currentStock: 10, unit: "L", lowStockThreshold: 2, costPerUnit: 8.00 },
+  { id: "11", name: "Heavy Cream", category: "Food Ingredient", currentStock: 8, unit: "L", lowStockThreshold: 1, costPerUnit: 4.50 },
+  { id: "12", name: "Eggs", category: "Food Ingredient", currentStock: 120, unit: "count", lowStockThreshold: 24, costPerUnit: 0.20 },
+  { id: "13", name: "Parmesan Cheese", category: "Food Ingredient", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 18.00 },
+  { id: "14", name: "Tomatoes (Canned)", category: "Food Ingredient", currentStock: 30, unit: "can", lowStockThreshold: 6, costPerUnit: 1.10 },
+  { id: "15", name: "Rice (Basmati)", category: "Food Ingredient", currentStock: 50, unit: "kg", lowStockThreshold: 10, costPerUnit: 2.50 },
+  { id: "16", name: "Fresh Dill", category: "Food Ingredient", currentStock: 10, unit: "bunch", lowStockThreshold: 2, costPerUnit: 2.50 },
+  { id: "17", name: "Fresh Parsley", category: "Food Ingredient", currentStock: 10, unit: "bunch", lowStockThreshold: 2, costPerUnit: 2.00 },
+  { id: "18", name: "Fresh Thyme", category: "Food Ingredient", currentStock: 10, unit: "bunch", lowStockThreshold: 2, costPerUnit: 2.50 },
+  { id: "19", name: "Lemon", category: "Food Ingredient", currentStock: 20, unit: "count", lowStockThreshold: 5, costPerUnit: 0.75 },
+  { id: "20", name: "Garlic", category: "Food Ingredient", currentStock: 30, unit: "head", lowStockThreshold: 6, costPerUnit: 0.50 },
+  { id: "21", name: "Cremini Mushrooms", category: "Food Ingredient", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 8.00 },
+  { id: "22", name: "Marsala Wine (cooking)", category: "Food Ingredient", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 10.00 },
+  { id: "23", name: "Chicken Broth", category: "Food Ingredient", currentStock: 20, unit: "L", lowStockThreshold: 4, costPerUnit: 3.00 },
+  { id: "24", name: "Butter", category: "Food Ingredient", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 12.00 },
+  { id: "25", name: "Beef Tenderloin", category: "Food Ingredient", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 35.00 },
+  { id: "26", name: "Shallots", category: "Food Ingredient", currentStock: 8, unit: "kg", lowStockThreshold: 2, costPerUnit: 7.00 },
+  { id: "27", name: "Fresh Rosemary", category: "Food Ingredient", currentStock: 10, unit: "bunch", lowStockThreshold: 2, costPerUnit: 3.00 },
+  { id: "28", name: "Arborio Rice", category: "Food Ingredient", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 4.00 },
+  { id: "29", name: "Mixed Wild Mushrooms", category: "Food Ingredient", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 25.00 },
+  { id: "30", name: "Vegetable Broth", category: "Food Ingredient", currentStock: 20, unit: "L", lowStockThreshold: 4, costPerUnit: 2.50 },
+  { id: "31", name: "Dry White Wine (cooking)", category: "Food Ingredient", currentStock: 5, unit: "bottle", lowStockThreshold: 1, costPerUnit: 10.00 },
+  { id: "32", name: "Pork Loin", category: "Food Ingredient", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 18.00 },
+  { id: "33", name: "Apples (Granny Smith)", category: "Food Ingredient", currentStock: 25, unit: "count", lowStockThreshold: 5, costPerUnit: 3.00 },
+  { id: "34", name: "Red Onion", category: "Food Ingredient", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 2.00 },
+  { id: "35", name: "Apple Cider Vinegar", category: "Food Ingredient", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 4.00 },
+  { id: "36", name: "Brown Sugar", category: "Food Ingredient", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 2.50 },
+  { id: "37", name: "Fresh Ginger", category: "Food Ingredient", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 10.00 },
+  { id: "38", name: "Mustard Seeds", category: "Food Ingredient", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 8.00 },
+  { id: "39", name: "Ground Cinnamon", category: "Food Ingredient", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 15.00 },
+  { id: "40", name: "Ground Cloves", category: "Food Ingredient", currentStock: 0.5, unit: "kg", lowStockThreshold: 0.1, costPerUnit: 20.00 },
+  { id: "41", name: "Shrimp (Peeled & Deveined)", category: "Food Ingredient", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 25.00 },
+  { id: "42", name: "Linguine Pasta", category: "Food Ingredient", currentStock: 20, unit: "kg", lowStockThreshold: 4, costPerUnit: 3.00 },
+  { id: "43", name: "Red Pepper Flakes", category: "Food Ingredient", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 12.00 },
+  { id: "44", name: "Heavy Cream (Dessert)", category: "Food Ingredient", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 4.50 },
+  { id: "45", name: "Dark Chocolate", category: "Food Ingredient", currentStock: 3, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 20.00 },
+  { id: "46", name: "All-Purpose Flour (Dessert)", category: "Food Ingredient", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 1.00 },
+  { id: "47", name: "Cocoa Powder", category: "Food Ingredient", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 18.00 },
+  { id: "48", name: "Vanilla Extract", category: "Food Ingredient", currentStock: 0.5, unit: "L", lowStockThreshold: 0.1, costPerUnit: 25.00 },
+  { id: "49", name: "Fresh Berries (Mixed)", category: "Food Ingredient", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 15.00 },
+  { id: "50", name: "Pie Crust (Pre-made)", category: "Food Ingredient", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 3.00 },
+  { id: "51", name: "Gelatin Powder", category: "Food Ingredient", currentStock: 0.2, unit: "kg", lowStockThreshold: 0.05, costPerUnit: 30.00 },
+  { id: "52", name: "Sparkling Water (Extra)", category: "Food Ingredient", currentStock: 20, unit: "L", lowStockThreshold: 5, costPerUnit: 1.00 },
+  { id: "53", name: "Fresh Mint", category: "Food Ingredient", currentStock: 5, unit: "bunch", lowStockThreshold: 1, costPerUnit: 2.00 },
+  { id: "54", name: "Green Tea Bags", category: "Food Ingredient", currentStock: 100, unit: "count", lowStockThreshold: 20, costPerUnit: 0.15 },
+  { id: "55", name: "Honey", category: "Food Ingredient", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 10.00 },
+  { id: "56", name: "Oranges", category: "Food Ingredient", currentStock: 15, unit: "count", lowStockThreshold: 3, costPerUnit: 0.80 },
+  { id: "57", name: "Cream Cheese", category: "Food Ingredient", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 7.00 },
+  { id: "58", name: "Graham Cracker Crumbs", category: "Food Ingredient", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 4.00 },
+  { id: "59", name: "Espresso Powder", category: "Food Ingredient", currentStock: 0.1, unit: "kg", lowStockThreshold: 0.02, costPerUnit: 30.00 },
+  { id: "60", name: "Ladyfingers", category: "Food Ingredient", currentStock: 10, unit: "pack", lowStockThreshold: 2, costPerUnit: 5.00 },
+  { id: "61", name: "Mascarpone Cheese", category: "Food Ingredient", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 25.00 },
+  { id: "62", name: "Whiskey (Bourbon)", category: "Food Ingredient", currentStock: 3, unit: "bottle", lowStockThreshold: 0.5, costPerUnit: 30.00 },
+  { id: "63", name: "Angostura Bitters", category: "Food Ingredient", currentStock: 0.1, unit: "bottle", lowStockThreshold: 0.02, costPerUnit: 15.00 },
+  { id: "64", name: "Club Soda", category: "Food Ingredient", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.50 },
+  { id: "65", name: "White Rum", category: "Food Ingredient", currentStock: 4, unit: "bottle", lowStockThreshold: 1, costPerUnit: 22.00 },
+  { id: "66", name: "Fresh Limes", category: "Food Ingredient", currentStock: 20, unit: "count", lowStockThreshold: 5, costPerUnit: 0.60 },
+  { id: "67", name: "Spinach (Fresh)", category: "Food Ingredient", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 6.00 },
+  { id: "68", name: "Artichoke Hearts (Canned)", category: "Food Ingredient", currentStock: 10, unit: "can", lowStockThreshold: 2, costPerUnit: 3.00 },
+  { id: "69", name: "Mayonnaise", category: "Food Ingredient", currentStock: 2, unit: "L", lowStockThreshold: 0.5, costPerUnit: 5.00 },
+  { id: "70", name: "Parmesan Cheese (grated)", category: "Food Ingredient", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 18.00 },
+  { id: "71", name: "Cream Cheese (softened)", category: "Food Ingredient", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 7.00 },
+  { id: "72", name: "Crostini/Baguette", category: "Food Ingredient", currentStock: 10, unit: "pack", lowStockThreshold: 2, costPerUnit: 4.00 },
+  { id: "73", name: "Cantaloupe", category: "Food Ingredient", currentStock: 5, unit: "count", lowStockThreshold: 1, costPerUnit: 4.00 },
+  { id: "74", name: "Honeydew Melon", category: "Food Ingredient", currentStock: 5, unit: "count", lowStockThreshold: 1, costPerUnit: 4.00 },
+  { id: "75", name: "Prosciutto", category: "Food Ingredient", currentStock: 0.5, unit: "kg", lowStockThreshold: 0.1, costPerUnit: 30.00 },
+  { id: "76", name: "Asparagus", category: "Food Ingredient", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 7.00 },
+  { id: "77", name: "Potatoes (Russet)", category: "Food Ingredient", currentStock: 20, unit: "kg", lowStockThreshold: 5, costPerUnit: 1.50 },
+  { id: "78", name: "Milk", category: "Food Ingredient", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 2.00 },
+  { id: "79", name: "Quinoa", category: "Food Ingredient", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 8.00 },
+  { id: "80", name: "Bell Peppers (Assorted)", category: "Food Ingredient", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 1.00 },
+  { id: "81", name: "Zucchini", category: "Food Ingredient", currentStock: 8, unit: "count", lowStockThreshold: 2, costPerUnit: 0.80 },
+  { id: "82", name: "Red Wine Vinegar", category: "Food Ingredient", currentStock: 1, unit: "L", lowStockThreshold: 0.2, costPerUnit: 4.00 },
+  { id: "83", name: "Cucumber", category: "Food Ingredient", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 1.20 },
+  { id: "84", name: "Apple Cider", category: "Food Ingredient", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 4.00 },
+  { id: "85", name: "Cinnamon Sticks", category: "Food Ingredient", currentStock: 0.1, unit: "kg", lowStockThreshold: 0.02, costPerUnit: 10.00 },
+  { id: "86", name: "Coffee Beans (Ground)", category: "Food Ingredient", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 20.00 },
+  { id: "87", name: "Oats (Rolled)", category: "Food Ingredient", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 3.00 },
+  { id: "88", name: "Parsnips", category: "Food Ingredient", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 2.50 },
+  { id: "89", name: "Sweet Potatoes", category: "Food Ingredient", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 1.80 },
+  { id: "90", name: "Nutmeg (Ground)", category: "Food Ingredient", currentStock: 0.1, unit: "kg", lowStockThreshold: 0.02, costPerUnit: 15.00 },
+  { id: "91", name: "Couscous (Medium)", category: "Food Ingredient", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 4.50 },
+  { id: "92", name: "Feta Cheese (Crumbled)", category: "Food Ingredient", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 12.00 },
+  { id: "93", name: "Kalamata Olives", category: "Food Ingredient", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 9.00 },
+  { id: "94", name: "Simple Syrup", category: "Food Ingredient", currentStock: 2, unit: "L", lowStockThreshold: 0.5, costPerUnit: 6.00 },
+  { id: "95", name: "Coffee Liqueur", category: "Food Ingredient", currentStock: 1, unit: "bottle", lowStockThreshold: 0.2, costPerUnit: 25.00 },
 
-const initialBeverageInventory: BeverageItem[] = [
-  { id: "b1", name: "Cabernet Sauvignon", type: "Wine", currentStock: 12, unit: "bottle", lowStockThreshold: 3, costPerUnit: 15.00 },
-  { id: "b2", name: "Chardonnay", type: "Wine", currentStock: 10, unit: "bottle", lowStockThreshold: 2, costPerUnit: 12.00 },
-  { id: "b3", name: "Pilsner Beer", type: "Beer", currentStock: 48, unit: "can", lowStockThreshold: 12, costPerUnit: 1.50 },
-  { id: "b4", name: "IPA Beer", type: "Beer", currentStock: 36, unit: "can", lowStockThreshold: 9, costPerUnit: 2.00 },
-  { id: "b5", name: "Vodka (Standard)", type: "Spirit", currentStock: 6, unit: "bottle", lowStockThreshold: 1, costPerUnit: 20.00 },
-  { id: "b6", name: "Gin (Dry)", type: "Spirit", currentStock: 4, unit: "bottle", lowStockThreshold: 1, costPerUnit: 18.00 },
-  { id: "b7", name: "Orange Juice", type: "Mixer", currentStock: 10, unit: "L", lowStockThreshold: 2, costPerUnit: 3.00 },
-  { id: "b8", name: "Tonic Water", type: "Mixer", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.75 },
-  { id: "b9", name: "Coca-Cola", type: "Other", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
-  // NEW BEVERAGE INVENTORY ITEMS
-  { id: "b10", name: "Local Craft Beer (Assorted)", type: "Beer", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 3.00 },
-  { id: "b11", name: "Sparkling Wine (Prosecco)", type: "Wine", currentStock: 8, unit: "bottle", lowStockThreshold: 2, costPerUnit: 18.00 },
-  { id: "b12", name: "Diet Cola", type: "Other", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
-  { id: "b13", name: "Lemon-Lime Soda", type: "Other", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
-  { id: "b14", name: "Cranberry Juice", type: "Mixer", currentStock: 8, unit: "L", lowStockThreshold: 2, costPerUnit: 3.50 },
-  { id: "b15", name: "Apple Juice", type: "Mixer", currentStock: 8, unit: "L", lowStockThreshold: 2, costPerUnit: 3.00 },
-  { id: "b16", name: "Sparkling Water (Lime)", type: "Other", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.80 },
+  // Beverages (formerly initialBeverageInventory)
+  { id: "b1", name: "Cabernet Sauvignon", category: "Beverage", currentStock: 12, unit: "bottle", lowStockThreshold: 3, costPerUnit: 15.00 },
+  { id: "b2", name: "Chardonnay", category: "Beverage", currentStock: 10, unit: "bottle", lowStockThreshold: 2, costPerUnit: 12.00 },
+  { id: "b3", name: "Pilsner Beer", category: "Beverage", currentStock: 48, unit: "can", lowStockThreshold: 12, costPerUnit: 1.50 },
+  { id: "b4", name: "IPA Beer", category: "Beverage", currentStock: 36, unit: "can", lowStockThreshold: 9, costPerUnit: 2.00 },
+  { id: "b5", name: "Vodka (Standard)", category: "Beverage", currentStock: 6, unit: "bottle", lowStockThreshold: 1, costPerUnit: 20.00 },
+  { id: "b6", name: "Gin (Dry)", category: "Beverage", currentStock: 4, unit: "bottle", lowStockThreshold: 1, costPerUnit: 18.00 },
+  { id: "b7", name: "Orange Juice", category: "Beverage", currentStock: 10, unit: "L", lowStockThreshold: 2, costPerUnit: 3.00 },
+  { id: "b8", name: "Tonic Water", category: "Beverage", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.75 },
+  { id: "b9", name: "Coca-Cola", category: "Beverage", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
+  { id: "b10", name: "Local Craft Beer (Assorted)", category: "Beverage", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 3.00 },
+  { id: "b11", name: "Sparkling Wine (Prosecco)", category: "Beverage", currentStock: 8, unit: "bottle", lowStockThreshold: 2, costPerUnit: 18.00 },
+  { id: "b12", name: "Diet Cola", category: "Beverage", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
+  { id: "b13", name: "Lemon-Lime Soda", category: "Beverage", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
+  { id: "b14", name: "Cranberry Juice", category: "Beverage", currentStock: 8, unit: "L", lowStockThreshold: 2, costPerUnit: 3.50 },
+  { id: "b15", name: "Apple Juice", category: "Beverage", currentStock: 8, unit: "L", lowStockThreshold: 2, costPerUnit: 3.00 },
+  { id: "b16", name: "Sparkling Water (Lime)", category: "Beverage", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.80 },
+
+  // Furniture
+  { id: "f1", name: "Round Dining Table (60in)", category: "Furniture", currentStock: 20, unit: "table", lowStockThreshold: 5, costPerUnit: 50.00 },
+  { id: "f2", name: "Folding Chair (White)", category: "Furniture", currentStock: 200, unit: "chair", lowStockThreshold: 50, costPerUnit: 5.00 },
+  { id: "f3", name: "High-Top Cocktail Table", category: "Furniture", currentStock: 15, unit: "table", lowStockThreshold: 3, costPerUnit: 30.00 },
+  { id: "f4", name: "Buffet Table (8ft)", category: "Furniture", currentStock: 10, unit: "table", lowStockThreshold: 2, costPerUnit: 60.00 },
+
+  // Tableware
+  { id: "t1", name: "Dinner Plate (White Ceramic)", category: "Tableware", currentStock: 250, unit: "plate", lowStockThreshold: 50, costPerUnit: 2.50 },
+  { id: "t2", name: "Salad Plate (White Ceramic)", category: "Tableware", currentStock: 250, unit: "plate", lowStockThreshold: 50, costPerUnit: 2.00 },
+  { id: "t3", name: "Bread Plate (White Ceramic)", category: "Tableware", currentStock: 250, unit: "plate", lowStockThreshold: 50, costPerUnit: 1.50 },
+  { id: "t4", name: "Coffee Cup (White Ceramic)", category: "Tableware", currentStock: 100, unit: "cup", lowStockThreshold: 20, costPerUnit: 1.80 },
+
+  // Silverware
+  { id: "s1", name: "Dinner Fork", category: "Silverware", currentStock: 300, unit: "piece", lowStockThreshold: 60, costPerUnit: 0.75 },
+  { id: "s2", name: "Dinner Knife", category: "Silverware", currentStock: 300, unit: "piece", lowStockThreshold: 60, costPerUnit: 0.75 },
+  { id: "s3", name: "Dinner Spoon", category: "Silverware", currentStock: 300, unit: "piece", lowStockThreshold: 60, costPerUnit: 0.75 },
+  { id: "s4", name: "Dessert Fork", category: "Silverware", currentStock: 200, unit: "piece", lowStockThreshold: 40, costPerUnit: 0.60 },
+
+  // Glassware
+  { id: "g1", name: "Water Glass (12oz)", category: "Glassware", currentStock: 250, unit: "glass", lowStockThreshold: 50, costPerUnit: 1.20 },
+  { id: "g2", name: "Wine Glass (Red, 16oz)", category: "Glassware", currentStock: 150, unit: "glass", lowStockThreshold: 30, costPerUnit: 1.50 },
+  { id: "g3", name: "Wine Glass (White, 12oz)", category: "Glassware", currentStock: 150, unit: "glass", lowStockThreshold: 30, costPerUnit: 1.50 },
+  { id: "g4", name: "Champagne Flute", category: "Glassware", currentStock: 100, unit: "glass", lowStockThreshold: 20, costPerUnit: 1.80 },
+  { id: "g5", name: "Cocktail Glass (Rocks)", category: "Glassware", currentStock: 100, unit: "glass", lowStockThreshold: 20, costPerUnit: 1.30 },
+
+  // Linens
+  { id: "l1", name: "Tablecloth (White, 90x90)", category: "Linens", currentStock: 50, unit: "linen", lowStockThreshold: 10, costPerUnit: 10.00 },
+  { id: "l2", name: "Napkin (White Cotton)", category: "Linens", currentStock: 300, unit: "napkin", lowStockThreshold: 60, costPerUnit: 1.00 },
+  { id: "l3", name: "Tablecloth (Black, 90x90)", category: "Linens", currentStock: 20, unit: "linen", lowStockThreshold: 5, costPerUnit: 10.00 },
+
+  // Serving Equipment
+  { id: "se1", name: "Chafing Dish (Full Size)", category: "Serving Equipment", currentStock: 15, unit: "unit", lowStockThreshold: 3, costPerUnit: 40.00 },
+  { id: "se2", name: "Serving Platter (Large)", category: "Serving Equipment", currentStock: 25, unit: "unit", lowStockThreshold: 5, costPerUnit: 15.00 },
+  { id: "se3", name: "Beverage Dispenser (3 Gallon)", category: "Serving Equipment", currentStock: 10, unit: "unit", lowStockThreshold: 2, costPerUnit: 35.00 },
 ];
 
 const initialRecipes: Recipe[] = [
@@ -317,10 +334,10 @@ const initialRecipes: Recipe[] = [
     ingredients: [
       { name: "Beef Sirloin", quantity: "0.5 kg" },
       { name: "Onions", quantity: "0.2 kg" },
-      { name: "Mushrooms", quantity: "0.3 kg" },
+      { name: "Cremini Mushrooms", quantity: "0.3 kg" }, // Changed from generic Mushrooms
       { name: "Heavy Cream", quantity: "0.2 L" },
       { name: "Sour Cream", quantity: "0.1 L" },
-      { name: "Pasta", quantity: "0.4 kg" },
+      { name: "Linguine Pasta", quantity: "0.4 kg" }, // Changed from generic Pasta
     ],
     instructions: [
       { step: "Slice beef thinly and sauté." },
@@ -340,9 +357,9 @@ const initialRecipes: Recipe[] = [
     category: "Side Dish",
     ingredients: [
       { name: "Mixed Salad Greens", quantity: "0.5 kg" },
-      { name: "Tomatoes", quantity: "0.2 kg" },
-      { name: "Cucumbers", quantity: "0.15 kg" },
-      { name: "Bell Peppers", quantity: "0.1 kg" },
+      { name: "Cherry Tomatoes", quantity: "0.2 kg" }, // Changed from generic Tomatoes
+      { name: "Cucumber", quantity: "0.15 kg" }, // Changed from generic Cucumbers
+      { name: "Bell Peppers (Assorted)", quantity: "0.1 kg" }, // Changed from generic Bell Peppers
       { name: "Olive Oil", quantity: "0.05 L" },
       { name: "Red Wine Vinegar", quantity: "0.02 L" },
     ],
@@ -427,7 +444,7 @@ const initialRecipes: Recipe[] = [
       { name: "Shallots", quantity: "0.1 kg" },
       { name: "Garlic", quantity: "2 head" },
       { name: "Cabernet Sauvignon", quantity: "0.2 bottle" }, // Using beverage inventory item
-      { name: "Beef Broth", quantity: "0.3 L" },
+      { name: "Chicken Broth", quantity: "0.3 L" }, // Using chicken broth as a substitute for beef broth
       { name: "Fresh Thyme", quantity: "0.2 bunch" },
       { name: "Fresh Rosemary", quantity: "0.2 bunch" },
       { name: "Salt", quantity: "0.01 kg" },
@@ -541,11 +558,11 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Non-Alcoholic Beverage", // New category
     ingredients: [
-      { name: "Raspberries", quantity: "0.2 kg" },
-      { name: "Lemons", quantity: "4 count" },
+      { name: "Fresh Berries (Mixed)", quantity: "0.2 kg" }, // Using mixed berries for raspberries
+      { name: "Lemon", quantity: "4 count" }, // Changed from plural Lemons
       { name: "Sugar", quantity: "0.1 kg" },
-      { name: "Sparkling Water", quantity: "1 L" },
-      { name: "Mint Sprigs", quantity: "6 count" },
+      { name: "Sparkling Water (Extra)", quantity: "1 L" }, // Using Sparkling Water (Extra)
+      { name: "Fresh Mint", quantity: "6 sprig" }, // Changed from Mint Sprigs
     ],
     instructions: [
       { step: "Muddle raspberries and sugar in a pitcher." },
@@ -565,9 +582,9 @@ const initialRecipes: Recipe[] = [
     category: "Appetizer", // Existing category, good example
     ingredients: [
       { name: "Cherry Tomatoes", quantity: "0.3 kg" },
-      { name: "Fresh Mozzarella Balls (mini)", quantity: "0.2 kg" },
-      { name: "Fresh Basil Leaves", quantity: "20 count" },
-      { name: "Balsamic Glaze", quantity: "0.05 L" },
+      { name: "Fresh Mozzarella Balls (mini)", quantity: "0.2 kg" }, // Assuming this is a pantry item
+      { name: "Fresh Basil Leaves", quantity: "20 count" }, // Assuming this is a pantry item
+      { name: "Balsamic Glaze", quantity: "0.05 L" }, // Assuming this is a pantry item
     ],
     instructions: [
       { step: "Thread cherry tomato, mozzarella ball, and basil leaf onto small skewers." },
@@ -585,11 +602,11 @@ const initialRecipes: Recipe[] = [
     servings: "1",
     category: "Alcoholic Beverage", // New category
     ingredients: [
-      { name: "Tequila", quantity: "60 ml" },
-      { name: "Fresh Lime Juice", quantity: "30 ml" },
-      { name: "Triple Sec", quantity: "20 ml" },
-      { name: "Salt (for rim)", quantity: "5 g" },
-      { name: "Lime Wedge", quantity: "1 count" },
+      { name: "Tequila", quantity: "60 ml" }, // Assuming Tequila is a spirit in inventory
+      { name: "Fresh Limes", quantity: "1 count" }, // Changed from plural Limes
+      { name: "Triple Sec", quantity: "20 ml" }, // Assuming Triple Sec is a spirit/mixer in inventory
+      { name: "Salt", quantity: "5 g" }, // For rim
+      { name: "Lemon", quantity: "1 wedge" }, // Using Lemon for Lime Wedge
     ],
     instructions: [
       { step: "Rim a chilled margarita glass with salt." },
@@ -663,9 +680,9 @@ const initialRecipes: Recipe[] = [
     ingredients: [
       { name: "Green Tea Bags", quantity: "8 count" }, // Using green tea for variety
       { name: "Fresh Mint", quantity: "1 bunch" },
-      { name: "Lemons", quantity: "2 count" },
+      { name: "Lemon", quantity: "2 count" }, // Changed from plural Lemons
       { name: "Sugar", quantity: "0.1 kg" },
-      { name: "Water", quantity: "1.5 L" },
+      { name: "Water", quantity: "1.5 L" }, // Assuming water is always available
     ],
     instructions: [
       { step: "Bring water to a boil. Add tea bags and mint leaves; steep for 5 minutes. Remove tea bags and mint." },
@@ -739,7 +756,7 @@ const initialRecipes: Recipe[] = [
       { name: "Ladyfingers", quantity: "1 pack" },
       { name: "Cocoa Powder", quantity: "20 g" },
       { name: "Dark Chocolate", quantity: "50 g" }, // For shaving
-      { name: "Coffee Liqueur (optional)", quantity: "50 ml" },
+      { name: "Coffee Liqueur", quantity: "50 ml" }, // Optional, using inventory item
     ],
     instructions: [
       { step: "Brew strong espresso and let cool. Mix with coffee liqueur if using." },
@@ -763,8 +780,8 @@ const initialRecipes: Recipe[] = [
       { name: "Whiskey (Bourbon)", quantity: "60 ml" },
       { name: "Angostura Bitters", quantity: "2 dashes" },
       { name: "Sugar", quantity: "1 cube" },
-      { name: "Orange", quantity: "1 peel" },
-      { name: "Ice", quantity: "large cube" },
+      { name: "Oranges", quantity: "1 peel" }, // Using Oranges for peel
+      { name: "Ice", quantity: "large cube" }, // Assuming ice is always available
     ],
     instructions: [
       { step: "Place sugar cube in an Old Fashioned glass, add bitters and a splash of water. Muddle until sugar dissolves." },
@@ -787,7 +804,7 @@ const initialRecipes: Recipe[] = [
       { name: "Fresh Mint", quantity: "10 leaves" },
       { name: "Sugar", quantity: "2 tsp" },
       { name: "Club Soda", quantity: "90 ml" },
-      { name: "Ice", quantity: "crushed" },
+      { name: "Ice", quantity: "crushed" }, // Assuming ice is always available
     ],
     instructions: [
       { step: "In a sturdy glass, gently muddle mint leaves with sugar and lime juice." },
@@ -958,7 +975,7 @@ const initialRecipes: Recipe[] = [
     ingredients: [
       { name: "Cucumber", quantity: "1 count" },
       { name: "Fresh Mint", quantity: "0.5 bunch" },
-      { name: "Lemons", quantity: "2 count" },
+      { name: "Lemon", quantity: "2 count" },
       { name: "Sugar", quantity: "0.05 kg" },
       { name: "Water", quantity: "1 L" },
       { name: "Sparkling Water (Extra)", quantity: "0.5 L" },
@@ -1029,10 +1046,10 @@ const initialRecipes: Recipe[] = [
     category: "Dessert",
     ingredients: [
       { name: "Heavy Cream (Dessert)", quantity: "0.4 L" },
-      { name: "Lemons", quantity: "3 count" },
+      { name: "Lemon", quantity: "3 count" },
       { name: "Sugar", quantity: "0.1 kg" },
       { name: "Gelatin Powder", quantity: "0.005 kg" },
-      { name: "Raspberries", quantity: "0.2 kg" },
+      { name: "Fresh Berries (Mixed)", quantity: "0.2 kg" }, // Using mixed berries for raspberries
       { name: "Fresh Mint", quantity: "0.05 bunch" }, // For garnish
     ],
     instructions: [
@@ -1110,7 +1127,7 @@ const initialRecipes: Recipe[] = [
       { name: "Espresso Powder", quantity: "10 g" }, // Using powder for simplicity, assume brewed
       { name: "Simple Syrup", quantity: "15 ml" },
       { name: "Ice", quantity: "cubed" },
-      { name: "Coffee Beans (whole)", quantity: "3 count" }, // For garnish
+      { name: "Coffee Beans (Ground)", quantity: "3 count" }, // For garnish, using ground coffee as a proxy
     ],
     instructions: [
       { step: "Brew espresso (or dissolve espresso powder in a small amount of hot water and cool). Chill." },
@@ -1130,12 +1147,360 @@ const initialRecipes: Recipe[] = [
     category: "Alcoholic Beverage",
     ingredients: [
       { name: "Whiskey (Bourbon)", quantity: "60 ml" },
-      { name: "Lemons", quantity: "0.5 count" }, // For fresh lemon juice
+      { name: "Lemon", quantity: "0.5 count" }, // For fresh lemon juice
       { name: "Simple Syrup", quantity: "20 ml" },
-      { name: "Egg (white only)", quantity: "1 count" }, // Optional, for foam
+      { name: "Egg", quantity: "1 white only" }, // Optional, for foam
       { name: "Angostura Bitters", quantity: "1 dash" }, // For garnish
       { name: "Ice", quantity: "cubed" },
-      { name: "Orange", quantity: "1 slice" }, // For garnish
+      { name: "Oranges", quantity: "1 slice" }, // For garnish
+    ],
+    instructions: [
+      { step: "Combine whiskey, fresh lemon juice, simple syrup, and egg white (if using) in a shaker without ice. Dry shake vigorously for 15 seconds." },
+      { step: "Add ice to the shaker and shake again until well-chilled." },
+      { step: "Strain into a chilled coupe or rocks glass over fresh ice. Garnish with an orange slice and a dash of Angostura bitters." },
+    ],
+    baseCost: 11.00,
+  },
+  // NEW APPETIZERS
+  {
+    id: "r20",
+    name: "Spinach Artichoke Dip with Crostini",
+    description: "A warm, creamy, and cheesy dip served with crispy crostini.",
+    prepTime: "15 mins",
+    cookTime: "25 mins",
+    servings: "8-10",
+    category: "Appetizer",
+    ingredients: [
+      { name: "Spinach (Fresh)", quantity: "0.5 kg" },
+      { name: "Artichoke Hearts (Canned)", quantity: "0.4 kg" },
+      { name: "Cream Cheese (softened)", quantity: "0.2 kg" },
+      { name: "Mayonnaise", quantity: "0.1 L" },
+      { name: "Parmesan Cheese (grated)", quantity: "0.1 kg" },
+      { name: "Garlic", quantity: "3 head" },
+      { name: "Crostini/Baguette", quantity: "1 pack" },
+    ],
+    instructions: [
+      { step: "Preheat oven to 375°F (190°C). Sauté spinach and garlic until wilted; squeeze out excess water." },
+      { step: "Chop artichoke hearts. In a bowl, combine spinach, artichokes, cream cheese, mayonnaise, and half of the Parmesan." },
+      { step: "Transfer to a baking dish, top with remaining Parmesan. Bake for 20-25 minutes until bubbly and golden." },
+      { step: "Serve warm with crostini." },
+    ],
+    baseCost: 18.00,
+  },
+  {
+    id: "r21",
+    name: "Prosciutto-Wrapped Melon Bites",
+    description: "Sweet melon cubes wrapped in savory prosciutto, a perfect light appetizer.",
+    prepTime: "15 mins",
+    cookTime: "0 mins",
+    servings: "10-12",
+    category: "Appetizer",
+    ingredients: [
+      { name: "Cantaloupe", quantity: "0.5 count" },
+      { name: "Honeydew Melon", quantity: "0.5 count" },
+      { name: "Prosciutto", quantity: "0.15 kg" },
+      { name: "Fresh Mint", quantity: "0.1 bunch" },
+    ],
+    instructions: [
+      { step: "Cut melon into bite-sized cubes. Slice prosciutto into thin strips." },
+      { step: "Wrap each melon cube with a strip of prosciutto." },
+      { step: "Arrange on a platter and garnish with fresh mint leaves. Chill until serving." },
+    ],
+    baseCost: 15.00,
+  },
+  {
+    id: "r22",
+    name: "Spicy Shrimp Skewers",
+    description: "Grilled shrimp marinated in a zesty and spicy sauce.",
+    prepTime: "20 mins (plus 30 min marinate)",
+    cookTime: "8 mins",
+    servings: "6",
+    category: "Appetizer",
+    ingredients: [
+      { name: "Shrimp (Peeled & Deveined)", quantity: "0.5 kg" },
+      { name: "Olive Oil", quantity: "0.05 L" },
+      { name: "Lemon", quantity: "1 count" },
+      { name: "Garlic", quantity: "2 head" },
+      { name: "Red Pepper Flakes", quantity: "0.003 kg" },
+      { name: "Fresh Parsley", quantity: "0.1 bunch" },
+      { name: "Salt", quantity: "0.005 kg" },
+      { name: "Black Pepper", quantity: "0.003 kg" },
+    ],
+    instructions: [
+      { step: "In a bowl, whisk together olive oil, lemon juice, minced garlic, red pepper flakes, salt, and pepper." },
+      { step: "Add shrimp to the marinade, toss to coat, and refrigerate for at least 30 minutes." },
+      { step: "Thread shrimp onto skewers. Grill or pan-fry for 2-4 minutes per side until pink and cooked through." },
+      { step: "Garnish with fresh chopped parsley and serve immediately." },
+    ],
+    baseCost: 20.00,
+  },
+  // NEW SIDE DISHES
+  {
+    id: "r23",
+    name: "Garlic Parmesan Roasted Asparagus",
+    description: "Tender asparagus spears roasted with garlic and Parmesan cheese.",
+    prepTime: "10 mins",
+    cookTime: "15 mins",
+    servings: "4",
+    category: "Side Dish",
+    ingredients: [
+      { name: "Asparagus", quantity: "0.5 kg" },
+      { name: "Olive Oil", quantity: "0.03 L" },
+      { name: "Garlic", quantity: "2 head" },
+      { name: "Parmesan Cheese (grated)", quantity: "0.05 kg" },
+      { name: "Salt", quantity: "0.005 kg" },
+      { name: "Black Pepper", quantity: "0.003 kg" },
+    ],
+    instructions: [
+      { step: "Preheat oven to 400°F (200°C). Trim woody ends off asparagus." },
+      { step: "Toss asparagus with olive oil, minced garlic, salt, and pepper on a baking sheet." },
+      { step: "Roast for 10-15 minutes until tender-crisp. Sprinkle with Parmesan cheese and serve." },
+    ],
+    baseCost: 10.00,
+  },
+  {
+    id: "r24",
+    name: "Creamy Mashed Potatoes",
+    description: "Smooth and buttery mashed potatoes, a classic comfort food side.",
+    prepTime: "15 mins",
+    cookTime: "20 mins",
+    servings: "6",
+    category: "Side Dish",
+    ingredients: [
+      { name: "Potatoes (Russet)", quantity: "1 kg" },
+      { name: "Butter", quantity: "0.1 kg" },
+      { name: "Milk", quantity: "0.2 L" },
+      { name: "Heavy Cream", quantity: "0.1 L" },
+      { name: "Salt", quantity: "0.01 kg" },
+      { name: "Black Pepper", quantity: "0.005 kg" },
+    ],
+    instructions: [
+      { step: "Peel and chop potatoes into even pieces. Boil in salted water until very tender." },
+      { step: "Drain potatoes thoroughly. Return to pot over low heat to dry out any remaining moisture." },
+      { step: "Mash potatoes. Heat butter, milk, and heavy cream until warm. Gradually add to potatoes, mixing until smooth and creamy." },
+      { step: "Season with salt and pepper to taste. Serve hot." },
+    ],
+    baseCost: 12.00,
+  },
+  {
+    id: "r25",
+    name: "Quinoa Salad with Roasted Vegetables",
+    description: "A hearty and healthy salad featuring fluffy quinoa and seasonal roasted vegetables.",
+    prepTime: "20 mins",
+    cookTime: "30 mins",
+    servings: "8",
+    category: "Side Dish",
+    ingredients: [
+      { name: "Quinoa", quantity: "0.3 kg" },
+      { name: "Vegetable Broth", quantity: "0.6 L" },
+      { name: "Bell Peppers (Assorted)", quantity: "2 count" },
+      { name: "Zucchini", quantity: "1 count" },
+      { name: "Red Onion", quantity: "0.1 kg" },
+      { name: "Cherry Tomatoes", quantity: "0.2 kg" },
+      { name: "Olive Oil", quantity: "0.05 L" },
+      { name: "Red Wine Vinegar", quantity: "0.03 L" },
+      { name: "Fresh Parsley", quantity: "0.1 bunch" },
+      { name: "Salt", quantity: "0.005 kg" },
+      { name: "Black Pepper", quantity: "0.003 kg" },
+    ],
+    instructions: [
+      { step: "Rinse quinoa thoroughly. Cook quinoa in vegetable broth according to package directions; fluff with a fork." },
+      { step: "Chop bell peppers, zucchini, and red onion. Toss with olive oil, salt, and pepper. Roast at 400°F (200°C) for 20-25 minutes." },
+      { step: "Combine cooked quinoa, roasted vegetables, and halved cherry tomatoes in a large bowl." },
+      { step: "Whisk together olive oil, red wine vinegar, salt, and pepper for dressing. Pour over salad and toss. Garnish with fresh parsley." },
+    ],
+    baseCost: 16.00,
+  },
+  // NEW NON-ALCOHOLIC BEVERAGE RECIPES
+  {
+    id: "r26",
+    name: "Cucumber Mint Cooler",
+    description: "A super refreshing and hydrating drink with fresh cucumber and mint.",
+    prepTime: "10 mins",
+    cookTime: "0 mins",
+    servings: "4",
+    category: "Non-Alcoholic Beverage",
+    ingredients: [
+      { name: "Cucumber", quantity: "1 count" },
+      { name: "Fresh Mint", quantity: "0.5 bunch" },
+      { name: "Lemon", quantity: "2 count" },
+      { name: "Sugar", quantity: "0.05 kg" },
+      { name: "Water", quantity: "1 L" },
+      { name: "Sparkling Water (Extra)", quantity: "0.5 L" },
+    ],
+    instructions: [
+      { step: "Peel and chop cucumber. Muddle cucumber slices with mint leaves and sugar in a pitcher." },
+      { step: "Add lemon juice and still water. Stir well and let infuse for 15 minutes." },
+      { step: "Strain the mixture, pressing solids to extract juice. Top with sparkling water and ice." },
+      { step: "Garnish with fresh cucumber slices and mint sprigs." },
+    ],
+    baseCost: 7.00,
+  },
+  {
+    id: "r27",
+    name: "Spiced Apple Cider",
+    description: "Warm and comforting apple cider infused with cinnamon, cloves, and orange.",
+    prepTime: "5 mins",
+    cookTime: "20 mins",
+    servings: "6",
+    category: "Non-Alcoholic Beverage",
+    ingredients: [
+      { name: "Apple Cider", quantity: "1.5 L" },
+      { name: "Cinnamon Sticks", quantity: "3 count" },
+      { name: "Ground Cloves", quantity: "0.002 kg" },
+      { name: "Oranges", quantity: "1 count" },
+      { name: "Brown Sugar", quantity: "0.05 kg" },
+    ],
+    instructions: [
+      { step: "Combine apple cider, cinnamon sticks, ground cloves, and orange slices in a large pot." },
+      { step: "Add brown sugar and stir until dissolved." },
+      { step: "Bring to a simmer over medium heat, then reduce heat to low and let steep for at least 15-20 minutes." },
+      { step: "Serve warm, garnished with fresh orange slices and cinnamon sticks." },
+    ],
+    baseCost: 9.00,
+  },
+  {
+    id: "r28",
+    name: "Iced Coffee Bar (Components)",
+    description: "Components for a customizable iced coffee bar, including cold brew, milk, and syrups.",
+    prepTime: "15 mins",
+    cookTime: "0 mins",
+    servings: "10",
+    category: "Non-Alcoholic Beverage",
+    ingredients: [
+      { name: "Coffee Beans (Ground)", quantity: "0.2 kg" },
+      { name: "Water", quantity: "1.5 L" }, // For cold brew
+      { name: "Milk", quantity: "1 L" },
+      { name: "Heavy Cream", quantity: "0.5 L" }, // For creamer
+      { name: "Simple Syrup", quantity: "0.2 L" },
+      { name: "Vanilla Extract", quantity: "10 ml" }, // For vanilla syrup
+      { name: "Ice", quantity: "1 kg" },
+    ],
+    instructions: [
+      { step: "Prepare cold brew coffee: combine ground coffee and water, steep for 12-18 hours, then strain." },
+      { step: "Prepare vanilla syrup: combine simple syrup and vanilla extract." },
+      { step: "Set up a station with cold brew, milk, heavy cream, vanilla syrup, and ice. Allow guests to customize." },
+    ],
+    baseCost: 18.00,
+  },
+  // NEW DESSERT RECIPES
+  {
+    id: "r29",
+    name: "Lemon Raspberry Mousse",
+    description: "Light and airy lemon mousse layered with fresh raspberries.",
+    prepTime: "25 mins",
+    cookTime: "0 mins",
+    servings: "6",
+    category: "Dessert",
+    ingredients: [
+      { name: "Heavy Cream (Dessert)", quantity: "0.4 L" },
+      { name: "Lemon", quantity: "3 count" },
+      { name: "Sugar", quantity: "0.1 kg" },
+      { name: "Gelatin Powder", quantity: "0.005 kg" },
+      { name: "Fresh Berries (Mixed)", quantity: "0.2 kg" }, // Using mixed berries for raspberries
+      { name: "Fresh Mint", quantity: "0.05 bunch" }, // For garnish
+    ],
+    instructions: [
+      { step: "Whip heavy cream to soft peaks; set aside." },
+      { step: "Bloom gelatin in a small amount of cold water. Heat lemon juice and sugar until dissolved, then stir in bloomed gelatin." },
+      { step: "Fold lemon mixture into whipped cream. Gently fold in half of the raspberries." },
+      { step: "Spoon mousse into serving glasses, layering with remaining raspberries. Chill for at least 2 hours. Garnish with mint." },
+    ],
+    baseCost: 15.00,
+  },
+  {
+    id: "r30",
+    name: "Mini Cheesecakes (Assorted)",
+    description: "Individual cheesecakes with a graham cracker crust, topped with various fruit compotes.",
+    prepTime: "30 mins",
+    cookTime: "20 mins",
+    servings: "12",
+    category: "Dessert",
+    ingredients: [
+      { name: "Cream Cheese", quantity: "0.5 kg" },
+      { name: "Sugar", quantity: "0.15 kg" },
+      { name: "Eggs", quantity: "2 count" },
+      { name: "Vanilla Extract", quantity: "5 ml" },
+      { name: "Graham Cracker Crumbs", quantity: "0.1 kg" },
+      { name: "Butter", quantity: "0.05 kg" },
+      { name: "Fresh Berries (Mixed)", quantity: "0.2 kg" }, // For compote
+      { name: "Lemon", quantity: "1 count" }, // For compote
+    ],
+    instructions: [
+      { step: "Preheat oven to 325°F (160°C). Line a muffin tin with paper liners. Press graham cracker crust into each liner." },
+      { step: "Beat cream cheese and sugar until smooth. Add eggs and vanilla, mix until just combined." },
+      { step: "Fill liners with cheesecake batter. Bake for 18-20 minutes until centers are almost set. Cool completely, then chill." },
+      { step: "Prepare fruit compotes (e.g., berry, lemon curd). Top chilled cheesecakes with assorted compotes before serving." },
+    ],
+    baseCost: 20.00,
+  },
+  {
+    id: "r31",
+    name: "Apple Crumble with Vanilla Ice Cream",
+    description: "Warm baked apples topped with a buttery oat crumble, served with vanilla ice cream.",
+    prepTime: "20 mins",
+    cookTime: "40 mins",
+    servings: "8",
+    category: "Dessert",
+    ingredients: [
+      { name: "Apples (Granny Smith)", quantity: "1 kg" },
+      { name: "Oats (Rolled)", quantity: "0.15 kg" },
+      { name: "All-Purpose Flour (Dessert)", quantity: "0.1 kg" },
+      { name: "Brown Sugar", quantity: "0.1 kg" },
+      { name: "Butter", quantity: "0.1 kg" },
+      { name: "Ground Cinnamon", quantity: "0.005 kg" },
+      { name: "Nutmeg (Ground)", quantity: "0.001 kg" },
+      { name: "Vanilla Ice Cream", quantity: "1 L" }, // Placeholder for ice cream
+    ],
+    instructions: [
+      { step: "Preheat oven to 375°F (190°C). Peel, core, and slice apples. Toss with a little sugar and cinnamon; place in a baking dish." },
+      { step: "In a bowl, combine oats, flour, brown sugar, cinnamon, and nutmeg. Cut in cold butter until crumbly." },
+      { step: "Sprinkle crumble topping evenly over apples. Bake for 35-40 minutes until apples are tender and topping is golden brown." },
+      { step: "Serve warm with a scoop of vanilla ice cream." },
+    ],
+    baseCost: 16.00,
+  },
+  // NEW ALCOHOLIC BEVERAGE RECIPES
+  {
+    id: "r32",
+    name: "Espresso Martini",
+    description: "A sophisticated and energizing cocktail with vodka, coffee liqueur, and espresso.",
+    prepTime: "5 mins",
+    cookTime: "0 mins",
+    servings: "1",
+    category: "Alcoholic Beverage",
+    ingredients: [
+      { name: "Vodka (Standard)", quantity: "45 ml" },
+      { name: "Coffee Liqueur", quantity: "20 ml" },
+      { name: "Espresso Powder", quantity: "10 g" }, // Using powder for simplicity, assume brewed
+      { name: "Simple Syrup", quantity: "15 ml" },
+      { name: "Ice", quantity: "cubed" },
+      { name: "Coffee Beans (Ground)", quantity: "3 count" }, // For garnish, using ground coffee as a proxy
+    ],
+    instructions: [
+      { step: "Brew espresso (or dissolve espresso powder in a small amount of hot water and cool). Chill." },
+      { step: "Combine vodka, coffee liqueur, cooled espresso, and simple syrup in a shaker with ice." },
+      { step: "Shake vigorously until well-chilled and a frothy head forms." },
+      { step: "Strain into a chilled martini glass. Garnish with three coffee beans." },
+    ],
+    baseCost: 12.00,
+  },
+  {
+    id: "r33",
+    name: "Whiskey Sour",
+    description: "A balanced cocktail with whiskey, lemon juice, simple syrup, and an optional egg white.",
+    prepTime: "5 mins",
+    cookTime: "0 mins",
+    servings: "1",
+    category: "Alcoholic Beverage",
+    ingredients: [
+      { name: "Whiskey (Bourbon)", quantity: "60 ml" },
+      { name: "Lemon", quantity: "0.5 count" }, // For fresh lemon juice
+      { name: "Simple Syrup", quantity: "20 ml" },
+      { name: "Egg", quantity: "1 white only" }, // Optional, for foam
+      { name: "Angostura Bitters", quantity: "1 dash" }, // For garnish
+      { name: "Ice", quantity: "cubed" },
+      { name: "Oranges", quantity: "1 slice" }, // For garnish
     ],
     instructions: [
       { step: "Combine whiskey, fresh lemon juice, simple syrup, and egg white (if using) in a shaker without ice. Dry shake vigorously for 15 seconds." },
@@ -1156,7 +1521,7 @@ const initialMenus: Menu[] = [
     mainCourseIds: ["r3", "r7", "r5"], // Herb-Crusted Roasted Salmon, Roasted Pork Loin with Apple Chutney, Beef Tenderloin
     dessertIds: ["r13", "r16", "r29"], // Seasonal Fruit Tart, New York Cheesecake, Lemon Raspberry Mousse
     alcoholicBeverageIds: ["r11", "r19", "r33"], // Classic Margarita, Mojito, Whiskey Sour
-    nonAlcoholicBeverageIds: ["r9", "r15", "r26", "b12", "b14"], // Sparkling Raspberry Lemonade, Sparkling Orange Blossom Water, Cucumber Mint Cooler, Diet Cola, Cranberry Juice
+    nonAlcoholicBeverageIds: ["r9", "r15", "r26"], // Sparkling Raspberry Lemonade, Sparkling Orange Blossom Water, Cucumber Mint Cooler
     sideDishIds: ["r2", "r23", "r25"], // Garden Salad, Garlic Parmesan Roasted Asparagus, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -1170,7 +1535,7 @@ const initialMenus: Menu[] = [
     mainCourseIds: ["r1", "r4", "r6"], // Classic Beef Stroganoff, Chicken Marsala, Wild Mushroom Risotto
     dessertIds: ["r12", "r17", "r30"], // Chocolate Lava Cake, Tiramisu, Mini Cheesecakes
     alcoholicBeverageIds: ["b3", "b10"], // Pilsner Beer, Local Craft Beer
-    nonAlcoholicBeverageIds: ["r9", "r14", "r28", "b13", "b15", "b16"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Iced Coffee Bar, Lemon-Lime Soda, Apple Juice, Sparkling Water (Lime)
+    nonAlcoholicBeverageIds: ["r9", "r14", "r28"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Iced Coffee Bar
     sideDishIds: ["r2", "r24", "r25"], // Garden Salad, Creamy Mashed Potatoes, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -1184,7 +1549,7 @@ const initialMenus: Menu[] = [
     mainCourseIds: ["r6"], // Wild Mushroom Risotto
     dessertIds: ["r13", "r31"], // Seasonal Fruit Tart, Apple Crumble
     alcoholicBeverageIds: ["r18", "b11"], // Old Fashioned, Sparkling Wine
-    nonAlcoholicBeverageIds: ["r9", "r14", "r27", "b12"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Spiced Apple Cider, Diet Cola
+    nonAlcoholicBeverageIds: ["r9", "r14", "r27"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Spiced Apple Cider
     sideDishIds: ["r2", "r25"], // Garden Salad, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -1198,7 +1563,6 @@ export const useCateringStore = create<CateringState>()(
       inventory: initialInventory,
       recipes: initialRecipes, // Initialize with some recipes
       bookings: [],
-      beverageInventory: initialBeverageInventory,
       clients: [], // Initialize clients
       proposals: [], // Initialize proposals
       estimates: [], // Estimates state
@@ -1226,12 +1590,14 @@ export const useCateringStore = create<CateringState>()(
         for (const recipeIng of recipe.ingredients) {
           const inventoryItem = updatedInventory.find(inv => inv.name.toLowerCase() === recipeIng.name.toLowerCase());
           if (!inventoryItem) {
+            console.warn(`Ingredient "${recipeIng.name}" not found in inventory.`);
             canDeduct = false;
             break;
           }
           // Simple quantity parsing for now, assumes recipeIng.quantity is a number string
           const requiredQuantity = parseFloat(recipeIng.quantity);
           if (isNaN(requiredQuantity) || inventoryItem.currentStock < requiredQuantity) {
+            console.warn(`Insufficient stock for "${recipeIng.name}". Needed: ${requiredQuantity}, Available: ${inventoryItem.currentStock}`);
             canDeduct = false;
             break;
           }
@@ -1250,6 +1616,25 @@ export const useCateringStore = create<CateringState>()(
 
         set({ inventory: updatedInventory });
         return true;
+      },
+      deductInventoryItem: (itemId, quantity) => {
+        const updatedInventory = get().inventory.map(item => {
+          if (item.id === itemId) {
+            if (item.currentStock >= quantity) {
+              return { ...item, currentStock: item.currentStock - quantity };
+            }
+            console.warn(`Insufficient stock for item "${item.name}". Needed: ${quantity}, Available: ${item.currentStock}`);
+            return item; // Not enough stock
+          }
+          return item;
+        });
+
+        const itemToDeduct = get().inventory.find(item => item.id === itemId);
+        if (itemToDeduct && itemToDeduct.currentStock >= quantity) {
+          set({ inventory: updatedInventory });
+          return true;
+        }
+        return false;
       },
 
       addRecipe: (recipe) => set((state) => ({
@@ -1296,36 +1681,6 @@ export const useCateringStore = create<CateringState>()(
               b.id === id ? { ...b, status: "completed" } : b
             ),
           }));
-          return true;
-        }
-        return false;
-      },
-
-      addBeverageItem: (item) => set((state) => ({
-        beverageInventory: [...state.beverageInventory, { ...item, id: crypto.randomUUID() }],
-      })),
-      updateBeverageItem: (updatedItem) => set((state) => ({
-        beverageInventory: state.beverageInventory.map((item) =>
-          item.id === updatedItem.id ? updatedItem : item
-        ),
-      })),
-      deleteBeverageItem: (id) => set((state) => ({
-        beverageInventory: state.beverageInventory.filter((item) => item.id !== id),
-      })),
-      deductBeverageStock: (beverageId, quantity) => {
-        const updatedBeverageInventory = get().beverageInventory.map(item => {
-          if (item.id === beverageId) {
-            if (item.currentStock >= quantity) {
-              return { ...item, currentStock: item.currentStock - quantity };
-            }
-            return item; // Not enough stock
-          }
-          return item;
-        });
-
-        const itemToDeduct = get().beverageInventory.find(item => item.id === beverageId);
-        if (itemToDeduct && itemToDeduct.currentStock >= quantity) {
-          set({ beverageInventory: updatedBeverageInventory });
           return true;
         }
         return false;
