@@ -1172,7 +1172,7 @@ const initialMenus: Menu[] = [
     appetizerIds: ["r10", "r21", "r22"], // Mini Caprese Skewers, Prosciutto-Wrapped Melon Bites, Spicy Shrimp Skewers
     mainCourseIds: ["r3", "r7", "r5"], // Herb-Crusted Roasted Salmon, Roasted Pork Loin with Apple Chutney, Beef Tenderloin
     dessertIds: ["r13", "r16", "r29"], // Seasonal Fruit Tart, New York Cheesecake, Lemon Raspberry Mousse
-    alcoholicBeverageIds: ["r11", "r19", "r33", "b1", "b2", "b11", "b4"], // Classic Margarita, Mojito, Whiskey Sour, Cabernet Sauvignon, Chardonnay, Sparkling Wine (Prosecco), IPA Beer
+    alcoholicBeverageIds: ["r11", "r19", "r33", "b1", "b2", "b11", "b4", "b3", "b10"], // Classic Margarita, Mojito, Whiskey Sour, Cabernet Sauvignon, Chardonnay, Sparkling Wine (Prosecco), IPA Beer, Pilsner Beer, Local Craft Beer (Assorted)
     nonAlcoholicBeverageIds: ["r9", "r15", "r26"], // Sparkling Raspberry Lemonade, Sparkling Orange Blossom Water, Cucumber Mint Cooler
     sideDishIds: ["r2", "r23", "r25"], // Garden Salad, Garlic Parmesan Roasted Asparagus, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
