@@ -302,14 +302,14 @@ const Inventory = () => {
               <p className="text-muted-foreground text-center">No inventory items added yet. Click "Add New Item" to get started!</p>
             ) : (
               <div className="overflow-x-auto">
-                <Table>
+                <Table className="border-2 border-red-500"> {/* Added red border for diagnostic */}
                   <TableHeader>
                     <TableRow>
                       <TableHead className="min-w-[120px]">Item Name</TableHead>
                       <TableHead className="min-w-[100px]">Category</TableHead>
                       <TableHead className="min-w-[150px]">Current Stock</TableHead>
-                      <TableHead className="min-w-[120px]">Cost per Unit</TableHead>
-                      <TableHead className="min-w-[120px]">Selling Price</TableHead>
+                      <TableHead className="min-w-[120px] bg-yellow-200">Cost per Unit</TableHead> {/* Added yellow background */}
+                      <TableHead className="min-w-[120px] bg-yellow-200">Selling Price</TableHead> {/* Added yellow background */}
                       <TableHead className="min-w-[150px]">Low Stock Threshold</TableHead>
                       <TableHead className="text-center min-w-[100px]">Status</TableHead>
                       <TableHead className="text-right min-w-[100px]">Actions</TableHead>
@@ -350,8 +350,8 @@ const Inventory = () => {
                             </Button>
                           </div>
                         </TableCell>
-                        <TableCell className="min-w-[120px]">${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell>
-                        <TableCell className="min-w-[120px]">${(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell>
+                        <TableCell className="min-w-[120px] bg-yellow-200">${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell> {/* Added yellow background */}
+                        <TableCell className="min-w-[120px] bg-yellow-200">${(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell> {/* Added yellow background */}
                         <TableCell className="min-w-[150px]">{item.lowStockThreshold}</TableCell>
                         <TableCell className="text-center min-w-[100px]">
                           {item.currentStock <= item.lowStockThreshold ? (
