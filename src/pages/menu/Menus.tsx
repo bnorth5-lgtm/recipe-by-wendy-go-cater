@@ -119,7 +119,7 @@ const Menus = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
-  const [expandedMenuId, setExpandedMenuId] = useState<string | null>(null);
+  const [selectedMenuId, setSelectedMenuId] = useState<string | undefined>(undefined); // New state for dropdown selection
 
   const form = useForm<MenuFormData>({
     resolver: zodResolver(menuFormSchema),
@@ -176,13 +176,12 @@ const Menus = () => {
   const handleDelete = (id: string) => {
     deleteMenu(id);
     toast.info("Menu deleted.");
+    if (selectedMenuId === id) {
+      setSelectedMenuId(undefined); // Clear selected menu if deleted
+    }
   };
 
-  const toggleMenuExpansion = (menuId: string) => {
-    setExpandedMenuId(expandedMenuId === menuId ? null : menuId);
-  };
-
-  const renderRecipeList = (ids: string[], title: string, Icon: React.ElementType) => {
+  const renderRecipeList = (ids: string[] | undefined, title: string, Icon: React.ElementType) => {
     if (!ids || ids.length === 0) return null;
     return (
       <div className="mt-4">
@@ -208,6 +207,8 @@ const Menus = () => {
       </div>
     );
   };
+
+  const selectedMenu = menus.find(menu => menu.id === selectedMenuId);
 
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
@@ -417,72 +418,76 @@ const Menus = () => {
           </CardContent>
         </Card>
 
-        {/* Display Existing Menus */}
+        {/* Display Existing Menus with Dropdown and Detail View */}
         <Card className="bg-card p-6 rounded-lg shadow-md">
           <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-primary">Existing Menus</CardTitle>
-            <CardDescription className="text-muted-foreground">A list of all your curated menus.</CardDescription>
+            <CardTitle className="text-2xl font-semibold text-primary">View Existing Menus</CardTitle>
+            <CardDescription className="text-muted-foreground">Select a menu to view its full details.</CardDescription>
           </CardHeader>
           <CardContent>
             {menus.length === 0 ? (
               <p className="text-muted-foreground text-center">No menus created yet. Click "Create New Menu" to get started!</p>
             ) : (
-              <ScrollArea className="h-[400px] w-full rounded-md border p-4">
-                <div className="space-y-4">
-                  {menus.map((menu) => (
-                    <div key={menu.id} className="border p-4 rounded-md bg-background">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="text-xl font-semibold">{menu.name}</h3>
-                          <p className="text-sm text-muted-foreground">{menu.description}</p>
-                          <Badge variant="secondary" className="mt-2">{menu.category}</Badge>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEdit(menu)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => handleDelete(menu.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleMenuExpansion(menu.id)}
-                          >
-                            {expandedMenuId === menu.id ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                          </Button>
-                        </div>
+              <>
+                <Select onValueChange={setSelectedMenuId} value={selectedMenuId}>
+                  <SelectTrigger className="w-full mb-6">
+                    <SelectValue placeholder="Select a menu to view" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {menus.map((menu) => (
+                      <SelectItem key={menu.id} value={menu.id}>
+                        {menu.name} ({menu.category})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {selectedMenu ? (
+                  <div className="border p-4 rounded-md bg-background mt-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold">{selectedMenu.name}</h3>
+                        <p className="text-sm text-muted-foreground">{selectedMenu.description}</p>
+                        <Badge variant="secondary" className="mt-2">{selectedMenu.category}</Badge>
                       </div>
-                      {expandedMenuId === menu.id && (
-                        <div className="mt-4 border-t pt-4">
-                          {renderRecipeList(menu.appetizerIds, "Appetizers", Salad)}
-                          {renderRecipeList(menu.mainCourseIds, "Main Courses", Utensils)}
-                          {renderRecipeList(menu.sideDishIds, "Side Dishes", Utensils)}
-                          {renderRecipeList(menu.dessertIds, "Desserts", Cake)}
-                          {renderRecipeList(menu.nonAlcoholicBeverageIds, "Non-Alcoholic Beverages", Coffee)}
-                          {renderRecipeList(menu.alcoholicBeverageIds, "Alcoholic Beverages", Wine)}
-                          {(menu.appetizerIds?.length === 0 &&
-                            menu.mainCourseIds?.length === 0 &&
-                            menu.dessertIds?.length === 0 &&
-                            menu.alcoholicBeverageIds?.length === 0 &&
-                            menu.nonAlcoholicBeverageIds?.length === 0 &&
-                            menu.sideDishIds?.length === 0) && (
-                            <p className="text-muted-foreground text-sm">No recipes selected for this menu.</p>
-                          )}
-                        </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(selectedMenu)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => handleDelete(selectedMenu.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="border-t pt-4">
+                      {renderRecipeList(selectedMenu.appetizerIds, "Appetizers", Salad)}
+                      {renderRecipeList(selectedMenu.mainCourseIds, "Main Courses", Utensils)}
+                      {renderRecipeList(selectedMenu.sideDishIds, "Side Dishes", Utensils)}
+                      {renderRecipeList(selectedMenu.dessertIds, "Desserts", Cake)}
+                      {renderRecipeList(selectedMenu.nonAlcoholicBeverageIds, "Non-Alcoholic Beverages", Coffee)}
+                      {renderRecipeList(selectedMenu.alcoholicBeverageIds, "Alcoholic Beverages", Wine)}
+                      {(selectedMenu.appetizerIds?.length === 0 &&
+                        selectedMenu.mainCourseIds?.length === 0 &&
+                        selectedMenu.dessertIds?.length === 0 &&
+                        selectedMenu.alcoholicBeverageIds?.length === 0 &&
+                        selectedMenu.nonAlcoholicBeverageIds?.length === 0 &&
+                        selectedMenu.sideDishIds?.length === 0) && (
+                        <p className="text-muted-foreground text-sm">No recipes selected for this menu.</p>
                       )}
                     </div>
-                  ))}
-                </div>
-              </ScrollArea>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center mt-4">Select a menu from the dropdown to see its details.</p>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
