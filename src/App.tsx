@@ -9,7 +9,23 @@ import QuotingGenerator from "./pages/QuotingGenerator";
 import EventsPlanning from "./pages/EventsPlanning";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import Index from "./pages/Index";
+
+// Import new sub-page components
+import Ingredients from "./pages/menu/Ingredients.tsx";
+import Recipes from "./pages/menu/Recipes.tsx";
+import Menus from "./pages/menu/Menus.tsx";
+
+import Clients from "./pages/quoting/Clients.tsx";
+import Proposals from "./pages/quoting/Proposals.tsx";
+import Estimates from "./pages/quoting/Estimates.tsx";
+
+import Calendar from "./pages/events/Calendar.tsx";
+import Bookings from "./pages/events/Bookings.tsx";
+import BEOs from "./pages/events/BEOs.tsx";
+
+import GeneralSettings from "./pages/settings/General.tsx";
+import UsersSettings from "./pages/settings/Users.tsx";
+import BrandingSettings from "./pages/settings/Branding.tsx";
 
 const App = () => {
   return (
@@ -19,10 +35,31 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/menu" element={<MenuManagement />} />
-            <Route path="/quoting" element={<QuotingGenerator />} />
-            <Route path="/events" element={<EventsPlanning />} />
-            <Route path="/settings" element={<Settings />} />
+
+            {/* Menu & Recipes Routes */}
+            <Route path="/menu" element={<Navigate to="/menu/ingredients" replace />} />
+            <Route path="/menu/ingredients" element={<Ingredients />} />
+            <Route path="/menu/recipes" element={<Recipes />} />
+            <Route path="/menu/menus" element={<Menus />} />
+
+            {/* Quoting & Proposals Routes */}
+            <Route path="/quoting" element={<Navigate to="/quoting/clients" replace />} />
+            <Route path="/quoting/clients" element={<Clients />} />
+            <Route path="/quoting/proposals" element={<Proposals />} />
+            <Route path="/quoting/estimates" element={<Estimates />} />
+
+            {/* Events & Planning Routes */}
+            <Route path="/events" element={<Navigate to="/events/calendar" replace />} />
+            <Route path="/events/calendar" element={<Calendar />} />
+            <Route path="/events/bookings" element={<Bookings />} />
+            <Route path="/events/beos" element={<BEOs />} />
+
+            {/* Settings Routes */}
+            <Route path="/settings" element={<Navigate to="/settings/general" replace />} />
+            <Route path="/settings/general" element={<GeneralSettings />} />
+            <Route path="/settings/users" element={<UsersSettings />} />
+            <Route path="/settings/branding" element={<BrandingSettings />} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
