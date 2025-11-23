@@ -116,10 +116,6 @@ const Inventory = () => {
 
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
-      {/* DIAGNOSTIC: If you see this, the file is updating! */}
-      <h2 className="text-red-500 text-2xl font-bold mb-4">DIAGNOSTIC: INVENTORY PAGE UPDATE TEST</h2>
-      {/* END DIAGNOSTIC */}
-
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-4">Inventory Management</h1>
         <p className="text-xl text-muted-foreground">
@@ -309,24 +305,24 @@ const Inventory = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Item Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Current Stock</TableHead>
-                      <TableHead>Cost per Unit</TableHead>
-                      <TableHead>Selling Price</TableHead>
-                      <TableHead>Low Stock Threshold</TableHead>
-                      <TableHead className="text-center">Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="min-w-[120px]">Item Name</TableHead>
+                      <TableHead className="min-w-[100px]">Category</TableHead>
+                      <TableHead className="min-w-[150px]">Current Stock</TableHead>
+                      <TableHead className="min-w-[120px]">Cost per Unit</TableHead>
+                      <TableHead className="min-w-[120px]">Selling Price</TableHead>
+                      <TableHead className="min-w-[150px]">Low Stock Threshold</TableHead>
+                      <TableHead className="text-center min-w-[100px]">Status</TableHead>
+                      <TableHead className="text-right min-w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {inventory.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium min-w-[120px]">
                           {item.name}
                         </TableCell>
-                        <TableCell>{item.category}</TableCell>
-                        <TableCell>
+                        <TableCell className="min-w-[100px]">{item.category}</TableCell>
+                        <TableCell className="min-w-[150px]">
                           <div className="flex items-center space-x-1">
                             <Button
                               variant="outline"
@@ -354,10 +350,10 @@ const Inventory = () => {
                             </Button>
                           </div>
                         </TableCell>
-                        <TableCell>${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell>
-                        <TableCell>${(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell>
-                        <TableCell>{item.lowStockThreshold}</TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="min-w-[120px]">${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell>
+                        <TableCell className="min-w-[120px]">${(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell>
+                        <TableCell className="min-w-[150px]">{item.lowStockThreshold}</TableCell>
+                        <TableCell className="text-center min-w-[100px]">
                           {item.currentStock <= item.lowStockThreshold ? (
                             <Badge variant="destructive" className="flex items-center justify-center gap-1">
                               <AlertCircle className="h-3 w-3" /> Low Stock
@@ -366,7 +362,7 @@ const Inventory = () => {
                             <Badge variant="secondary">In Stock</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right min-w-[100px]">
                           <Button
                             variant="ghost"
                             size="icon"
