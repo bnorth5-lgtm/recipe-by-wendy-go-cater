@@ -77,10 +77,10 @@ const Inventory = () => {
 
   const onSubmit = (data: InventoryFormData) => {
     if (editingItem) {
-      updateInventoryItem({ ...data, id: editingItem.id });
+      updateInventoryItem({ ...data, id: editingItem.id } as InventoryItem); // Explicitly cast data
       toast.success("Inventory item updated successfully!");
     } else {
-      addInventoryItem(data);
+      addInventoryItem(data as Omit<InventoryItem, 'id'>); // Explicitly cast data
       toast.success("Inventory item added successfully!");
     }
     form.reset();

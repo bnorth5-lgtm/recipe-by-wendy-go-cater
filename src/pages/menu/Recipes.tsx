@@ -89,7 +89,7 @@ const Recipes = () => {
   });
 
   const onSubmit = (data: RecipeFormData) => {
-    addRecipe(data);
+    addRecipe(data as Omit<Recipe, 'id'>); // Explicitly cast data
     form.reset({
       name: "",
       description: "",
