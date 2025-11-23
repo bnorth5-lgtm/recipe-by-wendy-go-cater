@@ -29,12 +29,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Trash2, Utensils, Wine } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Utensils, Wine } from "lucide-react";
 import { toast } from "sonner";
-import { useCateringStore } from "@/store/cateringStore";
+import { useCateringStore, Estimate, ProposalItem } from "@/store/cateringStore";
+import { format } from "date-fns";
 
 // Define the schema for an estimated item (recipe or beverage)
 const estimatedItemSchema = z.object({
@@ -62,6 +72,13 @@ type EstimateFormData = z.infer<typeof estimateFormSchema>;
 const Estimates = () => {
   const recipes = useCateringStore((state) => state.recipes);
   const beverageInventory = useCateringStore((state) => state.beverageInventory);
+  const estimates = useCateringStore((state) => state.estimates);
+  const addEstimate = useCateringStore((state) => state.addEstimate);
+  const updateEstimate = useCateringStore((state) => state.updateEstimate);
+  const deleteEstimate = useCateringStore((state) => state.deleteEstimate);
+
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  const [editingEstimate, setEditingEstimate] = useState<Estimate | null>(null);
 
   const form = useForm<EstimateFormData>({
     resolver: zodResolver(estimateFormSchema),
@@ -140,10 +157,33 @@ const Estimates = () => {
   };
 
   const onSubmit = (data: EstimateFormData) => {
-    // This page is for quick estimates, so we don't save to store.
-    // We just log the final estimate for demonstration.
-    console.log("Final Estimate Data:", { ...data, subtotal, totalAmount });
-    toast.success("Estimate calculated!");
+    const estimateData = {
+      ...data,
+      subtotal,
+      totalAmount,
+    };
+
+    if (editingEstimate) {
+      updateEstimate({ ...estimateData, id: editingEstimate.id } as Estimate);
+      toast.success("Estimate updated successfully!");
+    } else {
+      addEstimate(estimateData as Omit<Estimate, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>);
+      toast.success("Estimate saved successfully!");
+    }
+    form.reset();
+    setEditingEstimate(null);
+    setIsFormDialogOpen(false);
+  };
+
+  const handleEdit = (estimate: Estimate) => {
+    setEditingEstimate(estimate);
+    form.reset(estimate);
+    setIsFormDialogOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteEstimate(id);
+    toast.info("Estimate deleted.");
   };
 
   return (
@@ -151,202 +191,269 @@ const Estimates = () => {
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-4">Cost Estimates</h1>
         <p className="text-xl text-muted-foreground">
-          Quickly calculate detailed cost estimates for your events.
+          Quickly calculate and save detailed cost estimates for your events.
         </p>
       </div>
 
       <div className="w-full max-w-5xl space-y-8">
+        {/* Add/Edit Estimate Form */}
         <Card className="bg-card p-6 rounded-lg shadow-md">
           <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-primary">Event Details & Items</CardTitle>
+            <CardTitle className="text-2xl font-semibold text-primary">
+              {editingEstimate ? "Edit Estimate" : "Create New Estimate"}
+            </CardTitle>
             <CardDescription className="text-muted-foreground">
-              Enter event specifics and select items to include in your estimate.
+              {editingEstimate ? `Updating estimate for ${editingEstimate.eventName}.` : "Build and save a new catering estimate."}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* Event Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="eventName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Event Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Corporate Holiday Party" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="numberOfGuests"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Number of Guests</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="e.g., 100" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {/* Item Selection */}
-                <div>
-                  <h3 className="text-lg font-medium mb-3">Add Items</h3>
-                  <div className="flex gap-2 mb-4">
-                    <Select onValueChange={(value) => handleAddItem("recipe", value)}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Add Recipe" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {recipes.length === 0 && <p className="p-2 text-sm text-muted-foreground">No recipes available.</p>}
-                        {recipes.map((recipe) => (
-                          <SelectItem key={recipe.id} value={recipe.id}>
-                            {recipe.name} (${recipe.baseCost.toFixed(2)}/serving)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select onValueChange={(value) => handleAddItem("beverage", value)}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Add Beverage" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {beverageInventory.length === 0 && <p className="p-2 text-sm text-muted-foreground">No beverages available.</p>}
-                        {beverageInventory.map((beverage) => (
-                          <SelectItem key={beverage.id} value={beverage.id}>
-                            {beverage.name} (${beverage.costPerUnit.toFixed(2)}/{beverage.unit})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {itemFields.length === 0 ? (
-                    <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add recipes or beverages.</p>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Item</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead className="text-right">Unit Cost</TableHead>
-                            <TableHead className="text-right">Quantity</TableHead>
-                            <TableHead className="text-right">Total</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {itemFields.map((item, index) => (
-                            <TableRow key={item.id}>
-                              <TableCell className="font-medium flex items-center gap-2">
-                                {item.type === "recipe" ? <Utensils className="h-4 w-4 text-muted-foreground" /> : <Wine className="h-4 w-4 text-muted-foreground" />}
-                                {item.name}
-                              </TableCell>
-                              <TableCell className="capitalize">{item.type}</TableCell>
-                              <TableCell className="text-right">${item.unitCost.toFixed(2)}</TableCell>
-                              <TableCell className="text-right">
-                                <Input
-                                  type="number"
-                                  value={item.quantity}
-                                  onChange={(e) => handleItemQuantityChange(index, parseFloat(e.target.value) || 0)}
-                                  className="w-24 text-right inline-flex"
-                                  min="1"
-                                />
-                              </TableCell>
-                              <TableCell className="font-semibold text-right">${item.totalCost.toFixed(2)}</TableCell>
-                              <TableCell className="text-right">
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="icon"
-                                  onClick={() => handleRemoveItem(index, item.name)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+            <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full mb-6">
+                  <PlusCircle className="mr-2 h-4 w-4" /> Create New Estimate
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{editingEstimate ? "Edit Estimate" : "Create New Estimate"}</DialogTitle>
+                  <DialogDescription>
+                    {editingEstimate ? "Adjust the details of this estimate." : "Fill in the details to generate and save a new estimate."}
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 py-4">
+                    {/* Event Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="eventName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Event Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Corporate Holiday Party" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="numberOfGuests"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Number of Guests</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="e.g., 100" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
-                  )}
-                </div>
 
-                {/* Additional Costs */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="laborCost"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Labor Cost</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="equipmentCost"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Equipment Cost</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="otherCosts"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Other Costs</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                    {/* Item Selection */}
+                    <div>
+                      <h3 className="text-lg font-medium mb-3">Add Items</h3>
+                      <div className="flex gap-2 mb-4">
+                        <Select onValueChange={(value) => handleAddItem("recipe", value)}>
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Add Recipe" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {recipes.length === 0 && <p className="p-2 text-sm text-muted-foreground">No recipes available.</p>}
+                            {recipes.map((recipe) => (
+                              <SelectItem key={recipe.id} value={recipe.id}>
+                                {recipe.name} (${recipe.baseCost.toFixed(2)}/serving)
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select onValueChange={(value) => handleAddItem("beverage", value)}>
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Add Beverage" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {beverageInventory.length === 0 && <p className="p-2 text-sm text-muted-foreground">No beverages available.</p>}
+                            {beverageInventory.map((beverage) => (
+                              <SelectItem key={beverage.id} value={beverage.id}>
+                                {beverage.name} (${beverage.costPerUnit.toFixed(2)}/{beverage.unit})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                {/* Tax Rate */}
-                <FormField
-                  control={form.control}
-                  name="taxRate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tax Rate (e.g., 0.08 for 8%)</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.08" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      {itemFields.length === 0 ? (
+                        <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add recipes or beverages.</p>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Item</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead className="text-right">Unit Cost</TableHead>
+                                <TableHead className="text-right">Quantity</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {itemFields.map((item, index) => (
+                                <TableRow key={item.id}>
+                                  <TableCell className="font-medium flex items-center gap-2">
+                                    {item.type === "recipe" ? <Utensils className="h-4 w-4 text-muted-foreground" /> : <Wine className="h-4 w-4 text-muted-foreground" />}
+                                    {item.name}
+                                  </TableCell>
+                                  <TableCell className="capitalize">{item.type}</TableCell>
+                                  <TableCell className="text-right">${item.unitCost.toFixed(2)}</TableCell>
+                                  <TableCell className="text-right">
+                                    <Input
+                                      type="number"
+                                      value={item.quantity}
+                                      onChange={(e) => handleItemQuantityChange(index, parseFloat(e.target.value) || 0)}
+                                      className="w-24 text-right inline-flex"
+                                      min="1"
+                                    />
+                                  </TableCell>
+                                  <TableCell className="font-semibold text-right">${item.totalCost.toFixed(2)}</TableCell>
+                                  <TableCell className="text-right">
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      size="icon"
+                                      onClick={() => handleRemoveItem(index, item.name)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
+                    </div>
 
-                {/* Totals Display */}
-                <div className="text-right space-y-1 mt-4">
-                  <p className="text-lg">Subtotal: <span className="font-bold">${subtotal.toFixed(2)}</span></p>
-                  <p className="text-xl font-extrabold text-primary">Total Estimated Cost: <span className="font-bold">${totalAmount.toFixed(2)}</span></p>
-                </div>
+                    {/* Additional Costs */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="laborCost"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Labor Cost</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="equipmentCost"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Equipment Cost</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="otherCosts"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Other Costs</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                <Button type="submit" className="w-full">Calculate Estimate</Button>
-              </form>
-            </Form>
+                    {/* Tax Rate */}
+                    <FormField
+                      control={form.control}
+                      name="taxRate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tax Rate (e.g., 0.08 for 8%)</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="0.01" placeholder="0.08" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Totals Display */}
+                    <div className="text-right space-y-1 mt-4">
+                      <p className="text-lg">Subtotal: <span className="font-bold">${subtotal.toFixed(2)}</span></p>
+                      <p className="text-xl font-extrabold text-primary">Total Estimated Cost: <span className="font-bold">${totalAmount.toFixed(2)}</span></p>
+                    </div>
+
+                    <DialogFooter>
+                      <Button type="submit" className="w-full">{editingEstimate ? "Save Changes" : "Save Estimate"}</Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Display Existing Estimates */}
+        <Card className="bg-card p-6 rounded-lg shadow-md">
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold text-primary">Saved Estimates</CardTitle>
+            <CardDescription className="text-muted-foreground">A list of all your saved cost estimates.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {estimates.length === 0 ? (
+              <p className="text-muted-foreground text-center">No estimates saved yet. Click "Create New Estimate" to get started!</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Event Name</TableHead>
+                      <TableHead>Guests</TableHead>
+                      <TableHead>Subtotal</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {estimates.map((estimate) => (
+                      <TableRow key={estimate.id}>
+                        <TableCell className="font-medium">{estimate.eventName}</TableCell>
+                        <TableCell>{estimate.numberOfGuests}</TableCell>
+                        <TableCell>${estimate.subtotal.toFixed(2)}</TableCell>
+                        <TableCell>${estimate.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell>{format(new Date(estimate.createdAt), "PPP")}</TableCell>
+                        <TableCell className="text-right flex justify-end space-x-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(estimate)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="destructive" size="icon" onClick={() => handleDelete(estimate.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

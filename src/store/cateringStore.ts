@@ -103,6 +103,22 @@ export interface EventBooking {
   status: "pending" | "completed" | "cancelled";
 }
 
+// NEW: Define the schema for an Estimate
+export interface Estimate {
+  id: string;
+  eventName: string;
+  numberOfGuests: number;
+  items: ProposalItem[]; // Reusing ProposalItem for consistency
+  laborCost: number;
+  equipmentCost: number;
+  otherCosts: number;
+  subtotal: number;
+  taxRate: number;
+  totalAmount: number;
+  createdAt: string; // To track when the estimate was created
+  updatedAt: string; // To track when the estimate was last updated
+}
+
 interface CateringState {
   inventory: InventoryItem[];
   recipes: Recipe[];
@@ -110,6 +126,7 @@ interface CateringState {
   beverageInventory: BeverageItem[];
   clients: Client[]; // New: Clients state
   proposals: Proposal[]; // New: Proposals state
+  estimates: Estimate[]; // NEW: Estimates state
 
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void;
   updateInventoryItem: (item: InventoryItem) => void;
@@ -139,6 +156,11 @@ interface CateringState {
   addProposal: (proposal: Omit<Proposal, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>) => void;
   updateProposal: (proposal: Proposal) => void;
   deleteProposal: (id: string) => void;
+
+  // NEW: Estimate actions
+  addEstimate: (estimate: Omit<Estimate, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>) => void;
+  updateEstimate: (estimate: Estimate) => void;
+  deleteEstimate: (id: string) => void;
 }
 
 const initialInventory: InventoryItem[] = [
@@ -440,6 +462,7 @@ export const useCateringStore = create<CateringState>()(
       beverageInventory: initialBeverageInventory,
       clients: [], // Initialize clients
       proposals: [], // Initialize proposals
+      estimates: [], // NEW: Initialize estimates
 
       addInventoryItem: (item) => set((state) => ({
         inventory: [...state.inventory, { ...item, id: crypto.randomUUID() }],
@@ -615,6 +638,39 @@ export const useCateringStore = create<CateringState>()(
       }),
       deleteProposal: (id) => set((state) => ({
         proposals: state.proposals.filter((proposal) => proposal.id !== id),
+      })),
+
+      // NEW: Estimate actions
+      addEstimate: (estimate) => set((state) => {
+        const now = new Date().toISOString();
+        const itemsCost = estimate.items.reduce((sum, item) => sum + item.totalCost, 0);
+        const subtotal = itemsCost + estimate.laborCost + estimate.equipmentCost + estimate.otherCosts;
+        const totalAmount = subtotal * (1 + estimate.taxRate);
+
+        return {
+          estimates: [...state.estimates, {
+            ...estimate,
+            id: crypto.randomUUID(),
+            subtotal,
+            totalAmount,
+            createdAt: now,
+            updatedAt: now,
+          }],
+        };
+      }),
+      updateEstimate: (updatedEstimate) => set((state) => {
+        const itemsCost = updatedEstimate.items.reduce((sum, item) => sum + item.totalCost, 0);
+        const subtotal = itemsCost + updatedEstimate.laborCost + updatedEstimate.equipmentCost + updatedEstimate.otherCosts;
+        const totalAmount = subtotal * (1 + updatedEstimate.taxRate);
+
+        return {
+          estimates: state.estimates.map((e) =>
+            e.id === updatedEstimate.id ? { ...updatedEstimate, subtotal, totalAmount, updatedAt: new Date().toISOString() } : e
+          ),
+        };
+      }),
+      deleteEstimate: (id) => set((state) => ({
+        estimates: state.estimates.filter((estimate) => estimate.id !== id),
       })),
     }),
     {
