@@ -269,6 +269,20 @@ const initialInventory: InventoryItem[] = [
   { id: "80", name: "Bell Peppers (Assorted)", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 1.00 },
   { id: "81", name: "Zucchini", currentStock: 8, unit: "count", lowStockThreshold: 2, costPerUnit: 0.80 },
   { id: "82", name: "Red Wine Vinegar", currentStock: 1, unit: "L", lowStockThreshold: 0.2, costPerUnit: 4.00 },
+  // NEW INGREDIENTS
+  { id: "83", name: "Cucumber", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 1.20 },
+  { id: "84", name: "Apple Cider", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 4.00 },
+  { id: "85", name: "Cinnamon Sticks", currentStock: 0.1, unit: "kg", lowStockThreshold: 0.02, costPerUnit: 10.00 },
+  { id: "86", name: "Coffee Beans (Ground)", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 20.00 },
+  { id: "87", name: "Oats (Rolled)", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 3.00 },
+  { id: "88", name: "Parsnips", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 2.50 },
+  { id: "89", name: "Sweet Potatoes", currentStock: 15, unit: "kg", lowStockThreshold: 3, costPerUnit: 1.80 },
+  { id: "90", name: "Nutmeg (Ground)", currentStock: 0.1, unit: "kg", lowStockThreshold: 0.02, costPerUnit: 15.00 },
+  { id: "91", name: "Couscous (Medium)", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 4.50 },
+  { id: "92", name: "Feta Cheese (Crumbled)", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 12.00 },
+  { id: "93", name: "Kalamata Olives", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 9.00 },
+  { id: "94", name: "Simple Syrup", currentStock: 2, unit: "L", lowStockThreshold: 0.5, costPerUnit: 6.00 },
+  { id: "95", name: "Coffee Liqueur", currentStock: 1, unit: "bottle", lowStockThreshold: 0.2, costPerUnit: 25.00 },
 ];
 
 const initialBeverageInventory: BeverageItem[] = [
@@ -281,6 +295,9 @@ const initialBeverageInventory: BeverageItem[] = [
   { id: "b7", name: "Orange Juice", type: "Mixer", currentStock: 10, unit: "L", lowStockThreshold: 2, costPerUnit: 3.00 },
   { id: "b8", name: "Tonic Water", type: "Mixer", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.75 },
   { id: "b9", name: "Coca-Cola", type: "Other", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
+  // NEW BEVERAGE INVENTORY ITEMS
+  { id: "b10", name: "Local Craft Beer (Assorted)", type: "Beer", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 3.00 },
+  { id: "b11", name: "Sparkling Wine (Prosecco)", type: "Wine", currentStock: 8, unit: "bottle", lowStockThreshold: 2, costPerUnit: 18.00 },
 ];
 
 const initialRecipes: Recipe[] = [
@@ -924,6 +941,204 @@ const initialRecipes: Recipe[] = [
     ],
     baseCost: 16.00,
   },
+  // NEW NON-ALCOHOLIC BEVERAGE RECIPES
+  {
+    id: "r26",
+    name: "Cucumber Mint Cooler",
+    description: "A super refreshing and hydrating drink with fresh cucumber and mint.",
+    prepTime: "10 mins",
+    cookTime: "0 mins",
+    servings: "4",
+    category: "Non-Alcoholic Beverage",
+    ingredients: [
+      { name: "Cucumber", quantity: "1 count" },
+      { name: "Fresh Mint", quantity: "0.5 bunch" },
+      { name: "Lemons", quantity: "2 count" },
+      { name: "Sugar", quantity: "0.05 kg" },
+      { name: "Water", quantity: "1 L" },
+      { name: "Sparkling Water (Extra)", quantity: "0.5 L" },
+    ],
+    instructions: [
+      { step: "Peel and chop cucumber. Muddle cucumber slices with mint leaves and sugar in a pitcher." },
+      { step: "Add lemon juice and still water. Stir well and let infuse for 15 minutes." },
+      { step: "Strain the mixture, pressing solids to extract juice. Top with sparkling water and ice." },
+      { step: "Garnish with fresh cucumber slices and mint sprigs." },
+    ],
+    baseCost: 7.00,
+  },
+  {
+    id: "r27",
+    name: "Spiced Apple Cider",
+    description: "Warm and comforting apple cider infused with cinnamon, cloves, and orange.",
+    prepTime: "5 mins",
+    cookTime: "20 mins",
+    servings: "6",
+    category: "Non-Alcoholic Beverage",
+    ingredients: [
+      { name: "Apple Cider", quantity: "1.5 L" },
+      { name: "Cinnamon Sticks", quantity: "3 count" },
+      { name: "Ground Cloves", quantity: "0.002 kg" },
+      { name: "Oranges", quantity: "1 count" },
+      { name: "Brown Sugar", quantity: "0.05 kg" },
+    ],
+    instructions: [
+      { step: "Combine apple cider, cinnamon sticks, ground cloves, and orange slices in a large pot." },
+      { step: "Add brown sugar and stir until dissolved." },
+      { step: "Bring to a simmer over medium heat, then reduce heat to low and let steep for at least 15-20 minutes." },
+      { step: "Serve warm, garnished with fresh orange slices and cinnamon sticks." },
+    ],
+    baseCost: 9.00,
+  },
+  {
+    id: "r28",
+    name: "Iced Coffee Bar (Components)",
+    description: "Components for a customizable iced coffee bar, including cold brew, milk, and syrups.",
+    prepTime: "15 mins",
+    cookTime: "0 mins",
+    servings: "10",
+    category: "Non-Alcoholic Beverage",
+    ingredients: [
+      { name: "Coffee Beans (Ground)", quantity: "0.2 kg" },
+      { name: "Water", quantity: "1.5 L" }, // For cold brew
+      { name: "Milk", quantity: "1 L" },
+      { name: "Heavy Cream", quantity: "0.5 L" }, // For creamer
+      { name: "Simple Syrup", quantity: "0.2 L" },
+      { name: "Vanilla Extract", quantity: "10 ml" }, // For vanilla syrup
+      { name: "Ice", quantity: "1 kg" },
+    ],
+    instructions: [
+      { step: "Prepare cold brew coffee: combine ground coffee and water, steep for 12-18 hours, then strain." },
+      { step: "Prepare vanilla syrup: combine simple syrup and vanilla extract." },
+      { step: "Set up a station with cold brew, milk, heavy cream, vanilla syrup, and ice. Allow guests to customize." },
+    ],
+    baseCost: 18.00,
+  },
+  // NEW DESSERT RECIPES
+  {
+    id: "r29",
+    name: "Lemon Raspberry Mousse",
+    description: "Light and airy lemon mousse layered with fresh raspberries.",
+    prepTime: "25 mins",
+    cookTime: "0 mins",
+    servings: "6",
+    category: "Dessert",
+    ingredients: [
+      { name: "Heavy Cream (Dessert)", quantity: "0.4 L" },
+      { name: "Lemons", quantity: "3 count" },
+      { name: "Sugar", quantity: "0.1 kg" },
+      { name: "Gelatin Powder", quantity: "0.005 kg" },
+      { name: "Raspberries", quantity: "0.2 kg" },
+      { name: "Fresh Mint", quantity: "0.05 bunch" }, // For garnish
+    ],
+    instructions: [
+      { step: "Whip heavy cream to soft peaks; set aside." },
+      { step: "Bloom gelatin in a small amount of cold water. Heat lemon juice and sugar until dissolved, then stir in bloomed gelatin." },
+      { step: "Fold lemon mixture into whipped cream. Gently fold in half of the raspberries." },
+      { step: "Spoon mousse into serving glasses, layering with remaining raspberries. Chill for at least 2 hours. Garnish with mint." },
+    ],
+    baseCost: 15.00,
+  },
+  {
+    id: "r30",
+    name: "Mini Cheesecakes (Assorted)",
+    description: "Individual cheesecakes with a graham cracker crust, topped with various fruit compotes.",
+    prepTime: "30 mins",
+    cookTime: "20 mins",
+    servings: "12",
+    category: "Dessert",
+    ingredients: [
+      { name: "Cream Cheese", quantity: "0.5 kg" },
+      { name: "Sugar", quantity: "0.15 kg" },
+      { name: "Eggs", quantity: "2 count" },
+      { name: "Vanilla Extract", quantity: "5 ml" },
+      { name: "Graham Cracker Crumbs", quantity: "0.1 kg" },
+      { name: "Butter", quantity: "0.05 kg" },
+      { name: "Fresh Berries (Mixed)", quantity: "0.2 kg" }, // For compote
+      { name: "Lemon", quantity: "1 count" }, // For compote
+    ],
+    instructions: [
+      { step: "Preheat oven to 325°F (160°C). Line a muffin tin with paper liners. Press graham cracker crust into each liner." },
+      { step: "Beat cream cheese and sugar until smooth. Add eggs and vanilla, mix until just combined." },
+      { step: "Fill liners with cheesecake batter. Bake for 18-20 minutes until centers are almost set. Cool completely, then chill." },
+      { step: "Prepare fruit compotes (e.g., berry, lemon curd). Top chilled cheesecakes with assorted compotes before serving." },
+    ],
+    baseCost: 20.00,
+  },
+  {
+    id: "r31",
+    name: "Apple Crumble with Vanilla Ice Cream",
+    description: "Warm baked apples topped with a buttery oat crumble, served with vanilla ice cream.",
+    prepTime: "20 mins",
+    cookTime: "40 mins",
+    servings: "8",
+    category: "Dessert",
+    ingredients: [
+      { name: "Apples (Granny Smith)", quantity: "1 kg" },
+      { name: "Oats (Rolled)", quantity: "0.15 kg" },
+      { name: "All-Purpose Flour (Dessert)", quantity: "0.1 kg" },
+      { name: "Brown Sugar", quantity: "0.1 kg" },
+      { name: "Butter", quantity: "0.1 kg" },
+      { name: "Ground Cinnamon", quantity: "0.005 kg" },
+      { name: "Nutmeg (Ground)", quantity: "0.001 kg" },
+      { name: "Vanilla Ice Cream", quantity: "1 L" }, // Placeholder for ice cream
+    ],
+    instructions: [
+      { step: "Preheat oven to 375°F (190°C). Peel, core, and slice apples. Toss with a little sugar and cinnamon; place in a baking dish." },
+      { step: "In a bowl, combine oats, flour, brown sugar, cinnamon, and nutmeg. Cut in cold butter until crumbly." },
+      { step: "Sprinkle crumble topping evenly over apples. Bake for 35-40 minutes until apples are tender and topping is golden brown." },
+      { step: "Serve warm with a scoop of vanilla ice cream." },
+    ],
+    baseCost: 16.00,
+  },
+  // NEW ALCOHOLIC BEVERAGE RECIPES
+  {
+    id: "r32",
+    name: "Espresso Martini",
+    description: "A sophisticated and energizing cocktail with vodka, coffee liqueur, and espresso.",
+    prepTime: "5 mins",
+    cookTime: "0 mins",
+    servings: "1",
+    category: "Alcoholic Beverage",
+    ingredients: [
+      { name: "Vodka (Standard)", quantity: "45 ml" },
+      { name: "Coffee Liqueur", quantity: "20 ml" },
+      { name: "Espresso Powder", quantity: "10 g" }, // Using powder for simplicity, assume brewed
+      { name: "Simple Syrup", quantity: "15 ml" },
+      { name: "Ice", quantity: "cubed" },
+      { name: "Coffee Beans (whole)", quantity: "3 count" }, // For garnish
+    ],
+    instructions: [
+      { step: "Brew espresso (or dissolve espresso powder in a small amount of hot water and cool). Chill." },
+      { step: "Combine vodka, coffee liqueur, cooled espresso, and simple syrup in a shaker with ice." },
+      { step: "Shake vigorously until well-chilled and a frothy head forms." },
+      { step: "Strain into a chilled martini glass. Garnish with three coffee beans." },
+    ],
+    baseCost: 12.00,
+  },
+  {
+    id: "r33",
+    name: "Whiskey Sour",
+    description: "A balanced cocktail with whiskey, lemon juice, simple syrup, and an optional egg white.",
+    prepTime: "5 mins",
+    cookTime: "0 mins",
+    servings: "1",
+    category: "Alcoholic Beverage",
+    ingredients: [
+      { name: "Whiskey (Bourbon)", quantity: "60 ml" },
+      { name: "Lemons", quantity: "0.5 count" }, // For fresh lemon juice
+      { name: "Simple Syrup", quantity: "20 ml" },
+      { name: "Egg (white only)", quantity: "1 count" }, // Optional, for foam
+      { name: "Angostura Bitters", quantity: "1 dash" }, // For garnish
+      { name: "Ice", quantity: "cubed" },
+      { name: "Orange", quantity: "1 slice" }, // For garnish
+    ],
+    instructions: [
+      { step: "Combine whiskey, fresh lemon juice, simple syrup, and egg white (if using) in a shaker without ice. Dry shake vigorously for 15 seconds." },
+      { step: "Add ice to the shaker and shake again until well-chilled." },
+      { step: "Strain into a chilled coupe or rocks glass over fresh ice. Garnish with an orange slice and a dash of Angostura bitters." },
+    ],
+    baseCost: 11.00,
+  },
 ];
 
 const initialMenus: Menu[] = [
@@ -932,12 +1147,12 @@ const initialMenus: Menu[] = [
     name: "Summer Wedding Package",
     description: "A delightful and elegant menu perfect for a summer wedding celebration.",
     category: "Wedding",
-    appetizerIds: ["r10", "r21"], // Mini Caprese Skewers, Prosciutto-Wrapped Melon Bites
-    mainCourseIds: ["r3", "r7"], // Herb-Crusted Roasted Salmon, Roasted Pork Loin with Apple Chutney
-    dessertIds: ["r13", "r16"], // Seasonal Fruit Tart, New York Cheesecake
-    alcoholicBeverageIds: ["r11", "r19"], // Classic Margarita, Mojito
-    nonAlcoholicBeverageIds: ["r9", "r15"], // Sparkling Raspberry Lemonade, Sparkling Orange Blossom Water
-    sideDishIds: ["r2", "r23"], // Garden Salad, Garlic Parmesan Roasted Asparagus
+    appetizerIds: ["r10", "r21", "r22"], // Mini Caprese Skewers, Prosciutto-Wrapped Melon Bites, Spicy Shrimp Skewers
+    mainCourseIds: ["r3", "r7", "r5"], // Herb-Crusted Roasted Salmon, Roasted Pork Loin with Apple Chutney, Beef Tenderloin
+    dessertIds: ["r13", "r16", "r29"], // Seasonal Fruit Tart, New York Cheesecake, Lemon Raspberry Mousse
+    alcoholicBeverageIds: ["r11", "r19", "r33"], // Classic Margarita, Mojito, Whiskey Sour
+    nonAlcoholicBeverageIds: ["r9", "r15", "r26"], // Sparkling Raspberry Lemonade, Sparkling Orange Blossom Water, Cucumber Mint Cooler
+    sideDishIds: ["r2", "r23", "r25"], // Garden Salad, Garlic Parmesan Roasted Asparagus, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -946,12 +1161,12 @@ const initialMenus: Menu[] = [
     name: "Corporate Lunch Buffet",
     description: "A versatile buffet menu suitable for corporate events and business lunches.",
     category: "Corporate",
-    appetizerIds: ["r20"], // Spinach Artichoke Dip
-    mainCourseIds: ["r1", "r4"], // Classic Beef Stroganoff, Chicken Marsala
-    dessertIds: ["r12", "r17"], // Chocolate Lava Cake, Tiramisu
-    alcoholicBeverageIds: [],
-    nonAlcoholicBeverageIds: ["r9", "r14"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea
-    sideDishIds: ["r2", "r24"], // Garden Salad, Creamy Mashed Potatoes
+    appetizerIds: ["r20", "r10"], // Spinach Artichoke Dip, Mini Caprese Skewers
+    mainCourseIds: ["r1", "r4", "r6"], // Classic Beef Stroganoff, Chicken Marsala, Wild Mushroom Risotto
+    dessertIds: ["r12", "r17", "r30"], // Chocolate Lava Cake, Tiramisu, Mini Cheesecakes
+    alcoholicBeverageIds: ["b3", "b10"], // Pilsner Beer, Local Craft Beer
+    nonAlcoholicBeverageIds: ["r9", "r14", "r28"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Iced Coffee Bar
+    sideDishIds: ["r2", "r24", "r25"], // Garden Salad, Creamy Mashed Potatoes, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -960,11 +1175,11 @@ const initialMenus: Menu[] = [
     name: "Vegetarian Dinner Party",
     description: "An exquisite plant-based menu designed to impress at any dinner party.",
     category: "Plated",
-    appetizerIds: ["r10"], // Mini Caprese Skewers
+    appetizerIds: ["r10", "r20"], // Mini Caprese Skewers, Spinach Artichoke Dip
     mainCourseIds: ["r6"], // Wild Mushroom Risotto
-    dessertIds: ["r13"], // Seasonal Fruit Tart
-    alcoholicBeverageIds: ["r18"], // Old Fashioned
-    nonAlcoholicBeverageIds: ["r9", "r14"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea
+    dessertIds: ["r13", "r31"], // Seasonal Fruit Tart, Apple Crumble
+    alcoholicBeverageIds: ["r18", "b11"], // Old Fashioned, Sparkling Wine
+    nonAlcoholicBeverageIds: ["r9", "r14", "r27"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Spiced Apple Cider
     sideDishIds: ["r2", "r25"], // Garden Salad, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
