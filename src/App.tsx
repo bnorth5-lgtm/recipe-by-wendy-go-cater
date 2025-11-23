@@ -15,10 +15,6 @@ const App = () => {
   return (
     <BrowserRouter>
       <ErrorBoundary>
-        {/* TEMPORARY TEST ELEMENT: If you see this purple bar, App is rendering! */}
-        <div className="bg-purple-500 text-white p-4 text-center text-2xl font-bold">
-          APP COMPONENT IS RENDERING!
-        </div>
         <Layout>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
