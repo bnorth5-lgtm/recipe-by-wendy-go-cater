@@ -46,16 +46,16 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useCateringStore, InventoryItem } from "@/store/cateringStore"; // Import from store
 
-// Define the schema for an inventory item
-const inventoryItemSchema = z.object({
+// Define the form data type directly from the store's InventoryItem type
+type InventoryFormData = Omit<InventoryItem, 'id'>;
+
+// Define the schema for an inventory item, explicitly typed to InventoryFormData
+const inventoryItemSchema: z.ZodType<InventoryFormData> = z.object({
   name: z.string().min(1, "Item name is required"),
   currentStock: z.coerce.number().min(0, "Stock cannot be negative"),
   unit: z.string().min(1, "Unit is required"),
   lowStockThreshold: z.coerce.number().min(0, "Threshold cannot be negative"),
 });
-
-// Infer the form data type directly from the schema
-type InventoryFormData = z.infer<typeof inventoryItemSchema>;
 
 const Inventory = () => {
   const inventory = useCateringStore((state) => state.inventory);
@@ -78,10 +78,10 @@ const Inventory = () => {
 
   const onSubmit = (data: InventoryFormData) => {
     if (editingItem) {
-      updateInventoryItem({ ...data, id: editingItem.id } as InventoryItem); // Explicitly cast data
+      updateInventoryItem({ ...data, id: editingItem.id });
       toast.success("Inventory item updated successfully!");
     } else {
-      addInventoryItem(data as Omit<InventoryItem, 'id'>); // Explicitly cast data
+      addInventoryItem(data);
       toast.success("Inventory item added successfully!");
     }
     form.reset();

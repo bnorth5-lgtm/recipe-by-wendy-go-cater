@@ -12,7 +12,6 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  GlassWater, // New icon for beverages
 } from "lucide-react";
 import React from "react";
 
@@ -55,18 +54,6 @@ const navItems = [
     ],
   },
   {
-    name: "Beverages", // New top-level item
-    href: "/beverages",
-    icon: GlassWater, // Using GlassWater icon
-    children: [
-      { name: "Beverage Inventory", href: "/beverages/inventory" },
-      { name: "Cocktails & Spirits", href: "/beverages/cocktails" },
-      { name: "Wine", href: "/beverages/wine" },
-      { name: "Beer", href: "/beverages/beer" },
-      { name: "General Beverages", href: "/beverages/general" },
-    ],
-  },
-  {
     name: "Settings",
     href: "/settings",
     icon: Settings,
@@ -74,7 +61,7 @@ const navItems = [
       { name: "General", href: "/settings/general" },
       { name: "Users", href: "/settings/users" },
       { name: "Branding", href: "/settings/branding" },
-      { name: "Catering Averages", href: "/settings/catering-averages" },
+      { name: "Catering Averages", href: "/settings/catering-averages" }, // New sub-item
     ],
   },
 ];
