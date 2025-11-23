@@ -89,8 +89,8 @@ export const Sidebar = () => {
   return (
     <aside className="flex flex-col h-full w-64 border-r bg-sidebar text-sidebar-foreground">
       <div className="flex items-center justify-center h-16 border-b px-4">
-        <h1 className="text-xl font-semibold text-sidebar-primary-foreground">
-          Caterer's Planner
+        <h1 className="text-xl font-serif font-semibold text-sidebar-primary-foreground">
+          Catering by Cronkhite
         </h1>
       </div>
       <ScrollArea className="flex-1 py-4">

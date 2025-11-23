@@ -16,12 +16,17 @@ import {
 
 const Dashboard = () => {
   return (
-    <div className="space-y-6 min-h-full">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+    <div
+      className="space-y-6 min-h-full p-6 bg-cover bg-center relative"
+      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}
+    >
+      {/* Overlay for better text readability */}
+      <div className="absolute inset-0 bg-black opacity-40 rounded-lg"></div> 
+      <h1 className="text-3xl font-bold text-white relative z-10">Dashboard</h1>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 relative z-10">
         {/* Existing Cards */}
-        <Card>
+        <Card className="bg-card/80 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Quote Pipeline
@@ -36,7 +41,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card/80 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Upcoming Events
@@ -54,7 +59,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card/80 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Action Items
@@ -74,7 +79,7 @@ const Dashboard = () => {
 
         {/* New "Build" Cards */}
         <Link to="/quoting/proposals" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow">
+          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Proposal
@@ -91,7 +96,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/inventory" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow">
+          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
@@ -108,7 +113,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/menus" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow">
+          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Menu
@@ -125,7 +130,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/recipes" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow">
+          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Recipes
@@ -142,7 +147,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow">
+          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Event
