@@ -171,10 +171,50 @@ interface CateringState {
 }
 
 const initialInventory: InventoryItem[] = [
-  // Food Ingredients
-  { id: "1", name: "Chicken Breast", category: "Food Ingredient", currentStock: 50, unit: "lb", lowStockThreshold: 10, costPerUnit: 2.27 },
-  { id: "2", name: "Beef Sirloin", category: "Food Ingredient", currentStock: 30, unit: "lb", lowStockThreshold: 5, costPerUnit: 6.80 },
+  // Food Ingredients - Beef
+  { id: "1", name: "Beef Sirloin", category: "Food Ingredient", currentStock: 30, unit: "lb", lowStockThreshold: 5, costPerUnit: 6.80 },
+  { id: "25", name: "Beef Tenderloin", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 15.88 },
+  { id: "96", name: "Porterhouse Steak", category: "Food Ingredient", currentStock: 15, unit: "16oz", lowStockThreshold: 3, costPerUnit: 25.00 },
+  { id: "97", name: "Filet Mignon", category: "Food Ingredient", currentStock: 20, unit: "8oz", lowStockThreshold: 4, costPerUnit: 20.00 },
+  { id: "98", name: "Top Round Roast", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 7.50 },
+  { id: "99", name: "Strip Steak", category: "Food Ingredient", currentStock: 18, unit: "12oz", lowStockThreshold: 4, costPerUnit: 18.00 },
+  { id: "100", name: "Rib-Eye Steak", category: "Food Ingredient", currentStock: 12, unit: "16oz", lowStockThreshold: 3, costPerUnit: 22.00 },
+  { id: "101", name: "Ground Beef (80/20)", category: "Food Ingredient", currentStock: 40, unit: "lb", lowStockThreshold: 10, costPerUnit: 4.50 },
+
+  // Food Ingredients - Chicken
+  { id: "102", name: "Chicken Breast", category: "Food Ingredient", currentStock: 50, unit: "lb", lowStockThreshold: 10, costPerUnit: 2.27 },
+  { id: "103", name: "Chicken Half", category: "Food Ingredient", currentStock: 20, unit: "count", lowStockThreshold: 5, costPerUnit: 3.50 },
+  { id: "104", name: "Whole Chicken", category: "Food Ingredient", currentStock: 15, unit: "count", lowStockThreshold: 3, costPerUnit: 6.00 },
+  { id: "105", name: "Chicken Thighs", category: "Food Ingredient", currentStock: 30, unit: "lb", lowStockThreshold: 6, costPerUnit: 1.80 },
+  { id: "106", name: "Chicken Wings", category: "Food Ingredient", currentStock: 25, unit: "lb", lowStockThreshold: 5, costPerUnit: 2.00 },
+  { id: "107", name: "Ground Chicken", category: "Food Ingredient", currentStock: 20, unit: "lb", lowStockThreshold: 4, costPerUnit: 3.00 },
+  { id: "108", name: "Turkey Breast", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 4.00 },
+
+  // Food Ingredients - Pork
+  { id: "32", name: "Pork Loin", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 8.16 },
+  { id: "109", name: "Pulled Pork", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 7.00 },
+  { id: "110", name: "Bacon", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 6.50 },
+  { id: "111", name: "Ham", category: "Food Ingredient", currentStock: 8, unit: "lb", lowStockThreshold: 1, costPerUnit: 5.00 },
+  { id: "112", name: "Sausage", category: "Food Ingredient", currentStock: 12, unit: "lb", lowStockThreshold: 3, costPerUnit: 4.00 },
+  { id: "113", name: "Pork Shoulder", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 3.50 },
+
+  // Food Ingredients - Seafood
   { id: "3", name: "Salmon Fillets", category: "Food Ingredient", currentStock: 20, unit: "lb", lowStockThreshold: 4, costPerUnit: 5.44 },
+  { id: "41", name: "Shrimp (Peeled & Deveined)", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 11.34 },
+  { id: "114", name: "Cod", category: "Food Ingredient", currentStock: 8, unit: "lb", lowStockThreshold: 2, costPerUnit: 7.00 },
+  { id: "115", name: "Smoked Salmon", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 15.00 },
+  { id: "116", name: "Tuna (Fresh)", category: "Food Ingredient", currentStock: 7, unit: "lb", lowStockThreshold: 1, costPerUnit: 12.00 },
+  { id: "117", name: "Oysters", category: "Food Ingredient", currentStock: 50, unit: "count", lowStockThreshold: 10, costPerUnit: 1.00 },
+
+  // Food Ingredients - Vegetarian/Vegan Proteins
+  { id: "118", name: "Tofu (Firm)", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 2.50 },
+  { id: "119", name: "Tempeh", category: "Food Ingredient", currentStock: 8, unit: "lb", lowStockThreshold: 2, costPerUnit: 3.00 },
+  { id: "120", name: "Chickpeas (Dried)", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 1.50 },
+  { id: "121", name: "Black Beans (Dried)", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 1.40 },
+  { id: "122", name: "Lentils (Green)", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 1.60 },
+  { id: "123", name: "Nutritional Yeast", category: "Food Ingredient", currentStock: 2, unit: "lb", lowStockThreshold: 0.5, costPerUnit: 8.00 },
+
+  // Other Food Ingredients (existing)
   { id: "4", name: "Mixed Salad Greens", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 1.59 },
   { id: "5", name: "Potatoes", category: "Food Ingredient", currentStock: 100, unit: "lb", lowStockThreshold: 20, costPerUnit: 0.54 },
   { id: "6", name: "Onions", category: "Food Ingredient", currentStock: 40, unit: "lb", lowStockThreshold: 8, costPerUnit: 0.36 },
@@ -196,14 +236,12 @@ const initialInventory: InventoryItem[] = [
   { id: "22", name: "Marsala Wine (cooking)", category: "Food Ingredient", currentStock: 5, unit: "quart", lowStockThreshold: 1, costPerUnit: 10.00 },
   { id: "23", name: "Chicken Broth", category: "Food Ingredient", currentStock: 20, unit: "quart", lowStockThreshold: 4, costPerUnit: 3.00 },
   { id: "24", name: "Butter", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 5.44 },
-  { id: "25", name: "Beef Tenderloin", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 15.88 },
   { id: "26", name: "Shallots", category: "Food Ingredient", currentStock: 8, unit: "lb", lowStockThreshold: 2, costPerUnit: 3.18 },
   { id: "27", name: "Fresh Rosemary", category: "Food Ingredient", currentStock: 10, unit: "bunch", lowStockThreshold: 2, costPerUnit: 3.00 },
   { id: "28", name: "Arborio Rice", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 1.81 },
   { id: "29", name: "Mixed Wild Mushrooms", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 11.34 },
   { id: "30", name: "Vegetable Broth", category: "Food Ingredient", currentStock: 20, unit: "quart", lowStockThreshold: 4, costPerUnit: 2.50 },
   { id: "31", name: "Dry White Wine (cooking)", category: "Food Ingredient", currentStock: 5, unit: "bottle", lowStockThreshold: 1, costPerUnit: 10.00 },
-  { id: "32", name: "Pork Loin", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 8.16 },
   { id: "33", name: "Apples (Granny Smith)", category: "Food Ingredient", currentStock: 25, unit: "count", lowStockThreshold: 5, costPerUnit: 3.00 },
   { id: "34", name: "Red Onion", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 0.91 },
   { id: "35", name: "Apple Cider Vinegar", category: "Food Ingredient", currentStock: 5, unit: "quart", lowStockThreshold: 1, costPerUnit: 4.00 },
@@ -212,7 +250,6 @@ const initialInventory: InventoryItem[] = [
   { id: "38", name: "Mustard Seeds", category: "Food Ingredient", currentStock: 2, unit: "oz", lowStockThreshold: 0.5, costPerUnit: 0.23 },
   { id: "39", name: "Ground Cinnamon", category: "Food Ingredient", currentStock: 1, unit: "oz", lowStockThreshold: 0.2, costPerUnit: 0.43 },
   { id: "40", name: "Ground Cloves", category: "Food Ingredient", currentStock: 0.5, unit: "oz", lowStockThreshold: 0.1, costPerUnit: 0.57 },
-  { id: "41", name: "Shrimp (Peeled & Deveined)", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 11.34 },
   { id: "42", name: "Linguine Pasta", category: "Food Ingredient", currentStock: 20, unit: "lb", lowStockThreshold: 4, costPerUnit: 1.36 },
   { id: "43", name: "Red Pepper Flakes", category: "Food Ingredient", currentStock: 1, unit: "oz", lowStockThreshold: 0.2, costPerUnit: 0.34 },
   { id: "44", name: "Heavy Cream (Dessert)", category: "Food Ingredient", currentStock: 5, unit: "quart", lowStockThreshold: 1, costPerUnit: 4.50 },

@@ -42,23 +42,27 @@ const Ingredients = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">Poultry</h3>
-              {renderIngredientList(["Chicken breast", "Chicken thighs", "Turkey breast", "Ground chicken"])}
+              {renderIngredientList([
+                "Chicken Breast", "Chicken Half", "Whole Chicken", "Chicken Thighs", "Chicken Wings", "Ground Chicken", "Turkey Breast"
+              ])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Beef</h3>
-              {renderIngredientList(["Roast beef (sirloin, tenderloin)", "Ground beef", "Steak (flank, skirt)", "Short ribs"])}
+              {renderIngredientList([
+                "Beef Sirloin", "Beef Tenderloin", "Porterhouse Steak (16oz)", "Filet Mignon (8oz)", "Filet Mignon (12oz)", "Top Round Roast", "Strip Steak (12oz)", "Strip Steak (16oz)", "Rib-Eye Steak (16oz)", "Ground Beef (80/20)"
+              ])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Pork</h3>
-              {renderIngredientList(["Pulled pork", "Bacon", "Ham", "Sausage", "Pork shoulder"])}
+              {renderIngredientList(["Pork Loin", "Pulled Pork", "Bacon", "Ham", "Sausage", "Pork Shoulder"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Seafood</h3>
-              {renderIngredientList(["Salmon", "Shrimp", "Cod", "Smoked salmon", "Tuna", "Oysters"])}
+              {renderIngredientList(["Salmon Fillets", "Shrimp (Peeled & Deveined)", "Cod", "Smoked Salmon", "Tuna (Fresh)", "Oysters"])}
             </div>
             <div>
               <h3 className="text-lg font-medium mb-2">Vegetarian/Vegan</h3>
-              {renderIngredientList(["Tofu", "Tempeh", "Chickpeas", "Black beans", "Lentils", "Nutritional yeast"])}
+              {renderIngredientList(["Tofu (Firm)", "Tempeh", "Chickpeas (Dried)", "Black Beans (Dried)", "Lentils (Green)", "Nutritional Yeast"])}
             </div>
           </div>
         </section>
