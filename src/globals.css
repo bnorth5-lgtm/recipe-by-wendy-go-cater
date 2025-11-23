@@ -42,7 +42,7 @@
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 346.8 77.2% 49.8%; /* Matching new primary */
-    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-primary-foreground: 222.2 84% 4.9%; /* Changed to a dark color for visibility */
     --sidebar-accent: 346.8 77.2% 95%; /* Lighter rose */
     --sidebar-accent-foreground: 346.8 77.2% 49.8%; /* Matching new primary */
     --sidebar-border: 220 13% 91%;
