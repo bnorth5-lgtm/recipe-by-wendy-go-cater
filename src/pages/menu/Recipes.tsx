@@ -32,19 +32,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, Recipe, RecipeIngredient, RecipeInstruction } from "@/store/cateringStore"; // Import from store
 
-// Define the schema for a single ingredient
-const ingredientSchema = z.object({
-  name: z.string().min(1, "Ingredient name is required"),
-  quantity: z.string().min(1, "Quantity is required"),
-});
+// Define the form data type directly from the store's Recipe type
+type RecipeFormData = Omit<Recipe, 'id'>;
 
-// Define the schema for a single instruction step
-const instructionSchema = z.object({
-  step: z.string().min(1, "Instruction step is required"),
-});
-
-// Define the main schema for a recipe
-const recipeFormSchema = z.object({
+// Define the main schema for a recipe, explicitly typed to RecipeFormData
+const recipeFormSchema: z.ZodType<RecipeFormData> = z.object({
   name: z.string().min(1, "Recipe name is required"),
   description: z.string().min(1, "Description is required"),
   prepTime: z.string().min(1, "Preparation time is required"),
@@ -53,11 +45,14 @@ const recipeFormSchema = z.object({
   category: z.enum(["Appetizer", "Main Course", "Dessert", "Beverage", "Side Dish", "Breakfast", "Other"], {
     required_error: "Please select a category.",
   }),
-  ingredients: z.array(ingredientSchema).min(1, "At least one ingredient is required"),
-  instructions: z.array(instructionSchema).min(1, "At least one instruction step is required"),
+  ingredients: z.array(z.object({
+    name: z.string().min(1, "Ingredient name is required"),
+    quantity: z.string().min(1, "Quantity is required"),
+  })).min(1, "At least one ingredient is required"),
+  instructions: z.array(z.object({
+    step: z.string().min(1, "Instruction step is required"),
+  })).min(1, "At least one instruction step is required"),
 });
-
-type RecipeFormData = z.infer<typeof recipeFormSchema>;
 
 const Recipes = () => {
   const recipes = useCateringStore((state) => state.recipes);
@@ -89,7 +84,7 @@ const Recipes = () => {
   });
 
   const onSubmit = (data: RecipeFormData) => {
-    addRecipe(data as Omit<Recipe, 'id'>); // Explicitly cast data
+    addRecipe(data);
     form.reset({
       name: "",
       description: "",
