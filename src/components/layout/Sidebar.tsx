@@ -11,6 +11,7 @@ import {
   CalendarCheck,
   Settings,
 } from "lucide-react";
+import React from "react"; // Import React for useEffect
 
 const navItems = [
   {
@@ -41,7 +42,12 @@ const navItems = [
 ];
 
 export const Sidebar = () => {
+  console.log("Sidebar component rendering"); // Debugging log for Sidebar render
   const location = useLocation();
+
+  React.useEffect(() => {
+    console.log("Sidebar location changed:", location.pathname); // Debugging log for location changes
+  }, [location.pathname]);
 
   return (
     <aside className="flex flex-col h-full w-64 border-r bg-sidebar text-sidebar-foreground">
@@ -52,24 +58,27 @@ export const Sidebar = () => {
       </div>
       <ScrollArea className="flex-1 py-4">
         <nav className="grid items-start px-4 text-sm font-medium">
-          {navItems.map((item) => (
-            <Button
-              key={item.href}
-              asChild
-              variant={location.pathname === item.href ? "secondary" : "ghost"}
-              className={cn(
-                "justify-start mb-1",
-                location.pathname === item.href
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50"
-              )}
-            >
-              <Link to={item.href}>
-                <item.icon className="mr-3 h-5 w-5" />
-                {item.name}
-              </Link>
-            </Button>
-          ))}
+          {navItems.map((item) => {
+            console.log(`Rendering nav item: ${item.name}, current path: ${location.pathname}`); // Debugging log for each nav item
+            return (
+              <Button
+                key={item.href}
+                asChild
+                variant={location.pathname === item.href ? "secondary" : "ghost"}
+                className={cn(
+                  "justify-start mb-1",
+                  location.pathname === item.href
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                )}
+              >
+                <Link to={item.href}>
+                  <item.icon className="mr-3 h-5 w-5" />
+                  {item.name}
+                </Link>
+              </Button>
+            );
+          })}
         </nav>
       </ScrollArea>
     </aside>
