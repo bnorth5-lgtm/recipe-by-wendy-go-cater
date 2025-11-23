@@ -535,6 +535,36 @@ const initialRecipes: Recipe[] = [
   },
 ];
 
+const initialMenus: Menu[] = [
+  {
+    id: "m1",
+    name: "Summer Wedding Package",
+    description: "A delightful and elegant menu perfect for a summer wedding celebration.",
+    category: "Wedding",
+    recipeIds: ["r3", "r6", "r7", "r9", "r10"], // Salmon, Risotto, Pork Loin, Lemonade, Caprese Skewers
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "m2",
+    name: "Corporate Lunch Buffet",
+    description: "A versatile buffet menu suitable for corporate events and business lunches.",
+    category: "Corporate",
+    recipeIds: ["r1", "r2", "r4"], // Beef Stroganoff, Garden Salad, Chicken Marsala
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "m3",
+    name: "Vegetarian Dinner Party",
+    description: "An exquisite plant-based menu designed to impress at any dinner party.",
+    category: "Plated",
+    recipeIds: ["r6", "r2", "r9"], // Wild Mushroom Risotto, Garden Salad, Sparkling Raspberry Lemonade
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
 
 export const useCateringStore = create<CateringState>()(
   persist(
@@ -546,7 +576,7 @@ export const useCateringStore = create<CateringState>()(
       clients: [], // Initialize clients
       proposals: [], // Initialize proposals
       estimates: [], // Estimates state
-      menus: [], // NEW: Initialize menus
+      menus: initialMenus, // NEW: Initialize menus with sample data
 
       addInventoryItem: (item) => set((state) => ({
         inventory: [...state.inventory, { ...item, id: crypto.randomUUID() }],
