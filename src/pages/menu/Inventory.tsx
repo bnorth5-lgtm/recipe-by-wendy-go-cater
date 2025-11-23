@@ -56,6 +56,7 @@ const inventoryItemSchema = z.object({
   unit: z.string().min(1, "Unit is required"),
   lowStockThreshold: z.coerce.number().min(0, "Threshold cannot be negative"),
   costPerUnit: z.coerce.number().min(0, "Cost per unit cannot be negative"),
+  markupPercentage: z.coerce.number().min(0, "Markup cannot be negative").max(1, "Markup must be between 0 and 1 (e.g., 0.20 for 20%)"), // NEW: Markup percentage
 });
 
 type InventoryFormData = z.infer<typeof inventoryItemSchema>; // Infer type directly from the schema
@@ -78,6 +79,7 @@ const Inventory = () => {
       unit: "lb", // Changed default unit
       lowStockThreshold: 10,
       costPerUnit: 0.00,
+      markupPercentage: 0.20, // NEW: Default markup
     },
   });
 
@@ -266,6 +268,19 @@ const Inventory = () => {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="markupPercentage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Markup Percentage (e.g., 0.20 for 20%)</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <DialogFooter>
                       <Button type="submit">{editingItem ? "Save changes" : "Add Item"}</Button>
                     </DialogFooter>
@@ -293,7 +308,8 @@ const Inventory = () => {
                       <TableHead>Item Name</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Current Stock</TableHead>
-                      <TableHead>Cost per Unit</TableHead> {/* Combined column header */}
+                      <TableHead>Cost per Unit</TableHead>
+                      <TableHead>Selling Price</TableHead> {/* NEW: Selling Price column */}
                       <TableHead>Low Stock Threshold</TableHead>
                       <TableHead className="text-center">Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -302,7 +318,11 @@ const Inventory = () => {
                   <TableBody>
                     {inventory.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell className="font-medium">
+                          <Button variant="link" onClick={() => handleEdit(item)} className="p-0 h-auto text-base font-medium">
+                            {item.name}
+                          </Button>
+                        </TableCell>
                         <TableCell>{item.category}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-1">
@@ -332,7 +352,8 @@ const Inventory = () => {
                             </Button>
                           </div>
                         </TableCell>
-                        <TableCell>${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell> {/* Combined display */}
+                        <TableCell>${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell>
+                        <TableCell>${(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell> {/* NEW: Display calculated selling price */}
                         <TableCell>{item.lowStockThreshold}</TableCell>
                         <TableCell className="text-center">
                           {item.currentStock <= item.lowStockThreshold ? (
