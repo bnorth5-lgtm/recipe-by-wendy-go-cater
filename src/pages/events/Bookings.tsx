@@ -127,7 +127,7 @@ const Bookings = () => {
     addBooking({
       eventName: data.eventName,
       clientName: data.clientName,
-      eventDate: format(data.eventDate, "PPP"), // Format date for storage
+      eventDate: format(data.eventDate, "yyyy-MM-dd"), // Format date for storage
       numberOfGuests: data.numberOfGuests,
       selectedRecipeIds: data.selectedRecipeIds,
     });
