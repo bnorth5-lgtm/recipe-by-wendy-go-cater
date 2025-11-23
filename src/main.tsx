@@ -1,13 +1,12 @@
 import { createRoot } from "react-dom/client";
-import React from "react"; // Import React for JSX
+import React from "react";
+import App from "./App"; // Import the App component
 import "./globals.css";
 
-console.log("main.tsx is executing!"); // Check if this log appears in your browser's console
+console.log("main.tsx is executing!");
 
-const TestRootComponent = () => (
-  <div className="bg-red-500 text-white p-8 text-center text-3xl font-bold min-h-screen flex items-center justify-center">
-    MAIN.TSX IS RENDERING THIS!
-  </div>
+createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
 );
-
-createRoot(document.getElementById("root")!).render(<TestRootComponent />);
