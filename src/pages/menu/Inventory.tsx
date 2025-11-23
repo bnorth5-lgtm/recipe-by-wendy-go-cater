@@ -41,10 +41,10 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Edit, Trash2, AlertCircle, Minus, Plus } from "lucide-react"; // Added Minus, Plus icons
+import { PlusCircle, Edit, Trash2, AlertCircle, Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { useCateringStore, InventoryItem } from "@/store/cateringStore"; // Import from store
+import { useCateringStore, InventoryItem } from "@/store/cateringStore";
 
 // Define the schema for an inventory item
 const inventoryItemSchema = z.object({
@@ -56,10 +56,10 @@ const inventoryItemSchema = z.object({
   unit: z.string().min(1, "Unit is required"),
   lowStockThreshold: z.coerce.number().min(0, "Threshold cannot be negative"),
   costPerUnit: z.coerce.number().min(0, "Cost per unit cannot be negative"),
-  markupPercentage: z.coerce.number().min(0, "Markup cannot be negative").max(1, "Markup must be between 0 and 1 (e.g., 0.20 for 20%)"), // NEW: Markup percentage
+  markupPercentage: z.coerce.number().min(0, "Markup cannot be negative").max(1, "Markup must be between 0 and 1 (e.g., 0.20 for 20%)"),
 });
 
-type InventoryFormData = z.infer<typeof inventoryItemSchema>; // Infer type directly from the schema
+type InventoryFormData = z.infer<typeof inventoryItemSchema>;
 
 const Inventory = () => {
   const inventory = useCateringStore((state) => state.inventory);
@@ -74,21 +74,21 @@ const Inventory = () => {
     resolver: zodResolver(inventoryItemSchema),
     defaultValues: {
       name: "",
-      category: "Food Ingredient", // Default category
+      category: "Food Ingredient",
       currentStock: 0,
-      unit: "lb", // Changed default unit
+      unit: "lb",
       lowStockThreshold: 10,
       costPerUnit: 0.00,
-      markupPercentage: 0.20, // NEW: Default markup
+      markupPercentage: 0.20,
     },
   });
 
   const onSubmit = (data: InventoryFormData) => {
     if (editingItem) {
-      updateInventoryItem({ ...data, id: editingItem.id } as InventoryItem); // Explicitly cast data
+      updateInventoryItem({ ...data, id: editingItem.id } as InventoryItem);
       toast.success("Inventory item updated successfully!");
     } else {
-      addInventoryItem(data as Omit<InventoryItem, 'id'>); // Explicitly cast data
+      addInventoryItem(data as Omit<InventoryItem, 'id'>);
       toast.success("Inventory item added successfully!");
     }
     form.reset();
@@ -98,7 +98,7 @@ const Inventory = () => {
 
   const handleEdit = (item: InventoryItem) => {
     setEditingItem(item);
-    form.reset(item); // Populate form with item data
+    form.reset(item);
     setIsDialogOpen(true);
   };
 
@@ -309,7 +309,7 @@ const Inventory = () => {
                       <TableHead>Category</TableHead>
                       <TableHead>Current Stock</TableHead>
                       <TableHead>Cost per Unit</TableHead>
-                      <TableHead>Selling Price</TableHead> {/* NEW: Selling Price column */}
+                      <TableHead>Selling Price</TableHead>
                       <TableHead>Low Stock Threshold</TableHead>
                       <TableHead className="text-center">Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -351,7 +351,7 @@ const Inventory = () => {
                           </div>
                         </TableCell>
                         <TableCell>${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell>
-                        <TableCell>${(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell> {/* NEW: Display calculated selling price */}
+                        <TableCell>${(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell>
                         <TableCell>{item.lowStockThreshold}</TableCell>
                         <TableCell className="text-center">
                           {item.currentStock <= item.lowStockThreshold ? (
