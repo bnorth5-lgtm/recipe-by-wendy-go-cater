@@ -123,7 +123,7 @@ const Inventory = () => {
         </p>
       </div>
 
-      <div className="w-full space-y-8"> {/* Removed max-w-4xl here */}
+      <div className="w-full space-y-8">
         <Card className="bg-card p-6 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
@@ -306,11 +306,11 @@ const Inventory = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="min-w-[120px]">Item Name</TableHead>
-                      <TableHead className="min-w-[100px]">Category</TableHead>
-                      <TableHead className="min-w-[150px]">Current Stock</TableHead>
+                      <TableHead className="min-w-[80px] text-xs">Category</TableHead>
+                      <TableHead className="min-w-[120px]">Current Stock</TableHead>
                       <TableHead className="min-w-[120px]">Cost per Unit</TableHead>
                       <TableHead className="min-w-[120px]">Selling Price</TableHead>
-                      <TableHead className="min-w-[150px]">Low Stock Threshold</TableHead>
+                      <TableHead className="min-w-[100px]">Low Stock Threshold</TableHead>
                       <TableHead className="text-center min-w-[100px]">Status</TableHead>
                       <TableHead className="text-right min-w-[100px]">Actions</TableHead>
                     </TableRow>
@@ -321,9 +321,9 @@ const Inventory = () => {
                         <TableCell className="font-medium min-w-[120px]">
                           {item.name}
                         </TableCell>
-                        <TableCell className="min-w-[100px]">{item.category}</TableCell>
-                        <TableCell className="min-w-[150px]">
-                          <div className="flex items-center space-x-1">
+                        <TableCell className="min-w-[80px] text-xs">{item.category}</TableCell>
+                        <TableCell className="min-w-[120px]">
+                          <div className="flex items-center space-x-0.5">
                             <Button
                               variant="outline"
                               size="icon"
@@ -337,7 +337,7 @@ const Inventory = () => {
                               type="number"
                               value={item.currentStock}
                               onChange={(e) => handleStockChange(item.id, parseFloat(e.target.value) || 0)}
-                              className="w-20 text-center h-7"
+                              className="w-16 text-center h-7"
                               min="0"
                             />
                             <Button
@@ -352,7 +352,7 @@ const Inventory = () => {
                         </TableCell>
                         <TableCell className="min-w-[120px]">${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell>
                         <TableCell className="min-w-[120px]">${(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell>
-                        <TableCell className="min-w-[150px]">{item.lowStockThreshold}</TableCell>
+                        <TableCell className="min-w-[100px]">{item.lowStockThreshold}</TableCell>
                         <TableCell className="text-center min-w-[100px]">
                           {item.currentStock <= item.lowStockThreshold ? (
                             <Badge variant="destructive" className="flex items-center justify-center gap-1">
