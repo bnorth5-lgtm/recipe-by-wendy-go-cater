@@ -175,7 +175,7 @@ interface CateringState {
   deleteProposal: (id: string) => void;
 
   // Estimate actions
-  addEstimate: (estimate: Omit<Estimate, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>) => void; // Corrected Omit type
+  addEstimate: (estimate: Omit<Estimate, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>) => void;
   updateEstimate: (estimate: Estimate) => void;
   deleteEstimate: (id: string) => void;
 
@@ -253,6 +253,22 @@ const initialInventory: InventoryItem[] = [
   { id: "64", name: "Club Soda", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.50 },
   { id: "65", name: "White Rum", currentStock: 4, unit: "bottle", lowStockThreshold: 1, costPerUnit: 22.00 },
   { id: "66", name: "Fresh Limes", currentStock: 20, unit: "count", lowStockThreshold: 5, costPerUnit: 0.60 },
+  { id: "67", name: "Spinach (Fresh)", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 6.00 },
+  { id: "68", name: "Artichoke Hearts (Canned)", currentStock: 10, unit: "can", lowStockThreshold: 2, costPerUnit: 3.00 },
+  { id: "69", name: "Mayonnaise", currentStock: 2, unit: "L", lowStockThreshold: 0.5, costPerUnit: 5.00 },
+  { id: "70", name: "Parmesan Cheese (grated)", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 18.00 },
+  { id: "71", name: "Cream Cheese (softened)", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 7.00 },
+  { id: "72", name: "Crostini/Baguette", currentStock: 10, unit: "pack", lowStockThreshold: 2, costPerUnit: 4.00 },
+  { id: "73", name: "Cantaloupe", currentStock: 5, unit: "count", lowStockThreshold: 1, costPerUnit: 4.00 },
+  { id: "74", name: "Honeydew Melon", currentStock: 5, unit: "count", lowStockThreshold: 1, costPerUnit: 4.00 },
+  { id: "75", name: "Prosciutto", currentStock: 0.5, unit: "kg", lowStockThreshold: 0.1, costPerUnit: 30.00 },
+  { id: "76", name: "Asparagus", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 7.00 },
+  { id: "77", name: "Potatoes (Russet)", currentStock: 20, unit: "kg", lowStockThreshold: 5, costPerUnit: 1.50 },
+  { id: "78", name: "Milk", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 2.00 },
+  { id: "79", name: "Quinoa", currentStock: 5, unit: "kg", lowStockThreshold: 1, costPerUnit: 8.00 },
+  { id: "80", name: "Bell Peppers (Assorted)", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 1.00 },
+  { id: "81", name: "Zucchini", currentStock: 8, unit: "count", lowStockThreshold: 2, costPerUnit: 0.80 },
+  { id: "82", name: "Red Wine Vinegar", currentStock: 1, unit: "L", lowStockThreshold: 0.2, costPerUnit: 4.00 },
 ];
 
 const initialBeverageInventory: BeverageItem[] = [
@@ -758,6 +774,156 @@ const initialRecipes: Recipe[] = [
     ],
     baseCost: 9.00,
   },
+  // NEW APPETIZERS
+  {
+    id: "r20",
+    name: "Spinach Artichoke Dip with Crostini",
+    description: "A warm, creamy, and cheesy dip served with crispy crostini.",
+    prepTime: "15 mins",
+    cookTime: "25 mins",
+    servings: "8-10",
+    category: "Appetizer",
+    ingredients: [
+      { name: "Spinach (Fresh)", quantity: "0.5 kg" },
+      { name: "Artichoke Hearts (Canned)", quantity: "0.4 kg" },
+      { name: "Cream Cheese (softened)", quantity: "0.2 kg" },
+      { name: "Mayonnaise", quantity: "0.1 L" },
+      { name: "Parmesan Cheese (grated)", quantity: "0.1 kg" },
+      { name: "Garlic", quantity: "3 head" },
+      { name: "Crostini/Baguette", quantity: "1 pack" },
+    ],
+    instructions: [
+      { step: "Preheat oven to 375°F (190°C). Sauté spinach and garlic until wilted; squeeze out excess water." },
+      { step: "Chop artichoke hearts. In a bowl, combine spinach, artichokes, cream cheese, mayonnaise, and half of the Parmesan." },
+      { step: "Transfer to a baking dish, top with remaining Parmesan. Bake for 20-25 minutes until bubbly and golden." },
+      { step: "Serve warm with crostini." },
+    ],
+    baseCost: 18.00,
+  },
+  {
+    id: "r21",
+    name: "Prosciutto-Wrapped Melon Bites",
+    description: "Sweet melon cubes wrapped in savory prosciutto, a perfect light appetizer.",
+    prepTime: "15 mins",
+    cookTime: "0 mins",
+    servings: "10-12",
+    category: "Appetizer",
+    ingredients: [
+      { name: "Cantaloupe", quantity: "0.5 count" },
+      { name: "Honeydew Melon", quantity: "0.5 count" },
+      { name: "Prosciutto", quantity: "0.15 kg" },
+      { name: "Fresh Mint", quantity: "0.1 bunch" },
+    ],
+    instructions: [
+      { step: "Cut melon into bite-sized cubes. Slice prosciutto into thin strips." },
+      { step: "Wrap each melon cube with a strip of prosciutto." },
+      { step: "Arrange on a platter and garnish with fresh mint leaves. Chill until serving." },
+    ],
+    baseCost: 15.00,
+  },
+  {
+    id: "r22",
+    name: "Spicy Shrimp Skewers",
+    description: "Grilled shrimp marinated in a zesty and spicy sauce.",
+    prepTime: "20 mins (plus 30 min marinate)",
+    cookTime: "8 mins",
+    servings: "6",
+    category: "Appetizer",
+    ingredients: [
+      { name: "Shrimp (Peeled & Deveined)", quantity: "0.5 kg" },
+      { name: "Olive Oil", quantity: "0.05 L" },
+      { name: "Lemon", quantity: "1 count" },
+      { name: "Garlic", quantity: "2 head" },
+      { name: "Red Pepper Flakes", quantity: "0.003 kg" },
+      { name: "Fresh Parsley", quantity: "0.1 bunch" },
+      { name: "Salt", quantity: "0.005 kg" },
+      { name: "Black Pepper", quantity: "0.003 kg" },
+    ],
+    instructions: [
+      { step: "In a bowl, whisk together olive oil, lemon juice, minced garlic, red pepper flakes, salt, and pepper." },
+      { step: "Add shrimp to the marinade, toss to coat, and refrigerate for at least 30 minutes." },
+      { step: "Thread shrimp onto skewers. Grill or pan-fry for 2-4 minutes per side until pink and cooked through." },
+      { step: "Garnish with fresh chopped parsley and serve immediately." },
+    ],
+    baseCost: 20.00,
+  },
+  // NEW SIDE DISHES
+  {
+    id: "r23",
+    name: "Garlic Parmesan Roasted Asparagus",
+    description: "Tender asparagus spears roasted with garlic and Parmesan cheese.",
+    prepTime: "10 mins",
+    cookTime: "15 mins",
+    servings: "4",
+    category: "Side Dish",
+    ingredients: [
+      { name: "Asparagus", quantity: "0.5 kg" },
+      { name: "Olive Oil", quantity: "0.03 L" },
+      { name: "Garlic", quantity: "2 head" },
+      { name: "Parmesan Cheese (grated)", quantity: "0.05 kg" },
+      { name: "Salt", quantity: "0.005 kg" },
+      { name: "Black Pepper", quantity: "0.003 kg" },
+    ],
+    instructions: [
+      { step: "Preheat oven to 400°F (200°C). Trim woody ends off asparagus." },
+      { step: "Toss asparagus with olive oil, minced garlic, salt, and pepper on a baking sheet." },
+      { step: "Roast for 10-15 minutes until tender-crisp. Sprinkle with Parmesan cheese and serve." },
+    ],
+    baseCost: 10.00,
+  },
+  {
+    id: "r24",
+    name: "Creamy Mashed Potatoes",
+    description: "Smooth and buttery mashed potatoes, a classic comfort food side.",
+    prepTime: "15 mins",
+    cookTime: "20 mins",
+    servings: "6",
+    category: "Side Dish",
+    ingredients: [
+      { name: "Potatoes (Russet)", quantity: "1 kg" },
+      { name: "Butter", quantity: "0.1 kg" },
+      { name: "Milk", quantity: "0.2 L" },
+      { name: "Heavy Cream", quantity: "0.1 L" },
+      { name: "Salt", quantity: "0.01 kg" },
+      { name: "Black Pepper", quantity: "0.005 kg" },
+    ],
+    instructions: [
+      { step: "Peel and chop potatoes into even pieces. Boil in salted water until very tender." },
+      { step: "Drain potatoes thoroughly. Return to pot over low heat to dry out any remaining moisture." },
+      { step: "Mash potatoes. Heat butter, milk, and heavy cream until warm. Gradually add to potatoes, mixing until smooth and creamy." },
+      { step: "Season with salt and pepper to taste. Serve hot." },
+    ],
+    baseCost: 12.00,
+  },
+  {
+    id: "r25",
+    name: "Quinoa Salad with Roasted Vegetables",
+    description: "A hearty and healthy salad featuring fluffy quinoa and seasonal roasted vegetables.",
+    prepTime: "20 mins",
+    cookTime: "30 mins",
+    servings: "8",
+    category: "Side Dish",
+    ingredients: [
+      { name: "Quinoa", quantity: "0.3 kg" },
+      { name: "Vegetable Broth", quantity: "0.6 L" },
+      { name: "Bell Peppers (Assorted)", quantity: "2 count" },
+      { name: "Zucchini", quantity: "1 count" },
+      { name: "Red Onion", quantity: "0.1 kg" },
+      { name: "Cherry Tomatoes", quantity: "0.2 kg" },
+      { name: "Olive Oil", quantity: "0.05 L" },
+      { name: "Red Wine Vinegar", quantity: "0.03 L" },
+      { name: "Fresh Parsley", quantity: "0.1 bunch" },
+      { name: "Salt", quantity: "0.005 kg" },
+      { name: "Black Pepper", quantity: "0.003 kg" },
+    ],
+    instructions: [
+      { step: "Rinse quinoa thoroughly. Cook quinoa in vegetable broth according to package directions; fluff with a fork." },
+      { step: "Chop bell peppers, zucchini, and red onion. Toss with olive oil, salt, and pepper. Roast at 400°F (200°C) for 20-25 minutes." },
+      { step: "Combine cooked quinoa, roasted vegetables, and halved cherry tomatoes in a large bowl." },
+      { step: "Whisk together olive oil, red wine vinegar, salt, and pepper for dressing. Pour over salad and toss. Garnish with fresh parsley." },
+    ],
+    baseCost: 16.00,
+  },
 ];
 
 const initialMenus: Menu[] = [
@@ -766,12 +932,12 @@ const initialMenus: Menu[] = [
     name: "Summer Wedding Package",
     description: "A delightful and elegant menu perfect for a summer wedding celebration.",
     category: "Wedding",
-    appetizerIds: ["r10"], // Mini Caprese Skewers
+    appetizerIds: ["r10", "r21"], // Mini Caprese Skewers, Prosciutto-Wrapped Melon Bites
     mainCourseIds: ["r3", "r7"], // Herb-Crusted Roasted Salmon, Roasted Pork Loin with Apple Chutney
     dessertIds: ["r13", "r16"], // Seasonal Fruit Tart, New York Cheesecake
     alcoholicBeverageIds: ["r11", "r19"], // Classic Margarita, Mojito
     nonAlcoholicBeverageIds: ["r9", "r15"], // Sparkling Raspberry Lemonade, Sparkling Orange Blossom Water
-    sideDishIds: ["r2"], // Garden Salad
+    sideDishIds: ["r2", "r23"], // Garden Salad, Garlic Parmesan Roasted Asparagus
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -780,12 +946,12 @@ const initialMenus: Menu[] = [
     name: "Corporate Lunch Buffet",
     description: "A versatile buffet menu suitable for corporate events and business lunches.",
     category: "Corporate",
-    appetizerIds: [],
+    appetizerIds: ["r20"], // Spinach Artichoke Dip
     mainCourseIds: ["r1", "r4"], // Classic Beef Stroganoff, Chicken Marsala
     dessertIds: ["r12", "r17"], // Chocolate Lava Cake, Tiramisu
     alcoholicBeverageIds: [],
     nonAlcoholicBeverageIds: ["r9", "r14"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea
-    sideDishIds: ["r2"], // Garden Salad
+    sideDishIds: ["r2", "r24"], // Garden Salad, Creamy Mashed Potatoes
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -799,7 +965,7 @@ const initialMenus: Menu[] = [
     dessertIds: ["r13"], // Seasonal Fruit Tart
     alcoholicBeverageIds: ["r18"], // Old Fashioned
     nonAlcoholicBeverageIds: ["r9", "r14"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea
-    sideDishIds: ["r2"], // Garden Salad
+    sideDishIds: ["r2", "r25"], // Garden Salad, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -883,7 +1049,7 @@ export const useCateringStore = create<CateringState>()(
       })),
       updateBooking: (updatedBooking) => set((state) => ({
         bookings: state.bookings.map((booking) =>
-          booking.id === updatedItem.id ? updatedBooking : booking
+          booking.id === updatedBooking.id ? updatedBooking : booking
         ),
       })),
       deleteBooking: (id) => set((state) => ({
