@@ -319,9 +319,7 @@ const Inventory = () => {
                     {inventory.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">
-                          <Button variant="link" onClick={() => handleEdit(item)} className="p-0 h-auto text-base font-medium">
-                            {item.name}
-                          </Button>
+                          {item.name}
                         </TableCell>
                         <TableCell>{item.category}</TableCell>
                         <TableCell>
