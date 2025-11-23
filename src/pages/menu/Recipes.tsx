@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useState } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,8 +29,8 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils"; // Added import for cn
-
+import { cn } from "@/lib/utils";
+import { useCateringStore, Recipe, RecipeIngredient, RecipeInstruction } from "@/store/cateringStore"; // Import from store
 
 // Define the schema for a single ingredient
 const ingredientSchema = z.object({
@@ -60,12 +59,10 @@ const recipeFormSchema = z.object({
 
 type RecipeFormData = z.infer<typeof recipeFormSchema>;
 
-interface Recipe extends RecipeFormData {
-  id: string;
-}
-
 const Recipes = () => {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const recipes = useCateringStore((state) => state.recipes);
+  const addRecipe = useCateringStore((state) => state.addRecipe);
+  const deleteRecipe = useCateringStore((state) => state.deleteRecipe);
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeFormSchema),
@@ -92,17 +89,22 @@ const Recipes = () => {
   });
 
   const onSubmit = (data: RecipeFormData) => {
-    const newRecipe: Recipe = {
-      ...data,
-      id: crypto.randomUUID(), // Generate a unique ID
-    };
-    setRecipes((prev) => [...prev, newRecipe]);
-    form.reset(); // Reset the form after submission
+    addRecipe(data);
+    form.reset({
+      name: "",
+      description: "",
+      prepTime: "",
+      cookTime: "",
+      servings: "",
+      category: "Main Course",
+      ingredients: [{ name: "", quantity: "" }],
+      instructions: [{ step: "" }],
+    }); // Reset the form after submission
     toast.success("Recipe added successfully!");
   };
 
   const handleDeleteRecipe = (id: string) => {
-    setRecipes((prev) => prev.filter((recipe) => recipe.id !== id));
+    deleteRecipe(id);
     toast.info("Recipe deleted.");
   };
 

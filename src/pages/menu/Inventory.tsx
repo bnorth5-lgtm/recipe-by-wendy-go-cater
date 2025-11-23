@@ -44,6 +44,7 @@ import * as z from "zod";
 import { PlusCircle, Edit, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useCateringStore, InventoryItem } from "@/store/cateringStore"; // Import from store
 
 // Define the schema for an inventory item
 const inventoryItemSchema = z.object({
@@ -55,39 +56,14 @@ const inventoryItemSchema = z.object({
 
 type InventoryFormData = z.infer<typeof inventoryItemSchema>;
 
-interface InventoryItem extends InventoryFormData {
-  id: string;
-}
-
-const initialInventory: InventoryItem[] = [
-  { id: "1", name: "Chicken Breast", currentStock: 50, unit: "kg", lowStockThreshold: 10 },
-  { id: "2", name: "Beef Sirloin", currentStock: 30, unit: "kg", lowStockThreshold: 5 },
-  { id: "3", name: "Salmon Fillets", currentStock: 20, unit: "kg", lowStockThreshold: 4 },
-  { id: "4", name: "Mixed Salad Greens", currentStock: 15, unit: "kg", lowStockThreshold: 3 },
-  { id: "5", name: "Potatoes", currentStock: 100, unit: "kg", lowStockThreshold: 20 },
-  { id: "6", name: "Onions", currentStock: 40, unit: "kg", lowStockThreshold: 8 },
-  { id: "7", name: "Carrots", currentStock: 35, unit: "kg", lowStockThreshold: 7 },
-  { id: "8", name: "All-Purpose Flour", currentStock: 25, unit: "kg", lowStockThreshold: 5 },
-  { id: "9", name: "Sugar", currentStock: 20, unit: "kg", lowStockThreshold: 4 },
-  { id: "10", name: "Olive Oil", currentStock: 10, unit: "L", lowStockThreshold: 2 },
-  { id: "11", name: "Heavy Cream", currentStock: 8, unit: "L", lowStockThreshold: 1 },
-  { id: "12", name: "Eggs", currentStock: 120, unit: "count", lowStockThreshold: 24 },
-  { id: "13", name: "Parmesan Cheese", currentStock: 5, unit: "kg", lowStockThreshold: 1 },
-  { id: "14", name: "Tomatoes (Canned)", currentStock: 30, unit: "can", lowStockThreshold: 6 },
-  { id: "15", name: "Rice (Basmati)", currentStock: 50, unit: "kg", lowStockThreshold: 10 },
-];
-
 const Inventory = () => {
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const inventory = useCateringStore((state) => state.inventory);
+  const addInventoryItem = useCateringStore((state) => state.addInventoryItem);
+  const updateInventoryItem = useCateringStore((state) => state.updateInventoryItem);
+  const deleteInventoryItem = useCateringStore((state) => state.deleteInventoryItem);
+
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  useEffect(() => {
-    // Load initial inventory if it's empty
-    if (inventory.length === 0) {
-      setInventory(initialInventory);
-    }
-  }, [inventory.length]);
 
   const form = useForm<InventoryFormData>({
     resolver: zodResolver(inventoryItemSchema),
@@ -101,16 +77,10 @@ const Inventory = () => {
 
   const onSubmit = (data: InventoryFormData) => {
     if (editingItem) {
-      setInventory((prev) =>
-        prev.map((item) => (item.id === editingItem.id ? { ...data, id: editingItem.id } : item))
-      );
+      updateInventoryItem({ ...data, id: editingItem.id });
       toast.success("Inventory item updated successfully!");
     } else {
-      const newItem: InventoryItem = {
-        ...data,
-        id: crypto.randomUUID(),
-      };
-      setInventory((prev) => [...prev, newItem]);
+      addInventoryItem(data);
       toast.success("Inventory item added successfully!");
     }
     form.reset();
@@ -125,7 +95,7 @@ const Inventory = () => {
   };
 
   const handleDelete = (id: string) => {
-    setInventory((prev) => prev.filter((item) => item.id !== id));
+    deleteInventoryItem(id);
     toast.info("Inventory item deleted.");
   };
 
