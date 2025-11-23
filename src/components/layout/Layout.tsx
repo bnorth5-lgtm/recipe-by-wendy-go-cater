@@ -14,11 +14,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-6">
-          {/* Temporarily not rendering children to isolate the issue */}
-          <h2 className="text-2xl font-bold text-center mt-8">
-            Layout and Sidebar are rendering!
-          </h2>
-          {/* {children} */} {/* Commented out children */}
+          {/* Re-enabling children to display the routed content */}
+          {children}
         </div>
       </main>
     </div>
