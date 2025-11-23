@@ -182,7 +182,16 @@ const Menus = () => {
   };
 
   const renderRecipeList = (ids: string[] | undefined, title: string, Icon: React.ElementType) => {
-    if (!ids || ids.length === 0) return null;
+    if (!ids || ids.length === 0) {
+      return (
+        <div className="mt-4">
+          <h4 className="font-medium mb-2 flex items-center gap-2">
+            <Icon className="h-4 w-4 text-muted-foreground" /> {title}:
+          </h4>
+          <p className="text-muted-foreground text-sm ml-6">No {title.toLowerCase()} selected for this menu.</p>
+        </div>
+      );
+    }
     return (
       <div className="mt-4">
         <h4 className="font-medium mb-2 flex items-center gap-2">
@@ -230,7 +239,13 @@ const Menus = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) { // If dialog is closing
+                form.reset();
+                setEditingMenu(null);
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button className="w-full mb-6">
                   <PlusCircle className="mr-2 h-4 w-4" /> Create New Menu
@@ -474,14 +489,6 @@ const Menus = () => {
                       {renderRecipeList(selectedMenu.dessertIds, "Desserts", Cake)}
                       {renderRecipeList(selectedMenu.nonAlcoholicBeverageIds, "Non-Alcoholic Beverages", Coffee)}
                       {renderRecipeList(selectedMenu.alcoholicBeverageIds, "Alcoholic Beverages", Wine)}
-                      {(selectedMenu.appetizerIds?.length === 0 &&
-                        selectedMenu.mainCourseIds?.length === 0 &&
-                        selectedMenu.dessertIds?.length === 0 &&
-                        selectedMenu.alcoholicBeverageIds?.length === 0 &&
-                        selectedMenu.nonAlcoholicBeverageIds?.length === 0 &&
-                        selectedMenu.sideDishIds?.length === 0) && (
-                        <p className="text-muted-foreground text-sm">No recipes selected for this menu.</p>
-                      )}
                     </div>
                   </div>
                 ) : (

@@ -230,6 +230,19 @@ const initialInventory: InventoryItem[] = [
   { id: "41", name: "Shrimp (Peeled & Deveined)", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 25.00 },
   { id: "42", name: "Linguine Pasta", currentStock: 20, unit: "kg", lowStockThreshold: 4, costPerUnit: 3.00 },
   { id: "43", name: "Red Pepper Flakes", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 12.00 },
+  { id: "44", name: "Heavy Cream (Dessert)", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 4.50 },
+  { id: "45", name: "Dark Chocolate", currentStock: 3, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 20.00 },
+  { id: "46", name: "All-Purpose Flour (Dessert)", currentStock: 10, unit: "kg", lowStockThreshold: 2, costPerUnit: 1.00 },
+  { id: "47", name: "Cocoa Powder", currentStock: 1, unit: "kg", lowStockThreshold: 0.2, costPerUnit: 18.00 },
+  { id: "48", name: "Vanilla Extract", currentStock: 0.5, unit: "L", lowStockThreshold: 0.1, costPerUnit: 25.00 },
+  { id: "49", name: "Fresh Berries (Mixed)", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 15.00 },
+  { id: "50", name: "Pie Crust (Pre-made)", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 3.00 },
+  { id: "51", name: "Gelatin Powder", currentStock: 0.2, unit: "kg", lowStockThreshold: 0.05, costPerUnit: 30.00 },
+  { id: "52", name: "Sparkling Water (Extra)", currentStock: 20, unit: "L", lowStockThreshold: 5, costPerUnit: 1.00 },
+  { id: "53", name: "Fresh Mint", currentStock: 5, unit: "bunch", lowStockThreshold: 1, costPerUnit: 2.00 },
+  { id: "54", name: "Green Tea Bags", currentStock: 100, unit: "count", lowStockThreshold: 20, costPerUnit: 0.15 },
+  { id: "55", name: "Honey", currentStock: 2, unit: "kg", lowStockThreshold: 0.5, costPerUnit: 10.00 },
+  { id: "56", name: "Oranges", currentStock: 15, unit: "count", lowStockThreshold: 3, costPerUnit: 0.80 },
 ];
 
 const initialBeverageInventory: BeverageItem[] = [
@@ -538,6 +551,103 @@ const initialRecipes: Recipe[] = [
     ],
     baseCost: 8.00,
   },
+  // NEW DESSERT RECIPES
+  {
+    id: "r12",
+    name: "Chocolate Lava Cake",
+    description: "Rich individual chocolate cakes with a molten center, served with berries.",
+    prepTime: "20 mins",
+    cookTime: "12 mins",
+    servings: "4",
+    category: "Dessert",
+    ingredients: [
+      { name: "Dark Chocolate", quantity: "0.2 kg" },
+      { name: "Butter", quantity: "0.1 kg" },
+      { name: "Eggs", quantity: "2 count" },
+      { name: "Sugar", quantity: "0.05 kg" },
+      { name: "All-Purpose Flour (Dessert)", quantity: "0.03 kg" },
+      { name: "Vanilla Extract", quantity: "5 ml" },
+      { name: "Fresh Berries (Mixed)", quantity: "0.1 kg" },
+    ],
+    instructions: [
+      { step: "Preheat oven to 425°F (220°C). Grease ramekins." },
+      { step: "Melt chocolate and butter together. Whisk in sugar, then eggs one at a time." },
+      { step: "Fold in flour and vanilla. Pour batter into ramekins." },
+      { step: "Bake for 10-12 minutes until edges are set but center is gooey. Invert onto plates and serve with berries." },
+    ],
+    baseCost: 10.00,
+  },
+  {
+    id: "r13",
+    name: "Seasonal Fruit Tart",
+    description: "A buttery pie crust filled with pastry cream and topped with fresh seasonal fruits.",
+    prepTime: "30 mins",
+    cookTime: "25 mins",
+    servings: "8",
+    category: "Dessert",
+    ingredients: [
+      { name: "Pie Crust (Pre-made)", quantity: "1 count" },
+      { name: "Heavy Cream (Dessert)", quantity: "0.2 L" },
+      { name: "Sugar", quantity: "0.1 kg" },
+      { name: "Eggs", quantity: "3 count" },
+      { name: "All-Purpose Flour (Dessert)", quantity: "0.05 kg" },
+      { name: "Vanilla Extract", quantity: "10 ml" },
+      { name: "Fresh Berries (Mixed)", quantity: "0.3 kg" },
+      { name: "Gelatin Powder", quantity: "0.005 kg" },
+    ],
+    instructions: [
+      { step: "Blind bake pie crust according to package directions; let cool." },
+      { step: "Prepare pastry cream: whisk egg yolks, sugar, flour. Heat milk/cream, temper yolks, cook until thick. Stir in vanilla." },
+      { step: "Pour cooled pastry cream into pie crust. Arrange fresh fruits on top." },
+      { step: "Prepare a simple glaze with gelatin and water, brush over fruit for shine. Chill before serving." },
+    ],
+    baseCost: 18.00,
+  },
+  // NEW NON-ALCOHOLIC BEVERAGE RECIPES
+  {
+    id: "r14",
+    name: "Fresh Mint Iced Tea",
+    description: "Refreshing black iced tea infused with fresh mint leaves and a hint of lemon.",
+    prepTime: "10 mins",
+    cookTime: "5 mins",
+    servings: "8",
+    category: "Non-Alcoholic Beverage",
+    ingredients: [
+      { name: "Green Tea Bags", quantity: "8 count" }, // Using green tea for variety
+      { name: "Fresh Mint", quantity: "1 bunch" },
+      { name: "Lemons", quantity: "2 count" },
+      { name: "Sugar", quantity: "0.1 kg" },
+      { name: "Water", quantity: "1.5 L" },
+    ],
+    instructions: [
+      { step: "Bring water to a boil. Add tea bags and mint leaves; steep for 5 minutes. Remove tea bags and mint." },
+      { step: "Stir in sugar until dissolved. Let cool to room temperature." },
+      { step: "Add lemon juice. Chill thoroughly. Serve over ice with fresh mint and lemon slices." },
+    ],
+    baseCost: 5.00,
+  },
+  {
+    id: "r15",
+    name: "Sparkling Orange Blossom Water",
+    description: "A delicate and fragrant sparkling drink with orange juice and a touch of orange blossom water.",
+    prepTime: "5 mins",
+    cookTime: "0 mins",
+    servings: "4",
+    category: "Non-Alcoholic Beverage",
+    ingredients: [
+      { name: "Oranges", quantity: "4 count" },
+      { name: "Sparkling Water (Extra)", quantity: "0.75 L" },
+      { name: "Orange Blossom Water", quantity: "5 ml" }, // Assume this is a pantry item, not tracked in inventory
+      { name: "Honey", quantity: "15 ml" },
+      { name: "Fresh Mint", quantity: "4 sprig" },
+    ],
+    instructions: [
+      { step: "Juice the oranges. Strain to remove pulp." },
+      { step: "In a pitcher, combine orange juice, orange blossom water, and honey. Stir until honey dissolves." },
+      { step: "Top with sparkling water and ice. Garnish with fresh mint sprigs and orange slices." },
+    ],
+    baseCost: 7.00,
+  },
 ];
 
 const initialMenus: Menu[] = [
@@ -548,9 +658,9 @@ const initialMenus: Menu[] = [
     category: "Wedding",
     appetizerIds: ["r10"], // Mini Caprese Skewers
     mainCourseIds: ["r3", "r7"], // Herb-Crusted Roasted Salmon, Roasted Pork Loin with Apple Chutney
-    dessertIds: [], // No desserts in sample yet
+    dessertIds: ["r13"], // Seasonal Fruit Tart
     alcoholicBeverageIds: ["r11"], // Classic Margarita
-    nonAlcoholicBeverageIds: ["r9"], // Sparkling Raspberry Lemonade
+    nonAlcoholicBeverageIds: ["r9", "r15"], // Sparkling Raspberry Lemonade, Sparkling Orange Blossom Water
     sideDishIds: ["r2"], // Garden Salad
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -562,9 +672,9 @@ const initialMenus: Menu[] = [
     category: "Corporate",
     appetizerIds: [],
     mainCourseIds: ["r1", "r4"], // Classic Beef Stroganoff, Chicken Marsala
-    dessertIds: [],
+    dessertIds: ["r12"], // Chocolate Lava Cake
     alcoholicBeverageIds: [],
-    nonAlcoholicBeverageIds: ["r9"], // Sparkling Raspberry Lemonade
+    nonAlcoholicBeverageIds: ["r9", "r14"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea
     sideDishIds: ["r2"], // Garden Salad
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -576,9 +686,9 @@ const initialMenus: Menu[] = [
     category: "Plated",
     appetizerIds: ["r10"], // Mini Caprese Skewers
     mainCourseIds: ["r6"], // Wild Mushroom Risotto
-    dessertIds: [],
+    dessertIds: ["r13"], // Seasonal Fruit Tart
     alcoholicBeverageIds: [],
-    nonAlcoholicBeverageIds: ["r9"], // Sparkling Raspberry Lemonade
+    nonAlcoholicBeverageIds: ["r9", "r14"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea
     sideDishIds: ["r2"], // Garden Salad
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
