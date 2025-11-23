@@ -2,10 +2,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
+import {
+  DollarSign,
+  CalendarCheck,
+  LayoutDashboard,
+} from "lucide-react"; // Added imports for icons
 
 const Dashboard = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-full"> {/* Added min-h-full */}
       <h1 className="text-3xl font-bold">Dashboard</h1>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
