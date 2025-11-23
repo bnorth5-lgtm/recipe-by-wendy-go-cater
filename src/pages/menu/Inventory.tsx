@@ -216,10 +216,12 @@ const Inventory = () => {
                             <SelectContent>
                               <SelectItem value="lb">Pounds (lb)</SelectItem>
                               <SelectItem value="oz">Ounces (oz)</SelectItem>
-                              <SelectItem value="kg">Kilograms (kg)</SelectItem>
-                              <SelectItem value="g">Grams (g)</SelectItem>
-                              <SelectItem value="L">Liters (L)</SelectItem>
-                              <SelectItem value="ml">Milliliters (ml)</SelectItem>
+                              <SelectItem value="cup">Cup</SelectItem>
+                              <SelectItem value="quart">Quart</SelectItem>
+                              <SelectItem value="gallon">Gallon</SelectItem>
+                              <SelectItem value="fl oz">Fluid Ounces (fl oz)</SelectItem>
+                              <SelectItem value="tsp">Teaspoon (tsp)</SelectItem>
+                              <SelectItem value="tbsp">Tablespoon (tbsp)</SelectItem>
                               <SelectItem value="count">Count</SelectItem>
                               <SelectItem value="bottle">Bottle</SelectItem>
                               <SelectItem value="can">Can</SelectItem>

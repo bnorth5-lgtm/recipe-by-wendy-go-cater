@@ -35,7 +35,7 @@ export interface InventoryItem {
   name: string;
   category: "Food Ingredient" | "Beverage" | "Furniture" | "Tableware" | "Silverware" | "Glassware" | "Linens" | "Serving Equipment" | "Other";
   currentStock: number;
-  unit: string; // e.g., "kg", "L", "count", "bottle", "chair", "set"
+  unit: string; // e.g., "lb", "fl oz", "count", "bottle", "chair", "set"
   lowStockThreshold: number;
   costPerUnit: number; // Cost per unit for inventory tracking
 }
@@ -181,8 +181,8 @@ const initialInventory: InventoryItem[] = [
   { id: "7", name: "Carrots", category: "Food Ingredient", currentStock: 35, unit: "lb", lowStockThreshold: 7, costPerUnit: 0.41 },
   { id: "8", name: "All-Purpose Flour", category: "Food Ingredient", currentStock: 25, unit: "lb", lowStockThreshold: 5, costPerUnit: 0.45 },
   { id: "9", name: "Sugar", category: "Food Ingredient", currentStock: 20, unit: "lb", lowStockThreshold: 4, costPerUnit: 0.32 },
-  { id: "10", name: "Olive Oil", category: "Food Ingredient", currentStock: 10, unit: "L", lowStockThreshold: 2, costPerUnit: 8.00 },
-  { id: "11", name: "Heavy Cream", category: "Food Ingredient", currentStock: 8, unit: "L", lowStockThreshold: 1, costPerUnit: 4.50 },
+  { id: "10", name: "Olive Oil", category: "Food Ingredient", currentStock: 10, unit: "quart", lowStockThreshold: 2, costPerUnit: 8.00 },
+  { id: "11", name: "Heavy Cream", category: "Food Ingredient", currentStock: 8, unit: "quart", lowStockThreshold: 1, costPerUnit: 4.50 },
   { id: "12", name: "Eggs", category: "Food Ingredient", currentStock: 120, unit: "count", lowStockThreshold: 24, costPerUnit: 0.20 },
   { id: "13", name: "Parmesan Cheese", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 8.16 },
   { id: "14", name: "Tomatoes (Canned)", category: "Food Ingredient", currentStock: 30, unit: "can", lowStockThreshold: 6, costPerUnit: 1.10 },
@@ -193,20 +193,20 @@ const initialInventory: InventoryItem[] = [
   { id: "19", name: "Lemon", category: "Food Ingredient", currentStock: 20, unit: "count", lowStockThreshold: 5, costPerUnit: 0.75 },
   { id: "20", name: "Garlic", category: "Food Ingredient", currentStock: 30, unit: "head", lowStockThreshold: 6, costPerUnit: 0.50 },
   { id: "21", name: "Cremini Mushrooms", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 3.63 },
-  { id: "22", name: "Marsala Wine (cooking)", category: "Food Ingredient", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 10.00 },
-  { id: "23", name: "Chicken Broth", category: "Food Ingredient", currentStock: 20, unit: "L", lowStockThreshold: 4, costPerUnit: 3.00 },
+  { id: "22", name: "Marsala Wine (cooking)", category: "Food Ingredient", currentStock: 5, unit: "quart", lowStockThreshold: 1, costPerUnit: 10.00 },
+  { id: "23", name: "Chicken Broth", category: "Food Ingredient", currentStock: 20, unit: "quart", lowStockThreshold: 4, costPerUnit: 3.00 },
   { id: "24", name: "Butter", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 5.44 },
   { id: "25", name: "Beef Tenderloin", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 15.88 },
   { id: "26", name: "Shallots", category: "Food Ingredient", currentStock: 8, unit: "lb", lowStockThreshold: 2, costPerUnit: 3.18 },
   { id: "27", name: "Fresh Rosemary", category: "Food Ingredient", currentStock: 10, unit: "bunch", lowStockThreshold: 2, costPerUnit: 3.00 },
   { id: "28", name: "Arborio Rice", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 1.81 },
   { id: "29", name: "Mixed Wild Mushrooms", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 11.34 },
-  { id: "30", name: "Vegetable Broth", category: "Food Ingredient", currentStock: 20, unit: "L", lowStockThreshold: 4, costPerUnit: 2.50 },
+  { id: "30", name: "Vegetable Broth", category: "Food Ingredient", currentStock: 20, unit: "quart", lowStockThreshold: 4, costPerUnit: 2.50 },
   { id: "31", name: "Dry White Wine (cooking)", category: "Food Ingredient", currentStock: 5, unit: "bottle", lowStockThreshold: 1, costPerUnit: 10.00 },
   { id: "32", name: "Pork Loin", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 8.16 },
   { id: "33", name: "Apples (Granny Smith)", category: "Food Ingredient", currentStock: 25, unit: "count", lowStockThreshold: 5, costPerUnit: 3.00 },
   { id: "34", name: "Red Onion", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 0.91 },
-  { id: "35", name: "Apple Cider Vinegar", category: "Food Ingredient", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 4.00 },
+  { id: "35", name: "Apple Cider Vinegar", category: "Food Ingredient", currentStock: 5, unit: "quart", lowStockThreshold: 1, costPerUnit: 4.00 },
   { id: "36", name: "Brown Sugar", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 1.13 },
   { id: "37", name: "Fresh Ginger", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 4.54 },
   { id: "38", name: "Mustard Seeds", category: "Food Ingredient", currentStock: 2, unit: "oz", lowStockThreshold: 0.5, costPerUnit: 0.23 },
@@ -215,15 +215,15 @@ const initialInventory: InventoryItem[] = [
   { id: "41", name: "Shrimp (Peeled & Deveined)", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 11.34 },
   { id: "42", name: "Linguine Pasta", category: "Food Ingredient", currentStock: 20, unit: "lb", lowStockThreshold: 4, costPerUnit: 1.36 },
   { id: "43", name: "Red Pepper Flakes", category: "Food Ingredient", currentStock: 1, unit: "oz", lowStockThreshold: 0.2, costPerUnit: 0.34 },
-  { id: "44", name: "Heavy Cream (Dessert)", category: "Food Ingredient", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 4.50 },
+  { id: "44", name: "Heavy Cream (Dessert)", category: "Food Ingredient", currentStock: 5, unit: "quart", lowStockThreshold: 1, costPerUnit: 4.50 },
   { id: "45", name: "Dark Chocolate", category: "Food Ingredient", currentStock: 3, unit: "lb", lowStockThreshold: 0.5, costPerUnit: 9.07 },
   { id: "46", name: "All-Purpose Flour (Dessert)", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 0.45 },
   { id: "47", name: "Cocoa Powder", category: "Food Ingredient", currentStock: 1, unit: "oz", lowStockThreshold: 0.2, costPerUnit: 0.51 },
-  { id: "48", name: "Vanilla Extract", category: "Food Ingredient", currentStock: 0.5, unit: "L", lowStockThreshold: 0.1, costPerUnit: 25.00 },
+  { id: "48", name: "Vanilla Extract", category: "Food Ingredient", currentStock: 16, unit: "fl oz", lowStockThreshold: 3, costPerUnit: 25.00 },
   { id: "49", name: "Fresh Berries (Mixed)", category: "Food Ingredient", currentStock: 2, unit: "lb", lowStockThreshold: 0.5, costPerUnit: 6.80 },
   { id: "50", name: "Pie Crust (Pre-made)", category: "Food Ingredient", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 3.00 },
   { id: "51", name: "Gelatin Powder", category: "Food Ingredient", currentStock: 0.2, unit: "oz", lowStockThreshold: 0.05, costPerUnit: 0.85 },
-  { id: "52", name: "Sparkling Water (Extra)", category: "Food Ingredient", currentStock: 20, unit: "L", lowStockThreshold: 5, costPerUnit: 1.00 },
+  { id: "52", name: "Sparkling Water (Extra)", category: "Food Ingredient", currentStock: 20, unit: "quart", lowStockThreshold: 5, costPerUnit: 1.00 },
   { id: "53", name: "Fresh Mint", category: "Food Ingredient", currentStock: 5, unit: "bunch", lowStockThreshold: 1, costPerUnit: 2.00 },
   { id: "54", name: "Green Tea Bags", category: "Food Ingredient", currentStock: 100, unit: "count", lowStockThreshold: 20, costPerUnit: 0.15 },
   { id: "55", name: "Honey", category: "Food Ingredient", currentStock: 2, unit: "lb", lowStockThreshold: 0.5, costPerUnit: 4.54 },
@@ -240,7 +240,7 @@ const initialInventory: InventoryItem[] = [
   { id: "66", name: "Fresh Limes", category: "Food Ingredient", currentStock: 20, unit: "count", lowStockThreshold: 5, costPerUnit: 0.60 },
   { id: "67", name: "Spinach (Fresh)", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 2.72 },
   { id: "68", name: "Artichoke Hearts (Canned)", category: "Food Ingredient", currentStock: 10, unit: "can", lowStockThreshold: 2, costPerUnit: 3.00 },
-  { id: "69", name: "Mayonnaise", category: "Food Ingredient", currentStock: 2, unit: "L", lowStockThreshold: 0.5, costPerUnit: 5.00 },
+  { id: "69", name: "Mayonnaise", category: "Food Ingredient", currentStock: 2, unit: "quart", lowStockThreshold: 0.5, costPerUnit: 5.00 },
   { id: "70", name: "Parmesan Cheese (grated)", category: "Food Ingredient", currentStock: 1, unit: "lb", lowStockThreshold: 0.2, costPerUnit: 8.16 },
   { id: "71", name: "Cream Cheese (softened)", category: "Food Ingredient", currentStock: 1, unit: "lb", lowStockThreshold: 0.2, costPerUnit: 3.18 },
   { id: "72", name: "Crostini/Baguette", category: "Food Ingredient", currentStock: 10, unit: "pack", lowStockThreshold: 2, costPerUnit: 4.00 },
@@ -249,13 +249,13 @@ const initialInventory: InventoryItem[] = [
   { id: "75", name: "Prosciutto", category: "Food Ingredient", currentStock: 0.5, unit: "lb", lowStockThreshold: 0.1, costPerUnit: 13.61 },
   { id: "76", name: "Asparagus", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 3.18 },
   { id: "77", name: "Potatoes (Russet)", category: "Food Ingredient", currentStock: 20, unit: "lb", lowStockThreshold: 5, costPerUnit: 0.68 },
-  { id: "78", name: "Milk", category: "Food Ingredient", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 2.00 },
+  { id: "78", name: "Milk", category: "Food Ingredient", currentStock: 5, unit: "quart", lowStockThreshold: 1, costPerUnit: 2.00 },
   { id: "79", name: "Quinoa", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 3.63 },
   { id: "80", name: "Bell Peppers (Assorted)", category: "Food Ingredient", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 1.00 },
   { id: "81", name: "Zucchini", category: "Food Ingredient", currentStock: 8, unit: "count", lowStockThreshold: 2, costPerUnit: 0.80 },
-  { id: "82", name: "Red Wine Vinegar", category: "Food Ingredient", currentStock: 1, unit: "L", lowStockThreshold: 0.2, costPerUnit: 4.00 },
+  { id: "82", name: "Red Wine Vinegar", category: "Food Ingredient", currentStock: 1, unit: "quart", lowStockThreshold: 0.2, costPerUnit: 4.00 },
   { id: "83", name: "Cucumber", category: "Food Ingredient", currentStock: 10, unit: "count", lowStockThreshold: 2, costPerUnit: 1.20 },
-  { id: "84", name: "Apple Cider", category: "Food Ingredient", currentStock: 5, unit: "L", lowStockThreshold: 1, costPerUnit: 4.00 },
+  { id: "84", name: "Apple Cider", category: "Food Ingredient", currentStock: 5, unit: "quart", lowStockThreshold: 1, costPerUnit: 4.00 },
   { id: "85", name: "Cinnamon Sticks", category: "Food Ingredient", currentStock: 0.1, unit: "oz", lowStockThreshold: 0.02, costPerUnit: 0.28 },
   { id: "86", name: "Coffee Beans (Ground)", category: "Food Ingredient", currentStock: 2, unit: "lb", lowStockThreshold: 0.5, costPerUnit: 9.07 },
   { id: "87", name: "Oats (Rolled)", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 1.36 },
@@ -265,7 +265,7 @@ const initialInventory: InventoryItem[] = [
   { id: "91", name: "Couscous (Medium)", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 2.04 },
   { id: "92", name: "Feta Cheese (Crumbled)", category: "Food Ingredient", currentStock: 1, unit: "lb", lowStockThreshold: 0.2, costPerUnit: 5.44 },
   { id: "93", name: "Kalamata Olives", category: "Food Ingredient", currentStock: 1, unit: "lb", lowStockThreshold: 0.2, costPerUnit: 4.08 },
-  { id: "94", name: "Simple Syrup", category: "Food Ingredient", currentStock: 2, unit: "L", lowStockThreshold: 0.5, costPerUnit: 6.00 },
+  { id: "94", name: "Simple Syrup", category: "Food Ingredient", currentStock: 2, unit: "quart", lowStockThreshold: 0.5, costPerUnit: 6.00 },
   { id: "95", name: "Coffee Liqueur", category: "Food Ingredient", currentStock: 1, unit: "bottle", lowStockThreshold: 0.2, costPerUnit: 25.00 },
 
   // Beverages
@@ -275,15 +275,15 @@ const initialInventory: InventoryItem[] = [
   { id: "b4", name: "IPA Beer", category: "Beverage", currentStock: 36, unit: "can", lowStockThreshold: 9, costPerUnit: 2.00 },
   { id: "b5", name: "Vodka (Standard)", category: "Beverage", currentStock: 6, unit: "bottle", lowStockThreshold: 1, costPerUnit: 20.00 },
   { id: "b6", name: "Gin (Dry)", category: "Beverage", currentStock: 4, unit: "bottle", lowStockThreshold: 1, costPerUnit: 18.00 },
-  { id: "b7", name: "Orange Juice", category: "Beverage", currentStock: 10, unit: "L", lowStockThreshold: 2, costPerUnit: 3.00 },
+  { id: "b7", name: "Orange Juice", category: "Beverage", currentStock: 10, unit: "quart", lowStockThreshold: 2, costPerUnit: 3.00 },
   { id: "b8", name: "Tonic Water", category: "Beverage", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.75 },
   { id: "b9", name: "Coca-Cola", category: "Beverage", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
   { id: "b10", name: "Local Craft Beer (Assorted)", category: "Beverage", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 3.00 },
   { id: "b11", name: "Sparkling Wine (Prosecco)", category: "Beverage", currentStock: 8, unit: "bottle", lowStockThreshold: 2, costPerUnit: 18.00 },
   { id: "b12", name: "Diet Cola", category: "Beverage", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
   { id: "b13", name: "Lemon-Lime Soda", category: "Beverage", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60 },
-  { id: "b14", name: "Cranberry Juice", category: "Beverage", currentStock: 8, unit: "L", lowStockThreshold: 2, costPerUnit: 3.50 },
-  { id: "b15", name: "Apple Juice", category: "Beverage", currentStock: 8, unit: "L", lowStockThreshold: 2, costPerUnit: 3.00 },
+  { id: "b14", name: "Cranberry Juice", category: "Beverage", currentStock: 8, unit: "quart", lowStockThreshold: 2, costPerUnit: 3.50 },
+  { id: "b15", name: "Apple Juice", category: "Beverage", currentStock: 8, unit: "quart", lowStockThreshold: 2, costPerUnit: 3.00 },
   { id: "b16", name: "Sparkling Water (Lime)", category: "Beverage", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.80 },
 
   // Furniture
@@ -332,12 +332,12 @@ const initialRecipes: Recipe[] = [
     servings: "4-6",
     category: "Main Course",
     ingredients: [
-      { name: "Beef Sirloin", quantity: "0.5 kg" },
-      { name: "Onions", quantity: "0.2 kg" },
-      { name: "Cremini Mushrooms", quantity: "0.3 kg" }, // Changed from generic Mushrooms
-      { name: "Heavy Cream", quantity: "0.2 L" },
-      { name: "Sour Cream", quantity: "0.1 L" },
-      { name: "Linguine Pasta", quantity: "0.4 kg" }, // Changed from generic Pasta
+      { name: "Beef Sirloin", quantity: "1 lb" },
+      { name: "Onions", quantity: "0.5 lb" },
+      { name: "Cremini Mushrooms", quantity: "0.75 lb" },
+      { name: "Heavy Cream", quantity: "0.25 quart" },
+      { name: "Sour Cream", quantity: "0.1 quart" },
+      { name: "Linguine Pasta", quantity: "1 lb" },
     ],
     instructions: [
       { step: "Slice beef thinly and sauté." },
@@ -356,12 +356,12 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Side Dish",
     ingredients: [
-      { name: "Mixed Salad Greens", quantity: "0.5 kg" },
-      { name: "Cherry Tomatoes", quantity: "0.2 kg" }, // Changed from generic Tomatoes
-      { name: "Cucumber", quantity: "0.15 kg" }, // Changed from generic Cucumbers
-      { name: "Bell Peppers (Assorted)", quantity: "0.1 kg" }, // Changed from generic Bell Peppers
-      { name: "Olive Oil", quantity: "0.05 L" },
-      { name: "Red Wine Vinegar", quantity: "0.02 L" },
+      { name: "Mixed Salad Greens", quantity: "1 lb" },
+      { name: "Cherry Tomatoes", quantity: "0.5 lb" },
+      { name: "Cucumber", quantity: "0.3 lb" },
+      { name: "Bell Peppers (Assorted)", quantity: "0.25 lb" },
+      { name: "Olive Oil", quantity: "3 tbsp" },
+      { name: "Red Wine Vinegar", quantity: "1 tbsp" },
     ],
     instructions: [
       { step: "Wash and chop all vegetables." },
@@ -380,15 +380,15 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Salmon Fillets", quantity: "0.8 kg" },
+      { name: "Salmon Fillets", quantity: "1.75 lb" },
       { name: "Fresh Dill", quantity: "0.5 bunch" },
       { name: "Fresh Parsley", quantity: "0.5 bunch" },
       { name: "Fresh Thyme", quantity: "0.5 bunch" },
       { name: "Lemon", quantity: "2 count" },
       { name: "Garlic", quantity: "2 head" },
-      { name: "Olive Oil", quantity: "0.05 L" },
-      { name: "Salt", quantity: "0.01 kg" },
-      { name: "Black Pepper", quantity: "0.005 kg" },
+      { name: "Olive Oil", quantity: "3 tbsp" },
+      { name: "Salt", quantity: "1 tbsp" },
+      { name: "Black Pepper", quantity: "1 tsp" },
     ],
     instructions: [
       { step: "Preheat oven to 400°F (200°C)." },
@@ -408,17 +408,17 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Chicken Breast", quantity: "0.6 kg" },
-      { name: "All-Purpose Flour", quantity: "0.05 kg" },
-      { name: "Olive Oil", quantity: "0.03 L" },
-      { name: "Butter", quantity: "0.05 kg" },
-      { name: "Cremini Mushrooms", quantity: "0.3 kg" },
+      { name: "Chicken Breast", quantity: "1.5 lb" },
+      { name: "All-Purpose Flour", quantity: "0.25 cup" },
+      { name: "Olive Oil", quantity: "2 tbsp" },
+      { name: "Butter", quantity: "4 tbsp" },
+      { name: "Cremini Mushrooms", quantity: "0.75 lb" },
       { name: "Garlic", quantity: "3 head" },
-      { name: "Marsala Wine (cooking)", quantity: "0.2 L" },
-      { name: "Chicken Broth", quantity: "0.2 L" },
+      { name: "Marsala Wine (cooking)", quantity: "0.25 quart" },
+      { name: "Chicken Broth", quantity: "0.25 quart" },
       { name: "Fresh Parsley", quantity: "0.2 bunch" },
-      { name: "Salt", quantity: "0.01 kg" },
-      { name: "Black Pepper", quantity: "0.005 kg" },
+      { name: "Salt", quantity: "1 tbsp" },
+      { name: "Black Pepper", quantity: "1 tsp" },
     ],
     instructions: [
       { step: "Dredge chicken in flour, season with salt and pepper." },
@@ -438,17 +438,17 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Beef Tenderloin", quantity: "0.8 kg" },
-      { name: "Olive Oil", quantity: "0.05 L" },
-      { name: "Butter", quantity: "0.05 kg" },
-      { name: "Shallots", quantity: "0.1 kg" },
+      { name: "Beef Tenderloin", quantity: "1.75 lb" },
+      { name: "Olive Oil", quantity: "3 tbsp" },
+      { name: "Butter", quantity: "4 tbsp" },
+      { name: "Shallots", quantity: "0.25 lb" },
       { name: "Garlic", quantity: "2 head" },
       { name: "Cabernet Sauvignon", quantity: "0.2 bottle" }, // Using beverage inventory item
-      { name: "Chicken Broth", quantity: "0.3 L" }, // Using chicken broth as a substitute for beef broth
+      { name: "Chicken Broth", quantity: "0.33 quart" }, // Using chicken broth as a substitute for beef broth
       { name: "Fresh Thyme", quantity: "0.2 bunch" },
       { name: "Fresh Rosemary", quantity: "0.2 bunch" },
-      { name: "Salt", quantity: "0.01 kg" },
-      { name: "Black Pepper", quantity: "0.005 kg" },
+      { name: "Salt", quantity: "1 tbsp" },
+      { name: "Black Pepper", quantity: "1 tsp" },
     ],
     instructions: [
       { step: "Season beef tenderloin with salt and pepper." },
@@ -468,18 +468,18 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Vegetarian Main", // Updated category
     ingredients: [
-      { name: "Arborio Rice", quantity: "0.3 kg" },
-      { name: "Mixed Wild Mushrooms", quantity: "0.4 kg" },
-      { name: "Vegetable Broth", quantity: "1.5 L" },
-      { name: "Parmesan Cheese", quantity: "0.1 kg" },
+      { name: "Arborio Rice", quantity: "0.75 lb" },
+      { name: "Mixed Wild Mushrooms", quantity: "1 lb" },
+      { name: "Vegetable Broth", quantity: "1.5 quart" },
+      { name: "Parmesan Cheese", quantity: "0.25 lb" },
       { name: "Dry White Wine (cooking)", quantity: "0.15 bottle" },
-      { name: "Onions", quantity: "0.15 kg" },
+      { name: "Onions", quantity: "0.33 lb" },
       { name: "Garlic", quantity: "2 head" },
-      { name: "Olive Oil", quantity: "0.05 L" },
-      { name: "Butter", quantity: "0.05 kg" },
+      { name: "Olive Oil", quantity: "3 tbsp" },
+      { name: "Butter", quantity: "4 tbsp" },
       { name: "Fresh Parsley", quantity: "0.2 bunch" },
-      { name: "Salt", quantity: "0.01 kg" },
-      { name: "Black Pepper", quantity: "0.005 kg" },
+      { name: "Salt", quantity: "1 tbsp" },
+      { name: "Black Pepper", quantity: "1 tsp" },
     ],
     instructions: [
       { step: "Sauté chopped onions and garlic in olive oil and butter." },
@@ -499,18 +499,18 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Main Course",
     ingredients: [
-      { name: "Pork Loin", quantity: "1.2 kg" },
-      { name: "Apples (Granny Smith)", quantity: "0.5 kg" },
-      { name: "Red Onion", quantity: "0.2 kg" },
-      { name: "Apple Cider Vinegar", quantity: "0.1 L" },
-      { name: "Brown Sugar", quantity: "0.1 kg" },
-      { name: "Fresh Ginger", quantity: "0.02 kg" },
-      { name: "Mustard Seeds", quantity: "0.005 kg" },
-      { name: "Ground Cinnamon", quantity: "0.002 kg" },
-      { name: "Ground Cloves", quantity: "0.001 kg" },
-      { name: "Olive Oil", quantity: "0.03 L" },
-      { name: "Salt", quantity: "0.01 kg" },
-      { name: "Black Pepper", quantity: "0.005 kg" },
+      { name: "Pork Loin", quantity: "2.5 lb" },
+      { name: "Apples (Granny Smith)", quantity: "1 lb" },
+      { name: "Red Onion", quantity: "0.5 lb" },
+      { name: "Apple Cider Vinegar", quantity: "0.1 quart" },
+      { name: "Brown Sugar", quantity: "0.25 lb" },
+      { name: "Fresh Ginger", quantity: "0.05 lb" },
+      { name: "Mustard Seeds", quantity: "1 tsp" },
+      { name: "Ground Cinnamon", quantity: "0.5 tsp" },
+      { name: "Ground Cloves", quantity: "0.25 tsp" },
+      { name: "Olive Oil", quantity: "2 tbsp" },
+      { name: "Salt", quantity: "1 tbsp" },
+      { name: "Black Pepper", quantity: "1 tsp" },
     ],
     instructions: [
       { step: "Season pork loin with salt, pepper, and olive oil. Roast until internal temperature reaches 145°F (63°C)." },
@@ -529,17 +529,17 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Shrimp (Peeled & Deveined)", quantity: "0.6 kg" },
-      { name: "Linguine Pasta", quantity: "0.4 kg" },
+      { name: "Shrimp (Peeled & Deveined)", quantity: "1.25 lb" },
+      { name: "Linguine Pasta", quantity: "1 lb" },
       { name: "Garlic", quantity: "4 head" },
-      { name: "Butter", quantity: "0.1 kg" },
-      { name: "Olive Oil", quantity: "0.05 L" },
-      { name: "Dry White Wine (cooking)", quantity: "0.1 L" },
+      { name: "Butter", quantity: "8 tbsp" },
+      { name: "Olive Oil", quantity: "3 tbsp" },
+      { name: "Dry White Wine (cooking)", quantity: "0.1 quart" },
       { name: "Lemon", quantity: "1 count" },
-      { name: "Red Pepper Flakes", quantity: "0.002 kg" },
+      { name: "Red Pepper Flakes", quantity: "0.5 tsp" },
       { name: "Fresh Parsley", quantity: "0.3 bunch" },
-      { name: "Salt", quantity: "0.01 kg" },
-      { name: "Black Pepper", quantity: "0.005 kg" },
+      { name: "Salt", quantity: "1 tbsp" },
+      { name: "Black Pepper", quantity: "1 tsp" },
     ],
     instructions: [
       { step: "Cook linguine according to package directions. Reserve pasta water." },
@@ -558,10 +558,10 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Non-Alcoholic Beverage", // New category
     ingredients: [
-      { name: "Fresh Berries (Mixed)", quantity: "0.2 kg" }, // Using mixed berries for raspberries
+      { name: "Fresh Berries (Mixed)", quantity: "0.5 lb" }, // Using mixed berries for raspberries
       { name: "Lemon", quantity: "4 count" }, // Changed from plural Lemons
-      { name: "Sugar", quantity: "0.1 kg" },
-      { name: "Sparkling Water (Extra)", quantity: "1 L" }, // Using Sparkling Water (Extra)
+      { name: "Sugar", quantity: "0.25 lb" },
+      { name: "Sparkling Water (Extra)", quantity: "1 quart" }, // Using Sparkling Water (Extra)
       { name: "Fresh Mint", quantity: "6 sprig" }, // Changed from Mint Sprigs
     ],
     instructions: [
@@ -581,10 +581,10 @@ const initialRecipes: Recipe[] = [
     servings: "12",
     category: "Appetizer", // Existing category, good example
     ingredients: [
-      { name: "Cherry Tomatoes", quantity: "0.3 kg" },
-      { name: "Fresh Mozzarella Balls (mini)", quantity: "0.2 kg" }, // Assuming this is a pantry item
+      { name: "Cherry Tomatoes", quantity: "0.75 lb" },
+      { name: "Fresh Mozzarella Balls (mini)", quantity: "0.5 lb" }, // Assuming this is a pantry item
       { name: "Fresh Basil Leaves", quantity: "20 count" }, // Assuming this is a pantry item
-      { name: "Balsamic Glaze", quantity: "0.05 L" }, // Assuming this is a pantry item
+      { name: "Balsamic Glaze", quantity: "3 tbsp" }, // Assuming this is a pantry item
     ],
     instructions: [
       { step: "Thread cherry tomato, mozzarella ball, and basil leaf onto small skewers." },
@@ -602,10 +602,10 @@ const initialRecipes: Recipe[] = [
     servings: "1",
     category: "Alcoholic Beverage", // New category
     ingredients: [
-      { name: "Vodka (Standard)", quantity: "60 ml" }, // Using Vodka as a proxy for Tequila
+      { name: "Vodka (Standard)", quantity: "2 fl oz" }, // Using Vodka as a proxy for Tequila
       { name: "Fresh Limes", quantity: "1 count" }, // Changed from plural Limes
-      { name: "Orange Juice", quantity: "20 ml" }, // Using Orange Juice as a proxy for Triple Sec
-      { name: "Salt", quantity: "5 g" }, // For rim
+      { name: "Orange Juice", quantity: "0.75 fl oz" }, // Using Orange Juice as a proxy for Triple Sec
+      { name: "Salt", quantity: "1 tsp" }, // For rim
       { name: "Lemon", quantity: "1 wedge" }, // Using Lemon for Lime Wedge
     ],
     instructions: [
@@ -626,13 +626,13 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Dessert",
     ingredients: [
-      { name: "Dark Chocolate", quantity: "0.2 kg" },
-      { name: "Butter", quantity: "0.1 kg" },
+      { name: "Dark Chocolate", quantity: "0.5 lb" },
+      { name: "Butter", quantity: "0.25 lb" },
       { name: "Eggs", quantity: "2 count" },
-      { name: "Sugar", quantity: "0.05 kg" },
-      { name: "All-Purpose Flour (Dessert)", quantity: "0.03 kg" },
-      { name: "Vanilla Extract", quantity: "5 ml" },
-      { name: "Fresh Berries (Mixed)", quantity: "0.1 kg" },
+      { name: "Sugar", quantity: "0.1 lb" },
+      { name: "All-Purpose Flour (Dessert)", quantity: "0.25 cup" },
+      { name: "Vanilla Extract", quantity: "1 tsp" },
+      { name: "Fresh Berries (Mixed)", quantity: "0.25 lb" },
     ],
     instructions: [
       { step: "Preheat oven to 425°F (220°C). Grease ramekins." },
@@ -652,13 +652,13 @@ const initialRecipes: Recipe[] = [
     category: "Dessert",
     ingredients: [
       { name: "Pie Crust (Pre-made)", quantity: "1 count" },
-      { name: "Heavy Cream (Dessert)", quantity: "0.2 L" },
-      { name: "Sugar", quantity: "0.1 kg" },
+      { name: "Heavy Cream (Dessert)", quantity: "0.25 quart" },
+      { name: "Sugar", quantity: "0.25 lb" },
       { name: "Eggs", quantity: "3 count" },
-      { name: "All-Purpose Flour (Dessert)", quantity: "0.05 kg" },
-      { name: "Vanilla Extract", quantity: "10 ml" },
-      { name: "Fresh Berries (Mixed)", quantity: "0.3 kg" },
-      { name: "Gelatin Powder", quantity: "0.005 kg" },
+      { name: "All-Purpose Flour (Dessert)", quantity: "0.25 cup" },
+      { name: "Vanilla Extract", quantity: "2 tsp" },
+      { name: "Fresh Berries (Mixed)", quantity: "0.75 lb" },
+      { name: "Gelatin Powder", quantity: "1 tsp" },
     ],
     instructions: [
       { step: "Blind bake pie crust according to package directions; let cool." },
@@ -681,8 +681,8 @@ const initialRecipes: Recipe[] = [
       { name: "Green Tea Bags", quantity: "8 count" }, // Using green tea for variety
       { name: "Fresh Mint", quantity: "1 bunch" },
       { name: "Lemon", quantity: "2 count" }, // Changed from plural Lemons
-      { name: "Sugar", quantity: "0.1 kg" },
-      { name: "Water", quantity: "1.5 L" }, // Assuming water is always available
+      { name: "Sugar", quantity: "0.25 lb" },
+      { name: "Water", quantity: "1.5 quart" }, // Assuming water is always available
     ],
     instructions: [
       { step: "Bring water to a boil. Add tea bags and mint leaves; steep for 5 minutes. Remove tea bags and mint." },
@@ -701,9 +701,9 @@ const initialRecipes: Recipe[] = [
     category: "Non-Alcoholic Beverage",
     ingredients: [
       { name: "Oranges", quantity: "4 count" },
-      { name: "Sparkling Water (Extra)", quantity: "0.75 L" },
-      { name: "Orange Blossom Water", quantity: "5 ml" }, // Assume this is a pantry item, not tracked in inventory
-      { name: "Honey", quantity: "15 ml" },
+      { name: "Sparkling Water (Extra)", quantity: "0.75 quart" },
+      { name: "Orange Blossom Water", quantity: "1 tsp" }, // Assume this is a pantry item, not tracked in inventory
+      { name: "Honey", quantity: "1 tbsp" },
       { name: "Fresh Mint", quantity: "4 sprig" },
     ],
     instructions: [
@@ -723,13 +723,13 @@ const initialRecipes: Recipe[] = [
     servings: "12",
     category: "Dessert",
     ingredients: [
-      { name: "Cream Cheese", quantity: "1 kg" },
-      { name: "Sugar", quantity: "0.3 kg" },
+      { name: "Cream Cheese", quantity: "2.2 lb" },
+      { name: "Sugar", quantity: "0.75 lb" },
       { name: "Eggs", quantity: "4 count" },
-      { name: "Heavy Cream (Dessert)", quantity: "0.1 L" },
-      { name: "Vanilla Extract", quantity: "10 ml" },
-      { name: "Graham Cracker Crumbs", quantity: "0.2 kg" },
-      { name: "Butter", quantity: "0.08 kg" },
+      { name: "Heavy Cream (Dessert)", quantity: "0.1 quart" },
+      { name: "Vanilla Extract", quantity: "2 tsp" },
+      { name: "Graham Cracker Crumbs", quantity: "0.5 lb" },
+      { name: "Butter", quantity: "6 tbsp" },
       { name: "Lemon", quantity: "1 count" },
     ],
     instructions: [
@@ -749,14 +749,14 @@ const initialRecipes: Recipe[] = [
     servings: "8",
     category: "Dessert",
     ingredients: [
-      { name: "Mascarpone Cheese", quantity: "0.5 kg" },
+      { name: "Mascarpone Cheese", quantity: "1 lb" },
       { name: "Eggs", quantity: "4 count" }, // Yolks only
-      { name: "Sugar", quantity: "0.15 kg" },
-      { name: "Espresso Powder", quantity: "20 g" },
+      { name: "Sugar", quantity: "0.33 lb" },
+      { name: "Espresso Powder", quantity: "0.7 oz" },
       { name: "Ladyfingers", quantity: "1 pack" },
-      { name: "Cocoa Powder", quantity: "20 g" },
-      { name: "Dark Chocolate", quantity: "50 g" }, // For shaving
-      { name: "Coffee Liqueur", quantity: "50 ml" }, // Optional, using inventory item
+      { name: "Cocoa Powder", quantity: "0.7 oz" },
+      { name: "Dark Chocolate", quantity: "1.7 oz" }, // For shaving
+      { name: "Coffee Liqueur", quantity: "1.7 fl oz" }, // Optional, using inventory item
     ],
     instructions: [
       { step: "Brew strong espresso and let cool. Mix with coffee liqueur if using." },
@@ -777,7 +777,7 @@ const initialRecipes: Recipe[] = [
     servings: "1",
     category: "Alcoholic Beverage",
     ingredients: [
-      { name: "Whiskey (Bourbon)", quantity: "60 ml" },
+      { name: "Whiskey (Bourbon)", quantity: "2 fl oz" },
       { name: "Angostura Bitters", quantity: "2 dashes" },
       { name: "Sugar", quantity: "1 cube" },
       { name: "Oranges", quantity: "1 peel" }, // Using Oranges for peel
@@ -799,11 +799,11 @@ const initialRecipes: Recipe[] = [
     servings: "1",
     category: "Alcoholic Beverage",
     ingredients: [
-      { name: "White Rum", quantity: "60 ml" },
+      { name: "White Rum", quantity: "2 fl oz" },
       { name: "Fresh Limes", quantity: "1 count" },
       { name: "Fresh Mint", quantity: "10 leaves" },
       { name: "Sugar", quantity: "2 tsp" },
-      { name: "Club Soda", quantity: "90 ml" },
+      { name: "Club Soda", quantity: "3 fl oz" },
       { name: "Ice", quantity: "crushed" }, // Assuming ice is always available
     ],
     instructions: [
@@ -823,11 +823,11 @@ const initialRecipes: Recipe[] = [
     servings: "8-10",
     category: "Appetizer",
     ingredients: [
-      { name: "Spinach (Fresh)", quantity: "0.5 kg" },
-      { name: "Artichoke Hearts (Canned)", quantity: "0.4 kg" },
-      { name: "Cream Cheese (softened)", quantity: "0.2 kg" },
-      { name: "Mayonnaise", quantity: "0.1 L" },
-      { name: "Parmesan Cheese (grated)", quantity: "0.1 kg" },
+      { name: "Spinach (Fresh)", quantity: "1 lb" },
+      { name: "Artichoke Hearts (Canned)", quantity: "1 lb" },
+      { name: "Cream Cheese (softened)", quantity: "0.5 lb" },
+      { name: "Mayonnaise", quantity: "0.1 quart" },
+      { name: "Parmesan Cheese (grated)", quantity: "0.25 lb" },
       { name: "Garlic", quantity: "3 head" },
       { name: "Crostini/Baguette", quantity: "1 pack" },
     ],
@@ -850,7 +850,7 @@ const initialRecipes: Recipe[] = [
     ingredients: [
       { name: "Cantaloupe", quantity: "0.5 count" },
       { name: "Honeydew Melon", quantity: "0.5 count" },
-      { name: "Prosciutto", quantity: "0.15 kg" },
+      { name: "Prosciutto", quantity: "0.33 lb" },
       { name: "Fresh Mint", quantity: "0.1 bunch" },
     ],
     instructions: [
@@ -869,14 +869,14 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Appetizer",
     ingredients: [
-      { name: "Shrimp (Peeled & Deveined)", quantity: "0.5 kg" },
-      { name: "Olive Oil", quantity: "0.05 L" },
+      { name: "Shrimp (Peeled & Deveined)", quantity: "1 lb" },
+      { name: "Olive Oil", quantity: "3 tbsp" },
       { name: "Lemon", quantity: "1 count" },
       { name: "Garlic", quantity: "2 head" },
-      { name: "Red Pepper Flakes", quantity: "0.003 kg" },
+      { name: "Red Pepper Flakes", quantity: "0.5 tsp" },
       { name: "Fresh Parsley", quantity: "0.1 bunch" },
-      { name: "Salt", quantity: "0.005 kg" },
-      { name: "Black Pepper", quantity: "0.003 kg" },
+      { name: "Salt", quantity: "1 tsp" },
+      { name: "Black Pepper", quantity: "0.5 tsp" },
     ],
     instructions: [
       { step: "In a bowl, whisk together olive oil, lemon juice, minced garlic, red pepper flakes, salt, and pepper." },
@@ -896,12 +896,12 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Side Dish",
     ingredients: [
-      { name: "Asparagus", quantity: "0.5 kg" },
-      { name: "Olive Oil", quantity: "0.03 L" },
+      { name: "Asparagus", quantity: "1 lb" },
+      { name: "Olive Oil", quantity: "2 tbsp" },
       { name: "Garlic", quantity: "2 head" },
-      { name: "Parmesan Cheese (grated)", quantity: "0.05 kg" },
-      { name: "Salt", quantity: "0.005 kg" },
-      { name: "Black Pepper", quantity: "0.003 kg" },
+      { name: "Parmesan Cheese (grated)", quantity: "0.25 cup" },
+      { name: "Salt", quantity: "1 tsp" },
+      { name: "Black Pepper", quantity: "0.5 tsp" },
     ],
     instructions: [
       { step: "Preheat oven to 400°F (200°C). Trim woody ends off asparagus." },
@@ -919,12 +919,12 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Side Dish",
     ingredients: [
-      { name: "Potatoes (Russet)", quantity: "1 kg" },
-      { name: "Butter", quantity: "0.1 kg" },
-      { name: "Milk", quantity: "0.2 L" },
-      { name: "Heavy Cream", quantity: "0.1 L" },
-      { name: "Salt", quantity: "0.01 kg" },
-      { name: "Black Pepper", quantity: "0.005 kg" },
+      { name: "Potatoes (Russet)", quantity: "2.2 lb" },
+      { name: "Butter", quantity: "0.25 lb" },
+      { name: "Milk", quantity: "0.25 quart" },
+      { name: "Heavy Cream", quantity: "0.1 quart" },
+      { name: "Salt", quantity: "1 tbsp" },
+      { name: "Black Pepper", quantity: "1 tsp" },
     ],
     instructions: [
       { step: "Peel and chop potatoes into even pieces. Boil in salted water until very tender." },
@@ -943,17 +943,17 @@ const initialRecipes: Recipe[] = [
     servings: "8",
     category: "Side Dish",
     ingredients: [
-      { name: "Quinoa", quantity: "0.3 kg" },
-      { name: "Vegetable Broth", quantity: "0.6 L" },
+      { name: "Quinoa", quantity: "0.75 lb" },
+      { name: "Vegetable Broth", quantity: "0.6 quart" },
       { name: "Bell Peppers (Assorted)", quantity: "2 count" },
       { name: "Zucchini", quantity: "1 count" },
-      { name: "Red Onion", quantity: "0.1 kg" },
-      { name: "Cherry Tomatoes", quantity: "0.2 kg" },
-      { name: "Olive Oil", quantity: "0.05 L" },
-      { name: "Red Wine Vinegar", quantity: "0.03 L" },
+      { name: "Red Onion", quantity: "0.25 lb" },
+      { name: "Cherry Tomatoes", quantity: "0.5 lb" },
+      { name: "Olive Oil", quantity: "3 tbsp" },
+      { name: "Red Wine Vinegar", quantity: "2 tbsp" },
       { name: "Fresh Parsley", quantity: "0.1 bunch" },
-      { name: "Salt", quantity: "0.005 kg" },
-      { name: "Black Pepper", quantity: "0.003 kg" },
+      { name: "Salt", quantity: "1 tsp" },
+      { name: "Black Pepper", quantity: "0.5 tsp" },
     ],
     instructions: [
       { step: "Rinse quinoa thoroughly. Cook quinoa in vegetable broth according to package directions; fluff with a fork." },
@@ -976,9 +976,9 @@ const initialRecipes: Recipe[] = [
       { name: "Cucumber", quantity: "1 count" },
       { name: "Fresh Mint", quantity: "0.5 bunch" },
       { name: "Lemon", quantity: "2 count" },
-      { name: "Sugar", quantity: "0.05 kg" },
-      { name: "Water", quantity: "1 L" },
-      { name: "Sparkling Water (Extra)", quantity: "0.5 L" },
+      { name: "Sugar", quantity: "0.1 lb" },
+      { name: "Water", quantity: "1 quart" },
+      { name: "Sparkling Water (Extra)", quantity: "0.5 quart" },
     ],
     instructions: [
       { step: "Peel and chop cucumber. Muddle cucumber slices with mint leaves and sugar in a pitcher." },
@@ -997,11 +997,11 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Non-Alcoholic Beverage",
     ingredients: [
-      { name: "Apple Cider", quantity: "1.5 L" },
+      { name: "Apple Cider", quantity: "1.5 quart" },
       { name: "Cinnamon Sticks", quantity: "3 count" },
-      { name: "Ground Cloves", quantity: "0.002 kg" },
+      { name: "Ground Cloves", quantity: "0.5 tsp" },
       { name: "Oranges", quantity: "1 count" },
-      { name: "Brown Sugar", quantity: "0.05 kg" },
+      { name: "Brown Sugar", quantity: "0.1 lb" },
     ],
     instructions: [
       { step: "Combine apple cider, cinnamon sticks, ground cloves, and orange slices in a large pot." },
@@ -1020,13 +1020,13 @@ const initialRecipes: Recipe[] = [
     servings: "10",
     category: "Non-Alcoholic Beverage",
     ingredients: [
-      { name: "Coffee Beans (Ground)", quantity: "0.2 kg" },
-      { name: "Water", quantity: "1.5 L" }, // For cold brew
-      { name: "Milk", quantity: "1 L" },
-      { name: "Heavy Cream", quantity: "0.5 L" }, // For creamer
-      { name: "Simple Syrup", quantity: "0.2 L" },
-      { name: "Vanilla Extract", quantity: "10 ml" }, // For vanilla syrup
-      { name: "Ice", quantity: "1 kg" },
+      { name: "Coffee Beans (Ground)", quantity: "0.5 lb" },
+      { name: "Water", quantity: "1.5 quart" }, // For cold brew
+      { name: "Milk", quantity: "1 quart" },
+      { name: "Heavy Cream", quantity: "0.5 quart" }, // For creamer
+      { name: "Simple Syrup", quantity: "0.2 quart" },
+      { name: "Vanilla Extract", quantity: "2 tsp" }, // For vanilla syrup
+      { name: "Ice", quantity: "2.2 lb" },
     ],
     instructions: [
       { step: "Prepare cold brew coffee: combine ground coffee and water, steep for 12-18 hours, then strain." },
@@ -1045,11 +1045,11 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Dessert",
     ingredients: [
-      { name: "Heavy Cream (Dessert)", quantity: "0.4 L" },
+      { name: "Heavy Cream (Dessert)", quantity: "0.4 quart" },
       { name: "Lemon", quantity: "3 count" },
-      { name: "Sugar", quantity: "0.1 kg" },
-      { name: "Gelatin Powder", quantity: "0.005 kg" },
-      { name: "Fresh Berries (Mixed)", quantity: "0.2 kg" }, // Using mixed berries for raspberries
+      { name: "Sugar", quantity: "0.25 lb" },
+      { name: "Gelatin Powder", quantity: "1 tsp" },
+      { name: "Fresh Berries (Mixed)", quantity: "0.5 lb" }, // Using mixed berries for raspberries
       { name: "Fresh Mint", quantity: "0.05 bunch" }, // For garnish
     ],
     instructions: [
@@ -1069,13 +1069,13 @@ const initialRecipes: Recipe[] = [
     servings: "12",
     category: "Dessert",
     ingredients: [
-      { name: "Cream Cheese", quantity: "0.5 kg" },
-      { name: "Sugar", quantity: "0.15 kg" },
+      { name: "Cream Cheese", quantity: "1.1 lb" },
+      { name: "Sugar", quantity: "0.33 lb" },
       { name: "Eggs", quantity: "2 count" },
-      { name: "Vanilla Extract", quantity: "5 ml" },
-      { name: "Graham Cracker Crumbs", quantity: "0.1 kg" },
-      { name: "Butter", quantity: "0.05 kg" },
-      { name: "Fresh Berries (Mixed)", quantity: "0.2 kg" }, // For compote
+      { name: "Vanilla Extract", quantity: "1 tsp" },
+      { name: "Graham Cracker Crumbs", quantity: "0.25 lb" },
+      { name: "Butter", quantity: "4 tbsp" },
+      { name: "Fresh Berries (Mixed)", quantity: "0.5 lb" }, // For compote
       { name: "Lemon", quantity: "1 count" }, // For compote
     ],
     instructions: [
@@ -1095,14 +1095,14 @@ const initialRecipes: Recipe[] = [
     servings: "8",
     category: "Dessert",
     ingredients: [
-      { name: "Apples (Granny Smith)", quantity: "1 kg" },
-      { name: "Oats (Rolled)", quantity: "0.15 kg" },
-      { name: "All-Purpose Flour (Dessert)", quantity: "0.1 kg" },
-      { name: "Brown Sugar", quantity: "0.1 kg" },
-      { name: "Butter", quantity: "0.1 kg" },
-      { name: "Ground Cinnamon", quantity: "0.005 kg" },
-      { name: "Nutmeg (Ground)", quantity: "0.001 kg" },
-      { name: "Vanilla Ice Cream", quantity: "1 L" }, // Placeholder for ice cream
+      { name: "Apples (Granny Smith)", quantity: "2.2 lb" },
+      { name: "Oats (Rolled)", quantity: "0.33 lb" },
+      { name: "All-Purpose Flour (Dessert)", quantity: "0.25 lb" },
+      { name: "Brown Sugar", quantity: "0.25 lb" },
+      { name: "Butter", quantity: "0.25 lb" },
+      { name: "Ground Cinnamon", quantity: "1 tsp" },
+      { name: "Nutmeg (Ground)", quantity: "0.25 tsp" },
+      { name: "Vanilla Ice Cream", quantity: "1 quart" }, // Placeholder for ice cream
     ],
     instructions: [
       { step: "Preheat oven to 375°F (190°C). Peel, core, and slice apples. Toss with a little sugar and cinnamon; place in a baking dish." },
@@ -1122,10 +1122,10 @@ const initialRecipes: Recipe[] = [
     servings: "1",
     category: "Alcoholic Beverage",
     ingredients: [
-      { name: "Vodka (Standard)", quantity: "45 ml" },
-      { name: "Coffee Liqueur", quantity: "20 ml" },
-      { name: "Espresso Powder", quantity: "10 g" }, // Using powder for simplicity, assume brewed
-      { name: "Simple Syrup", quantity: "15 ml" },
+      { name: "Vodka (Standard)", quantity: "1.5 fl oz" },
+      { name: "Coffee Liqueur", quantity: "0.75 fl oz" },
+      { name: "Espresso Powder", quantity: "0.35 oz" }, // Using powder for simplicity, assume brewed
+      { name: "Simple Syrup", quantity: "0.5 fl oz" },
       { name: "Ice", quantity: "cubed" },
       { name: "Coffee Beans (Ground)", quantity: "3 count" }, // For garnish, using ground coffee as a proxy
     ],
@@ -1146,9 +1146,9 @@ const initialRecipes: Recipe[] = [
     servings: "1",
     category: "Alcoholic Beverage",
     ingredients: [
-      { name: "Whiskey (Bourbon)", quantity: "60 ml" },
+      { name: "Whiskey (Bourbon)", quantity: "2 fl oz" },
       { name: "Lemon", quantity: "0.5 count" }, // For fresh lemon juice
-      { name: "Simple Syrup", quantity: "20 ml" },
+      { name: "Simple Syrup", quantity: "0.75 fl oz" },
       { name: "Egg", quantity: "1 white only" }, // Optional, for foam
       { name: "Angostura Bitters", quantity: "1 dash" }, // For garnish
       { name: "Ice", quantity: "cubed" },
