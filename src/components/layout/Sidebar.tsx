@@ -11,7 +11,7 @@ import {
   CalendarCheck,
   Settings,
 } from "lucide-react";
-import React from "react"; // Import React for useEffect
+import React from "react";
 
 const navItems = [
   {
@@ -42,12 +42,7 @@ const navItems = [
 ];
 
 export const Sidebar = () => {
-  console.log("Sidebar component rendering"); // Debugging log for Sidebar render
   const location = useLocation();
-
-  React.useEffect(() => {
-    console.log("Sidebar location changed:", location.pathname); // Debugging log for location changes
-  }, [location.pathname]);
 
   return (
     <aside className="flex flex-col h-full w-64 border-r bg-sidebar text-sidebar-foreground">
@@ -59,7 +54,6 @@ export const Sidebar = () => {
       <ScrollArea className="flex-1 py-4">
         <nav className="grid items-start px-4 text-sm font-medium">
           {navItems.map((item) => {
-            console.log(`Rendering nav item: ${item.name}, current path: ${location.pathname}`); // Debugging log for each nav item
             return (
               <Button
                 key={item.href}

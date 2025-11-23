@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
-import ErrorBoundary from "./components/ErrorBoundary"; // Import the new ErrorBoundary
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Import your page components
 import Dashboard from "./pages/Dashboard";
@@ -9,13 +9,16 @@ import QuotingGenerator from "./pages/QuotingGenerator";
 import EventsPlanning from "./pages/EventsPlanning";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import Index from "./pages/Index"; // Keep Index for now, but it will redirect
+import Index from "./pages/Index";
 
 const App = () => {
-  console.log("App component rendering with Router"); // Debugging log
   return (
     <BrowserRouter>
-      <ErrorBoundary> {/* Wrap the entire application with ErrorBoundary */}
+      <ErrorBoundary>
+        {/* TEMPORARY TEST ELEMENT: If you see this purple bar, App is rendering! */}
+        <div className="bg-purple-500 text-white p-4 text-center text-2xl font-bold">
+          APP COMPONENT IS RENDERING!
+        </div>
         <Layout>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
