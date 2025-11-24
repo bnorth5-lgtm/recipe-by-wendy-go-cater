@@ -22,12 +22,12 @@ const Dashboard = () => {
     >
       {/* Overlay for better text readability */}
       <div className="absolute inset-0 bg-black opacity-40 rounded-lg"></div> 
-      <h1 className="text-3xl font-bold text-white relative z-10">Dashboard</h1>
+      {/* Removed: <h1 className="text-3xl font-bold text-white relative z-10">Dashboard</h1> */}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 relative z-10">
+      <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 relative z-10">
         {/* Existing Cards - Now clickable */}
         <Link to="/quoting/proposals" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Quote Pipeline
@@ -44,7 +44,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/calendar" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Upcoming Events
@@ -64,7 +64,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Action Items
@@ -85,7 +85,7 @@ const Dashboard = () => {
 
         {/* New "Build" Cards */}
         <Link to="/quoting/proposals" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Proposal
@@ -102,7 +102,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/inventory" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
@@ -119,7 +119,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/menus" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Menu
@@ -136,7 +136,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/recipes" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Recipes
@@ -153,7 +153,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="h-full hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Event
