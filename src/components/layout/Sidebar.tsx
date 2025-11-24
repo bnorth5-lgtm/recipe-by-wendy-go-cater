@@ -75,7 +75,7 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="flex flex-col h-full w-64 border-r bg-sidebar text-sidebar-foreground">
+    <aside className="flex flex-col h-full w-64 border-r-8 border-red-500 bg-sidebar text-sidebar-foreground"> {/* Added prominent border */}
       <div className="flex flex-col items-center justify-center h-32 border-b px-4">
         <LucideIcons.ChefHat className="h-8 w-8 text-primary mb-2" /> {/* Reverted size and color */}
         <h1 className="text-xl font-serif font-semibold text-sidebar-primary-foreground">

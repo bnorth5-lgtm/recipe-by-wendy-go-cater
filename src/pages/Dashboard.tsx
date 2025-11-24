@@ -199,7 +199,7 @@ const Dashboard = () => {
               <DialogTrigger>
                 <Button
                   size="sm"
-                  className="bg-black text-white hover:bg-gray-800"
+                  className="bg-blue-500 text-white hover:bg-blue-600" // Changed button color
                 >
                   <LucideIcons.UserPlus className="mr-2 h-4 w-4" /> Add Client
                 </Button>
