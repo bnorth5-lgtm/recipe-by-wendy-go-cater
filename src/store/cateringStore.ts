@@ -3,10 +3,83 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
+// Helper to parse quantity strings from initial data for conversion
+const parseQuantityAndUnit = (quantityString: string): { quantity: number; unit: string } => {
+  const trimmed = quantityString.trim();
+  const parts = trimmed.split(' ');
+
+  // Handle cases like "1 lb", "0.5 quart"
+  if (parts.length >= 2) {
+    const num = parseFloat(parts[0]);
+    if (!isNaN(num)) {
+      const unit = parts.slice(1).join(' ').toLowerCase();
+      return { quantity: num, unit: unit };
+    }
+  }
+
+  // Handle cases like "20 count", "10 leaves" where unit is part of the string
+  const unitMap: { [key: string]: string } = {
+    "lb": "lb", "lbs": "lb",
+    "oz": "oz",
+    "cup": "cup", "cups": "cup",
+    "quart": "quart", "quarts": "quart",
+    "gallon": "gallon", "gallons": "gallon",
+    "fl oz": "fl oz", "fluid oz": "fl oz",
+    "tsp": "tsp", "teaspoon": "tsp", "teaspoons": "tsp",
+    "tbsp": "tbsp", "tablespoon": "tbsp", "tablespoons": "tbsp",
+    "count": "count", "counts": "count",
+    "bottle": "bottle", "bottles": "bottle",
+    "can": "can", "cans": "can",
+    "box": "box", "boxes": "box",
+    "unit": "unit", "units": "unit",
+    "chair": "chair", "chairs": "chair",
+    "table": "table", "tables": "table",
+    "plate": "plate", "plates": "plate",
+    "piece": "piece", "pieces": "piece",
+    "glass": "glass", "glasses": "glass",
+    "linen": "linen", "linens": "linen",
+    "napkin": "napkin", "napkins": "napkin",
+    "head": "head", "heads": "head",
+    "bunch": "bunch", "bunches": "bunch",
+    "pack": "pack", "packs": "pack",
+    "sprig": "sprig", "sprigs": "sprig",
+    "leaves": "leaves", "leaf": "leaves",
+    "cube": "cube", "cubes": "cube",
+    "dash": "dash", "dashes": "dash",
+    "slice": "slice", "slices": "slice",
+    "patty": "patty", "patties": "patty",
+    "chop": "chop", "chops": "chop",
+    "fillet": "fillet", "fillets": "fillet",
+    "whole": "whole",
+    "half": "half", "halves": "half",
+  };
+
+  for (const key in unitMap) {
+    if (trimmed.endsWith(key)) {
+      const numPart = trimmed.substring(0, trimmed.length - key.length).trim();
+      const num = parseFloat(numPart);
+      if (!isNaN(num)) {
+        return { quantity: num, unit: unitMap[key] };
+      }
+    }
+  }
+
+  // If no unit found, assume it's a count or a generic unit
+  const numOnly = parseFloat(trimmed);
+  if (!isNaN(numOnly)) {
+    return { quantity: numOnly, unit: "count" }; // Default to 'count'
+  }
+
+  // Fallback for very ambiguous cases, assume 1 and use the whole string as unit
+  return { quantity: 1, unit: trimmed.toLowerCase() };
+};
+
+
 // Define the schema for a single ingredient within a recipe
 export interface RecipeIngredient {
   name: string;
-  quantity: string;
+  quantity: number; // Changed to number
+  unit: string;    // Added unit
 }
 
 // Define the schema for a single instruction step within a recipe
@@ -141,8 +214,8 @@ interface CateringState {
   deductInventory: (recipeId: string) => boolean; // Returns true if deduction successful, false otherwise
   deductInventoryItem: (itemId: string, quantity: number) => boolean; // For direct inventory item deduction
 
-  addRecipe: (recipe: Omit<Recipe, 'id'>) => void;
-  updateRecipe: (recipe: Recipe) => void;
+  addRecipe: (recipe: Omit<Recipe, 'id' | 'baseCost'>) => void; // baseCost is calculated
+  updateRecipe: (recipe: Omit<Recipe, 'baseCost'>) => void; // baseCost is calculated
   deleteRecipe: (id: string) => void;
 
   addBooking: (booking: Omit<EventBooking, 'id' | 'status'>) => void;
@@ -410,12 +483,12 @@ const initialRecipes: Recipe[] = [
     servings: "4-6",
     category: "Main Course",
     ingredients: [
-      { name: "Beef Sirloin (raw, per lb)", quantity: "1 lb" },
-      { name: "Onions", quantity: "0.5 lb" },
-      { name: "Cremini Mushrooms", quantity: "0.75 lb" },
-      { name: "Heavy Cream", quantity: "0.25 quart" },
-      { name: "Sour Cream", quantity: "0.1 quart" },
-      { name: "Linguine Pasta", quantity: "1 lb" },
+      { name: "Beef Sirloin (raw, per lb)", quantity: 1, unit: "lb" },
+      { name: "Onions", quantity: 0.5, unit: "lb" },
+      { name: "Cremini Mushrooms", quantity: 0.75, unit: "lb" },
+      { name: "Heavy Cream", quantity: 0.25, unit: "quart" },
+      { name: "Sour Cream", quantity: 0.1, unit: "quart" },
+      { name: "Linguine Pasta", quantity: 1, unit: "lb" },
     ],
     instructions: [
       { step: "Slice beef thinly and sauté." },
@@ -423,7 +496,7 @@ const initialRecipes: Recipe[] = [
       { step: "Stir in cream and sour cream, simmer." },
       { step: "Serve over cooked pasta." },
     ],
-    baseCost: 15.00, // Example base cost
+    baseCost: 0, // Will be calculated
   },
   {
     id: "r2",
@@ -434,12 +507,12 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Side Dish",
     ingredients: [
-      { name: "Mixed Salad Greens", quantity: "1 lb" },
-      { name: "Cherry Tomatoes", quantity: "0.5 lb" },
-      { name: "Cucumber", quantity: "0.3 lb" },
-      { name: "Bell Peppers (Assorted)", quantity: "0.25 lb" },
-      { name: "Olive Oil", quantity: "3 tbsp" },
-      { name: "Red Wine Vinegar", quantity: "1 tbsp" },
+      { name: "Mixed Salad Greens", quantity: 1, unit: "lb" },
+      { name: "Cherry Tomatoes", quantity: 0.5, unit: "lb" },
+      { name: "Cucumber", quantity: 0.3, unit: "lb" },
+      { name: "Bell Peppers (Assorted)", quantity: 0.25, unit: "lb" },
+      { name: "Olive Oil", quantity: 3, unit: "tbsp" },
+      { name: "Red Wine Vinegar", quantity: 1, unit: "tbsp" },
     ],
     instructions: [
       { step: "Wash and chop all vegetables." },
@@ -447,7 +520,7 @@ const initialRecipes: Recipe[] = [
       { step: "Whisk olive oil and vinegar for dressing." },
       { step: "Toss salad with dressing just before serving." },
     ],
-    baseCost: 8.00, // Example base cost
+    baseCost: 0, // Will be calculated
   },
   {
     id: "r3",
@@ -458,15 +531,15 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Salmon Fillets (raw, per lb)", quantity: "1.75 lb" },
-      { name: "Fresh Dill", quantity: "0.5 bunch" },
-      { name: "Fresh Parsley", quantity: "0.5 bunch" },
-      { name: "Fresh Thyme", quantity: "0.5 bunch" },
-      { name: "Lemon", quantity: "2 count" },
-      { name: "Garlic", quantity: "2 head" },
-      { name: "Olive Oil", quantity: "3 tbsp" },
-      { name: "Salt", quantity: "1 tbsp" },
-      { name: "Black Pepper", quantity: "1 tsp" },
+      { name: "Salmon Fillets (raw, per lb)", quantity: 1.75, unit: "lb" },
+      { name: "Fresh Dill", quantity: 0.5, unit: "bunch" },
+      { name: "Fresh Parsley", quantity: 0.5, unit: "bunch" },
+      { name: "Fresh Thyme", quantity: 0.5, unit: "bunch" },
+      { name: "Lemon", quantity: 2, unit: "count" },
+      { name: "Garlic", quantity: 2, unit: "head" },
+      { name: "Olive Oil", quantity: 3, unit: "tbsp" },
+      { name: "Salt", quantity: 1, unit: "tbsp" },
+      { name: "Black Pepper", quantity: 1, unit: "tsp" },
     ],
     instructions: [
       { step: "Preheat oven to 400°F (200°C)." },
@@ -475,7 +548,7 @@ const initialRecipes: Recipe[] = [
       { step: "Pat salmon dry, spread herb mixture over top." },
       { step: "Bake for 15-20 minutes, or until cooked through. Serve with lemon wedges." },
     ],
-    baseCost: 28.00,
+    baseCost: 0,
   },
   {
     id: "r4",
@@ -486,17 +559,17 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Chicken Breast (per breast, ~7oz)", quantity: "3 count" }, // Using specific breast item
-      { name: "All-Purpose Flour", quantity: "0.25 cup" },
-      { name: "Olive Oil", quantity: "2 tbsp" },
-      { name: "Butter", quantity: "4 tbsp" },
-      { name: "Cremini Mushrooms", quantity: "0.75 lb" },
-      { name: "Garlic", quantity: "3 head" },
-      { name: "Marsala Wine (cooking)", quantity: "0.25 quart" },
-      { name: "Chicken Broth", quantity: "0.25 quart" },
-      { name: "Fresh Parsley", quantity: "0.2 bunch" },
-      { name: "Salt", quantity: "1 tbsp" },
-      { name: "Black Pepper", quantity: "1 tsp" },
+      { name: "Chicken Breast (per breast, ~7oz)", quantity: 3, unit: "count" }, // Using specific breast item
+      { name: "All-Purpose Flour", quantity: 0.25, unit: "cup" },
+      { name: "Olive Oil", quantity: 2, unit: "tbsp" },
+      { name: "Butter", quantity: 4, unit: "tbsp" },
+      { name: "Cremini Mushrooms", quantity: 0.75, unit: "lb" },
+      { name: "Garlic", quantity: 3, unit: "head" },
+      { name: "Marsala Wine (cooking)", quantity: 0.25, unit: "quart" },
+      { name: "Chicken Broth", quantity: 0.25, unit: "quart" },
+      { name: "Fresh Parsley", quantity: 0.2, unit: "bunch" },
+      { name: "Salt", quantity: 1, unit: "tbsp" },
+      { name: "Black Pepper", quantity: 1, unit: "tsp" },
     ],
     instructions: [
       { step: "Dredge chicken in flour, season with salt and pepper." },
@@ -505,7 +578,7 @@ const initialRecipes: Recipe[] = [
       { step: "Deglaze with Marsala wine, then add chicken broth and simmer." },
       { step: "Return chicken to pan, cook until sauce thickens. Garnish with parsley." },
     ],
-    baseCost: 22.00,
+    baseCost: 0,
   },
   {
     id: "r5",
@@ -516,17 +589,17 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Beef Tenderloin", quantity: "1.75 lb" }, // This is still generic, but user asked for specific cuts in inventory, not necessarily in recipes
-      { name: "Olive Oil", quantity: "3 tbsp" },
-      { name: "Butter", quantity: "4 tbsp" },
-      { name: "Shallots", quantity: "0.25 lb" },
-      { name: "Garlic", quantity: "2 head" },
-      { name: "Cabernet Sauvignon", quantity: "0.2 bottle" }, // Using beverage inventory item
-      { name: "Chicken Broth", quantity: "0.33 quart" }, // Using chicken broth as a substitute for beef broth
-      { name: "Fresh Thyme", quantity: "0.2 bunch" },
-      { name: "Fresh Rosemary", quantity: "0.2 bunch" },
-      { name: "Salt", quantity: "1 tbsp" },
-      { name: "Black Pepper", quantity: "1 tsp" },
+      { name: "Beef Sirloin (raw, per lb)", quantity: 1.75, unit: "lb" }, // Using sirloin as a proxy for tenderloin
+      { name: "Olive Oil", quantity: 3, unit: "tbsp" },
+      { name: "Butter", quantity: 4, unit: "tbsp" },
+      { name: "Shallots", quantity: 0.25, unit: "lb" },
+      { name: "Garlic", quantity: 2, unit: "head" },
+      { name: "Cabernet Sauvignon", quantity: 0.2, unit: "bottle" }, // Using beverage inventory item
+      { name: "Chicken Broth", quantity: 0.33, unit: "quart" }, // Using chicken broth as a substitute for beef broth
+      { name: "Fresh Thyme", quantity: 0.2, unit: "bunch" },
+      { name: "Fresh Rosemary", quantity: 0.2, unit: "bunch" },
+      { name: "Salt", quantity: 1, unit: "tbsp" },
+      { name: "Black Pepper", quantity: 1, unit: "tsp" },
     ],
     instructions: [
       { step: "Season beef tenderloin with salt and pepper." },
@@ -535,7 +608,7 @@ const initialRecipes: Recipe[] = [
       { step: "Stir in beef broth, thyme, and rosemary; simmer until sauce thickens." },
       { step: "Slice beef and serve with red wine reduction." },
     ],
-    baseCost: 55.00,
+    baseCost: 0,
   },
   {
     id: "r6",
@@ -546,18 +619,18 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Vegetarian Main", // Updated category
     ingredients: [
-      { name: "Arborio Rice", quantity: "0.75 lb" },
-      { name: "Mixed Wild Mushrooms", quantity: "1 lb" },
-      { name: "Vegetable Broth", quantity: "1.5 quart" },
-      { name: "Parmesan Cheese", quantity: "0.25 lb" },
-      { name: "Dry White Wine (cooking)", quantity: "0.15 bottle" },
-      { name: "Onions", quantity: "0.33 lb" },
-      { name: "Garlic", quantity: "2 head" },
-      { name: "Olive Oil", quantity: "3 tbsp" },
-      { name: "Butter", quantity: "4 tbsp" },
-      { name: "Fresh Parsley", quantity: "0.2 bunch" },
-      { name: "Salt", quantity: "1 tbsp" },
-      { name: "Black Pepper", quantity: "1 tsp" },
+      { name: "Arborio Rice", quantity: 0.75, unit: "lb" },
+      { name: "Mixed Wild Mushrooms", quantity: 1, unit: "lb" },
+      { name: "Vegetable Broth", quantity: 1.5, unit: "quart" },
+      { name: "Parmesan Cheese", quantity: 0.25, unit: "lb" },
+      { name: "Dry White Wine (cooking)", quantity: 0.15, unit: "bottle" },
+      { name: "Onions", quantity: 0.33, unit: "lb" },
+      { name: "Garlic", quantity: 2, unit: "head" },
+      { name: "Olive Oil", quantity: 3, unit: "tbsp" },
+      { name: "Butter", quantity: 4, unit: "tbsp" },
+      { name: "Fresh Parsley", quantity: 0.2, unit: "bunch" },
+      { name: "Salt", quantity: 1, unit: "tbsp" },
+      { name: "Black Pepper", quantity: 1, unit: "tsp" },
     ],
     instructions: [
       { step: "Sauté chopped onions and garlic in olive oil and butter." },
@@ -566,7 +639,7 @@ const initialRecipes: Recipe[] = [
       { step: "Stir in sautéed wild mushrooms and Parmesan Cheese. Season to taste." },
       { step: "Garnish with fresh parsley before serving." },
     ],
-    baseCost: 25.00,
+    baseCost: 0,
   },
   {
     id: "r7",
@@ -577,18 +650,18 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Main Course",
     ingredients: [
-      { name: "Pork Loin (raw, per lb)", quantity: "2.5 lb" },
-      { name: "Apples (Granny Smith)", quantity: "1 lb" },
-      { name: "Red Onion", quantity: "0.5 lb" },
-      { name: "Apple Cider Vinegar", quantity: "0.1 quart" },
-      { name: "Brown Sugar", quantity: "0.25 lb" },
-      { name: "Fresh Ginger", quantity: "0.05 lb" },
-      { name: "Mustard Seeds", quantity: "1 tsp" },
-      { name: "Ground Cinnamon", quantity: "0.5 tsp" },
-      { name: "Ground Cloves", quantity: "0.25 tsp" },
-      { name: "Olive Oil", quantity: "2 tbsp" },
-      { name: "Salt", quantity: "1 tbsp" },
-      { name: "Black Pepper", quantity: "1 tsp" },
+      { name: "Pork Loin (raw, per lb)", quantity: 2.5, unit: "lb" },
+      { name: "Apples (Granny Smith)", quantity: 1, unit: "lb" },
+      { name: "Red Onion", quantity: 0.5, unit: "lb" },
+      { name: "Apple Cider Vinegar", quantity: 0.1, unit: "quart" },
+      { name: "Brown Sugar", quantity: 0.25, unit: "lb" },
+      { name: "Fresh Ginger", quantity: 0.05, unit: "lb" },
+      { name: "Mustard Seeds", quantity: 1, unit: "tsp" },
+      { name: "Ground Cinnamon", quantity: 0.5, unit: "tsp" },
+      { name: "Ground Cloves", quantity: 0.25, unit: "tsp" },
+      { name: "Olive Oil", quantity: 2, unit: "tbsp" },
+      { name: "Salt", quantity: 1, unit: "tbsp" },
+      { name: "Black Pepper", quantity: 1, unit: "tsp" },
     ],
     instructions: [
       { step: "Season pork loin with salt, pepper, and olive oil. Roast until internal temperature reaches 145°F (63°C)." },
@@ -596,7 +669,7 @@ const initialRecipes: Recipe[] = [
       { step: "Add apple cider vinegar and brown sugar; simmer until apples are tender and sauce thickens." },
       { step: "Slice pork loin and serve with warm apple chutney." },
     ],
-    baseCost: 38.00,
+    baseCost: 0,
   },
   {
     id: "r8",
@@ -607,17 +680,17 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Main Course",
     ingredients: [
-      { name: "Shrimp (Peeled & Deveined, raw, per lb)", quantity: "1.25 lb" },
-      { name: "Linguine Pasta", quantity: "1 lb" },
-      { name: "Garlic", quantity: "4 head" },
-      { name: "Butter", quantity: "8 tbsp" },
-      { name: "Olive Oil", quantity: "3 tbsp" },
-      { name: "Dry White Wine (cooking)", quantity: "0.1 quart" },
-      { name: "Lemon", quantity: "1 count" },
-      { name: "Red Pepper Flakes", quantity: "0.5 tsp" },
-      { name: "Fresh Parsley", quantity: "0.3 bunch" },
-      { name: "Salt", quantity: "1 tbsp" },
-      { name: "Black Pepper", quantity: "1 tsp" },
+      { name: "Shrimp (Peeled & Deveined, raw, per lb)", quantity: 1.25, unit: "lb" },
+      { name: "Linguine Pasta", quantity: 1, unit: "lb" },
+      { name: "Garlic", quantity: 4, unit: "head" },
+      { name: "Butter", quantity: 8, unit: "tbsp" },
+      { name: "Olive Oil", quantity: 3, unit: "tbsp" },
+      { name: "Dry White Wine (cooking)", quantity: 0.1, unit: "quart" },
+      { name: "Lemon", quantity: 1, unit: "count" },
+      { name: "Red Pepper Flakes", quantity: 0.5, unit: "tsp" },
+      { name: "Fresh Parsley", quantity: 0.3, unit: "bunch" },
+      { name: "Salt", quantity: 1, unit: "tbsp" },
+      { name: "Black Pepper", quantity: 1, unit: "tsp" },
     ],
     instructions: [
       { step: "Cook linguine according to package directions. Reserve pasta water." },
@@ -625,7 +698,7 @@ const initialRecipes: Recipe[] = [
       { step: "Add shrimp to skillet, cook until pink. Deglaze with white wine and lemon juice." },
       { step: "Toss cooked linguine with shrimp sauce. Add a splash of pasta water if needed. Garnish with fresh parsley." },
     ],
-    baseCost: 30.00,
+    baseCost: 0,
   },
   {
     id: "r9",
@@ -636,11 +709,11 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Non-Alcoholic Beverage", // New category
     ingredients: [
-      { name: "Fresh Berries (Mixed)", quantity: "0.5 lb" }, // Using mixed berries for raspberries
-      { name: "Lemon", quantity: "4 count" }, // Changed from plural Lemons
-      { name: "Sugar", quantity: "0.25 lb" },
-      { name: "Sparkling Water (Extra)", quantity: "1 quart" }, // Using Sparkling Water (Extra)
-      { name: "Fresh Mint", quantity: "6 sprig" }, // Changed from Mint Sprigs
+      { name: "Fresh Berries (Mixed)", quantity: 0.5, unit: "lb" }, // Using mixed berries for raspberries
+      { name: "Lemon", quantity: 4, unit: "count" }, // Changed from plural Lemons
+      { name: "Sugar", quantity: 0.25, unit: "lb" },
+      { name: "Sparkling Water (Extra)", quantity: 1, unit: "quart" }, // Using Sparkling Water (Extra)
+      { name: "Fresh Mint", quantity: 6, unit: "sprig" }, // Changed from Mint Sprigs
     ],
     instructions: [
       { step: "Muddle raspberries and sugar in a pitcher." },
@@ -648,7 +721,7 @@ const initialRecipes: Recipe[] = [
       { step: "Top with sparkling water and ice." },
       { step: "Garnish with mint sprigs and lemon slices." },
     ],
-    baseCost: 6.00,
+    baseCost: 0,
   },
   {
     id: "r10",
@@ -659,17 +732,17 @@ const initialRecipes: Recipe[] = [
     servings: "12",
     category: "Appetizer", // Existing category, good example
     ingredients: [
-      { name: "Cherry Tomatoes", quantity: "0.75 lb" },
-      { name: "Fresh Mozzarella Balls (mini)", quantity: "0.5 lb" }, // Assuming this is a pantry item
-      { name: "Fresh Basil Leaves", quantity: "20 count" }, // Assuming this is a pantry item
-      { name: "Balsamic Glaze", quantity: "3 tbsp" }, // Assuming this is a pantry item
+      { name: "Cherry Tomatoes", quantity: 0.75, unit: "lb" },
+      { name: "Fresh Mozzarella Balls (mini)", quantity: 0.5, unit: "lb" }, // Assuming this is a pantry item
+      { name: "Fresh Basil Leaves", quantity: 20, unit: "count" }, // Assuming this is a pantry item
+      { name: "Balsamic Glaze", quantity: 3, unit: "tbsp" }, // Assuming this is a pantry item
     ],
     instructions: [
       { step: "Thread cherry tomato, mozzarella ball, and basil leaf onto small skewers." },
       { step: "Arrange on a platter." },
       { step: "Drizzle with balsamic glaze just before serving." },
     ],
-    baseCost: 12.00,
+    baseCost: 0,
   },
   {
     id: "r11",
@@ -680,11 +753,11 @@ const initialRecipes: Recipe[] = [
     servings: "1",
     category: "Alcoholic Beverage", // New category
     ingredients: [
-      { name: "Vodka (Standard)", quantity: "2 fl oz" }, // Using Vodka as a proxy for Tequila
-      { name: "Fresh Limes", quantity: "1 count" }, // Changed from plural Limes
-      { name: "Orange Juice", quantity: "0.75 fl oz" }, // Using Orange Juice as a proxy for Triple Sec
-      { name: "Salt", quantity: "1 tsp" }, // For rim
-      { name: "Lemon", quantity: "1 wedge" }, // Using Lemon for Lime Wedge
+      { name: "Vodka (Standard)", quantity: 2, unit: "fl oz" }, // Using Vodka as a proxy for Tequila
+      { name: "Fresh Limes", quantity: 1, unit: "count" }, // Changed from plural Limes
+      { name: "Orange Juice", quantity: 0.75, unit: "fl oz" }, // Using Orange Juice as a proxy for Triple Sec
+      { name: "Salt", quantity: 1, unit: "tsp" }, // For rim
+      { name: "Lemon", quantity: 1, unit: "wedge" }, // Using Lemon for Lime Wedge
     ],
     instructions: [
       { step: "Rim a chilled margarita glass with salt." },
@@ -692,7 +765,7 @@ const initialRecipes: Recipe[] = [
       { step: "Shake well until thoroughly chilled." },
       { step: "Strain into the prepared glass over fresh ice. Garnish with a lime wedge." },
     ],
-    baseCost: 8.00,
+    baseCost: 0,
   },
   // NEW DESSERT RECIPES
   {
@@ -704,13 +777,13 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Dessert",
     ingredients: [
-      { name: "Dark Chocolate", quantity: "0.5 lb" },
-      { name: "Butter", quantity: "0.25 lb" },
-      { name: "Eggs", quantity: "2 count" },
-      { name: "Sugar", quantity: "0.1 lb" },
-      { name: "All-Purpose Flour (Dessert)", quantity: "0.25 cup" },
-      { name: "Vanilla Extract", quantity: "1 tsp" },
-      { name: "Fresh Berries (Mixed)", quantity: "0.25 lb" },
+      { name: "Dark Chocolate", quantity: 0.5, unit: "lb" },
+      { name: "Butter", quantity: 0.25, unit: "lb" },
+      { name: "Eggs", quantity: 2, unit: "count" },
+      { name: "Sugar", quantity: 0.1, unit: "lb" },
+      { name: "All-Purpose Flour (Dessert)", quantity: 0.25, unit: "cup" },
+      { name: "Vanilla Extract", quantity: 1, unit: "tsp" },
+      { name: "Fresh Berries (Mixed)", quantity: 0.25, unit: "lb" },
     ],
     instructions: [
       { step: "Preheat oven to 425°F (220°C). Grease ramekins." },
@@ -718,7 +791,7 @@ const initialRecipes: Recipe[] = [
       { step: "Fold in flour and vanilla. Pour batter into ramekins." },
       { step: "Bake for 10-12 minutes until edges are set but center is gooey. Invert onto plates and serve with berries." },
     ],
-    baseCost: 10.00,
+    baseCost: 0,
   },
   {
     id: "r13",
@@ -729,14 +802,14 @@ const initialRecipes: Recipe[] = [
     servings: "8",
     category: "Dessert",
     ingredients: [
-      { name: "Pie Crust (Pre-made)", quantity: "1 count" },
-      { name: "Heavy Cream (Dessert)", quantity: "0.25 quart" },
-      { name: "Sugar", quantity: "0.25 lb" },
-      { name: "Eggs", quantity: "3 count" },
-      { name: "All-Purpose Flour (Dessert)", quantity: "0.25 cup" },
-      { name: "Vanilla Extract", quantity: "2 tsp" },
-      { name: "Fresh Berries (Mixed)", quantity: "0.75 lb" },
-      { name: "Gelatin Powder", quantity: "1 tsp" },
+      { name: "Pie Crust (Pre-made)", quantity: 1, unit: "count" },
+      { name: "Heavy Cream (Dessert)", quantity: 0.25, unit: "quart" },
+      { name: "Sugar", quantity: 0.25, unit: "lb" },
+      { name: "Eggs", quantity: 3, unit: "count" },
+      { name: "All-Purpose Flour (Dessert)", quantity: 0.25, unit: "cup" },
+      { name: "Vanilla Extract", quantity: 2, unit: "tsp" },
+      { name: "Fresh Berries (Mixed)", quantity: 0.75, unit: "lb" },
+      { name: "Gelatin Powder", quantity: 1, unit: "tsp" },
     ],
     instructions: [
       { step: "Blind bake pie crust according to package directions; let cool." },
@@ -744,7 +817,7 @@ const initialRecipes: Recipe[] = [
       { step: "Pour cooled pastry cream into pie crust. Arrange fresh fruits on top." },
       { step: "Prepare a simple glaze with gelatin and water, brush over fruit for shine. Chill before serving." },
     ],
-    baseCost: 18.00,
+    baseCost: 0,
   },
   // NEW NON-ALCOHOLIC BEVERAGE RECIPES
   {
@@ -756,18 +829,18 @@ const initialRecipes: Recipe[] = [
     servings: "8",
     category: "Non-Alcoholic Beverage",
     ingredients: [
-      { name: "Green Tea Bags", quantity: "8 count" }, // Using green tea for variety
-      { name: "Fresh Mint", quantity: "1 bunch" },
-      { name: "Lemon", quantity: "2 count" }, // Changed from plural Lemons
-      { name: "Sugar", quantity: "0.25 lb" },
-      { name: "Water", quantity: "1.5 quart" }, // Assuming water is always available
+      { name: "Green Tea Bags", quantity: 8, unit: "count" }, // Using green tea for variety
+      { name: "Fresh Mint", quantity: 1, unit: "bunch" },
+      { name: "Lemon", quantity: 2, unit: "count" }, // Changed from plural Lemons
+      { name: "Sugar", quantity: 0.25, unit: "lb" },
+      { name: "Water", quantity: 1.5, unit: "quart" }, // Assuming water is always available
     ],
     instructions: [
       { step: "Bring water to a boil. Add tea bags and mint leaves; steep for 5 minutes. Remove tea bags and mint." },
       { step: "Stir in sugar until dissolved. Let cool to room temperature." },
       { step: "Add lemon juice. Chill thoroughly. Serve over ice with fresh mint and lemon slices." },
     ],
-    baseCost: 5.00,
+    baseCost: 0,
   },
   {
     id: "r15",
@@ -778,18 +851,18 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Non-Alcoholic Beverage",
     ingredients: [
-      { name: "Oranges", quantity: "4 count" },
-      { name: "Sparkling Water (Extra)", quantity: "0.75 quart" },
-      { name: "Orange Blossom Water", quantity: "1 tsp" }, // Assume this is a pantry item, not tracked in inventory
-      { name: "Honey", quantity: "1 tbsp" },
-      { name: "Fresh Mint", quantity: "4 sprig" },
+      { name: "Oranges", quantity: 4, unit: "count" },
+      { name: "Sparkling Water (Extra)", quantity: 0.75, unit: "quart" },
+      { name: "Orange Blossom Water", quantity: 1, unit: "tsp" }, // Assume this is a pantry item, not tracked in inventory
+      { name: "Honey", quantity: 1, unit: "tbsp" },
+      { name: "Fresh Mint", quantity: 4, unit: "sprig" },
     ],
     instructions: [
       { step: "Juice the oranges. Strain to remove pulp." },
       { step: "In a pitcher, combine orange juice, orange blossom water, and honey. Stir until honey dissolves." },
       { step: "Top with sparkling water and ice. Garnish with fresh mint sprigs and orange slices." },
     ],
-    baseCost: 7.00,
+    baseCost: 0,
   },
   // NEW DESSERTS
   {
@@ -801,14 +874,14 @@ const initialRecipes: Recipe[] = [
     servings: "12",
     category: "Dessert",
     ingredients: [
-      { name: "Cream Cheese", quantity: "2.2 lb" },
-      { name: "Sugar", quantity: "0.75 lb" },
-      { name: "Eggs", quantity: "4 count" },
-      { name: "Heavy Cream (Dessert)", quantity: "0.1 quart" },
-      { name: "Vanilla Extract", quantity: "2 tsp" },
-      { name: "Graham Cracker Crumbs", quantity: "0.5 lb" },
-      { name: "Butter", quantity: "6 tbsp" },
-      { name: "Lemon", quantity: "1 count" },
+      { name: "Cream Cheese", quantity: 2.2, unit: "lb" },
+      { name: "Sugar", quantity: 0.75, unit: "lb" },
+      { name: "Eggs", quantity: 4, unit: "count" },
+      { name: "Heavy Cream (Dessert)", quantity: 0.1, unit: "quart" },
+      { name: "Vanilla Extract", quantity: 2, unit: "tsp" },
+      { name: "Graham Cracker Crumbs", quantity: 0.5, unit: "lb" },
+      { name: "Butter", quantity: 6, unit: "tbsp" },
+      { name: "Lemon", quantity: 1, unit: "count" },
     ],
     instructions: [
       { step: "Preheat oven to 325°F (160°C). Prepare springform pan with graham cracker crust." },
@@ -816,7 +889,7 @@ const initialRecipes: Recipe[] = [
       { step: "Pour batter into crust. Bake for 60-70 minutes until edges are set and center is slightly jiggly." },
       { step: "Cool completely, then chill for at least 4 hours or overnight before serving." },
     ],
-    baseCost: 25.00,
+    baseCost: 0,
   },
   {
     id: "r17",
@@ -827,14 +900,14 @@ const initialRecipes: Recipe[] = [
     servings: "8",
     category: "Dessert",
     ingredients: [
-      { name: "Mascarpone Cheese", quantity: "1 lb" },
-      { name: "Eggs", quantity: "4 count" }, // Yolks only
-      { name: "Sugar", quantity: "0.33 lb" },
-      { name: "Espresso Powder", quantity: "0.7 oz" },
-      { name: "Ladyfingers", quantity: "1 pack" },
-      { name: "Cocoa Powder", quantity: "0.7 oz" },
-      { name: "Dark Chocolate", quantity: "1.7 oz" }, // For shaving
-      { name: "Coffee Liqueur", quantity: "1.7 fl oz" }, // Optional, using inventory item
+      { name: "Mascarpone Cheese", quantity: 1, unit: "lb" },
+      { name: "Eggs", quantity: 4, unit: "count" }, // Yolks only
+      { name: "Sugar", quantity: 0.33, unit: "lb" },
+      { name: "Espresso Powder", quantity: 0.7, unit: "oz" },
+      { name: "Ladyfingers", quantity: 1, unit: "pack" },
+      { name: "Cocoa Powder", quantity: 0.7, unit: "oz" },
+      { name: "Dark Chocolate", quantity: 1.7, unit: "oz" }, // For shaving
+      { name: "Coffee Liqueur", quantity: 1.7, unit: "fl oz" }, // Optional, using inventory item
     ],
     instructions: [
       { step: "Brew strong espresso and let cool. Mix with coffee liqueur if using." },
@@ -843,7 +916,7 @@ const initialRecipes: Recipe[] = [
       { step: "Quickly dip ladyfingers in espresso, arrange a layer in a dish. Spread half the mascarpone cream over." },
       { step: "Repeat layers. Chill for at least 4 hours. Dust with cocoa powder and chocolate shavings before serving." },
     ],
-    baseCost: 30.00,
+    baseCost: 0,
   },
   // NEW ALCOHOLIC BEVERAGES
   {
@@ -855,18 +928,18 @@ const initialRecipes: Recipe[] = [
     servings: "1",
     category: "Alcoholic Beverage",
     ingredients: [
-      { name: "Whiskey (Bourbon)", quantity: "2 fl oz" },
-      { name: "Angostura Bitters", quantity: "2 dashes" },
-      { name: "Sugar", quantity: "1 cube" },
-      { name: "Oranges", quantity: "1 peel" }, // Using Oranges for peel
-      { name: "Ice", quantity: "large cube" }, // Assuming ice is always available
+      { name: "Whiskey (Bourbon)", quantity: 2, unit: "fl oz" },
+      { name: "Angostura Bitters", quantity: 2, unit: "dashes" },
+      { name: "Sugar", quantity: 1, unit: "cube" },
+      { name: "Oranges", quantity: 1, unit: "peel" }, // Using Oranges for peel
+      { name: "Ice", quantity: 1, unit: "large cube" }, // Assuming ice is always available
     ],
     instructions: [
       { step: "Place sugar cube in an Old Fashioned glass, add bitters and a splash of water. Muddle until sugar dissolves." },
       { step: "Add whiskey and a large ice cube. Stir gently for 30 seconds to chill and dilute." },
       { step: "Express the oil from an orange peel over the drink, then drop it in. Serve." },
     ],
-    baseCost: 10.00,
+    baseCost: 0,
   },
   {
     id: "r19",
@@ -877,19 +950,19 @@ const initialRecipes: Recipe[] = [
     servings: "1",
     category: "Alcoholic Beverage",
     ingredients: [
-      { name: "White Rum", quantity: "2 fl oz" },
-      { name: "Fresh Limes", quantity: "1 count" },
-      { name: "Fresh Mint", quantity: "10 leaves" },
-      { name: "Sugar", quantity: "2 tsp" },
-      { name: "Club Soda", quantity: "3 fl oz" },
-      { name: "Ice", quantity: "crushed" }, // Assuming ice is always available
+      { name: "White Rum", quantity: 2, unit: "fl oz" },
+      { name: "Fresh Limes", quantity: 1, unit: "count" },
+      { name: "Fresh Mint", quantity: 10, unit: "leaves" },
+      { name: "Sugar", quantity: 2, unit: "tsp" },
+      { name: "Club Soda", quantity: 3, unit: "fl oz" },
+      { name: "Ice", quantity: 1, unit: "crushed" }, // Assuming ice is always available
     ],
     instructions: [
       { step: "In a sturdy glass, gently muddle mint leaves with sugar and lime juice." },
       { step: "Add rum and fill the glass with crushed ice." },
       { step: "Top with club soda. Stir gently to combine. Garnish with a lime wedge and mint sprig." },
     ],
-    baseCost: 9.00,
+    baseCost: 0,
   },
   // NEW APPETIZERS
   {
@@ -901,13 +974,13 @@ const initialRecipes: Recipe[] = [
     servings: "8-10",
     category: "Appetizer",
     ingredients: [
-      { name: "Spinach (Fresh)", quantity: "1 lb" },
-      { name: "Artichoke Hearts (Canned)", quantity: "1 lb" },
-      { name: "Cream Cheese (softened)", quantity: "0.5 lb" },
-      { name: "Mayonnaise", quantity: "0.1 quart" },
-      { name: "Parmesan Cheese (grated)", quantity: "0.25 lb" },
-      { name: "Garlic", quantity: "3 head" },
-      { name: "Crostini/Baguette", quantity: "1 pack" },
+      { name: "Spinach (Fresh)", quantity: 1, unit: "lb" },
+      { name: "Artichoke Hearts (Canned)", quantity: 1, unit: "lb" },
+      { name: "Cream Cheese (softened)", quantity: 0.5, unit: "lb" },
+      { name: "Mayonnaise", quantity: 0.1, unit: "quart" },
+      { name: "Parmesan Cheese (grated)", quantity: 0.25, unit: "lb" },
+      { name: "Garlic", quantity: 3, unit: "head" },
+      { name: "Crostini/Baguette", quantity: 1, unit: "pack" },
     ],
     instructions: [
       { step: "Preheat oven to 375°F (190°C). Sauté spinach and garlic until wilted; squeeze out excess water." },
@@ -915,7 +988,7 @@ const initialRecipes: Recipe[] = [
       { step: "Transfer to a baking dish, top with remaining Parmesan. Bake for 20-25 minutes until bubbly and golden." },
       { step: "Serve warm with crostini." },
     ],
-    baseCost: 18.00,
+    baseCost: 0,
   },
   {
     id: "r21",
@@ -926,17 +999,16 @@ const initialRecipes: Recipe[] = [
     servings: "10-12",
     category: "Appetizer",
     ingredients: [
-      { name: "Cantaloupe", quantity: "0.5 count" },
-      { name: "Honeydew Melon", quantity: "0.5 count" },
-      { name: "Prosciutto", quantity: "0.33 lb" },
-      { name: "Fresh Mint", quantity: "0.1 bunch" },
+      { name: "Cantaloupe", quantity: 0.5, unit: "count" },
+      { name: "Honeydew Melon", quantity: 0.5, unit: "count" },
+      { name: "Prosciutto", quantity: 0.33, unit: "lb" },
+      { name: "Fresh Mint", quantity: 0.1, unit: "bunch" },
     ],
     instructions: [
       { step: "Cut melon into bite-sized cubes. Slice prosciutto into thin strips." },
-      { step: "Wrap each melon cube with a strip of prosciutto." },
       { step: "Arrange on a platter and garnish with fresh mint leaves. Chill until serving." },
     ],
-    baseCost: 15.00,
+    baseCost: 0,
   },
   {
     id: "r22",
@@ -947,14 +1019,14 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Appetizer",
     ingredients: [
-      { name: "Shrimp (Peeled & Deveined, raw, per lb)", quantity: "1 lb" },
-      { name: "Olive Oil", quantity: "3 tbsp" },
-      { name: "Lemon", quantity: "1 count" },
-      { name: "Garlic", quantity: "2 head" },
-      { name: "Red Pepper Flakes", quantity: "0.5 tsp" },
-      { name: "Fresh Parsley", quantity: "0.1 bunch" },
-      { name: "Salt", quantity: "1 tsp" },
-      { name: "Black Pepper", quantity: "0.5 tsp" },
+      { name: "Shrimp (Peeled & Deveined, raw, per lb)", quantity: 1, unit: "lb" },
+      { name: "Olive Oil", quantity: 3, unit: "tbsp" },
+      { name: "Lemon", quantity: 1, unit: "count" },
+      { name: "Garlic", quantity: 2, unit: "head" },
+      { name: "Red Pepper Flakes", quantity: 0.5, unit: "tsp" },
+      { name: "Fresh Parsley", quantity: 0.1, unit: "bunch" },
+      { name: "Salt", quantity: 1, unit: "tsp" },
+      { name: "Black Pepper", quantity: 0.5, unit: "tsp" },
     ],
     instructions: [
       { step: "In a bowl, whisk together olive oil, lemon juice, minced garlic, red pepper flakes, salt, and pepper." },
@@ -962,7 +1034,7 @@ const initialRecipes: Recipe[] = [
       { step: "Thread shrimp onto skewers. Grill or pan-fry for 2-4 minutes per side until pink and cooked through." },
       { step: "Garnish with fresh chopped parsley and serve immediately." },
     ],
-    baseCost: 20.00,
+    baseCost: 0,
   },
   // NEW SIDE DISHES
   {
@@ -974,19 +1046,19 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Side Dish",
     ingredients: [
-      { name: "Asparagus", quantity: "1 lb" },
-      { name: "Olive Oil", quantity: "2 tbsp" },
-      { name: "Garlic", quantity: "2 head" },
-      { name: "Parmesan Cheese (grated)", quantity: "0.25 cup" },
-      { name: "Salt", quantity: "1 tsp" },
-      { name: "Black Pepper", quantity: "0.5 tsp" },
+      { name: "Asparagus", quantity: 1, unit: "lb" },
+      { name: "Olive Oil", quantity: 2, unit: "tbsp" },
+      { name: "Garlic", quantity: 2, unit: "head" },
+      { name: "Parmesan Cheese (grated)", quantity: 0.25, unit: "cup" },
+      { name: "Salt", quantity: 1, unit: "tsp" },
+      { name: "Black Pepper", quantity: 0.5, unit: "tsp" },
     ],
     instructions: [
       { step: "Preheat oven to 400°F (200°C). Trim woody ends off asparagus." },
       { step: "Toss asparagus with olive oil, minced garlic, salt, and pepper on a baking sheet." },
       { step: "Roast for 10-15 minutes until tender-crisp. Sprinkle with Parmesan cheese and serve." },
     ],
-    baseCost: 10.00,
+    baseCost: 0,
   },
   {
     id: "r24",
@@ -997,12 +1069,12 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Side Dish",
     ingredients: [
-      { name: "Potatoes (Russet)", quantity: "2.2 lb" },
-      { name: "Butter", quantity: "0.25 lb" },
-      { name: "Milk", quantity: "0.25 quart" },
-      { name: "Heavy Cream", quantity: "0.1 quart" },
-      { name: "Salt", quantity: "1 tbsp" },
-      { name: "Black Pepper", quantity: "1 tsp" },
+      { name: "Potatoes (Russet)", quantity: 2.2, unit: "lb" },
+      { name: "Butter", quantity: 0.25, unit: "lb" },
+      { name: "Milk", quantity: 0.25, unit: "quart" },
+      { name: "Heavy Cream", quantity: 0.1, unit: "quart" },
+      { name: "Salt", quantity: 1, unit: "tbsp" },
+      { name: "Black Pepper", quantity: 1, unit: "tsp" },
     ],
     instructions: [
       { step: "Peel and chop potatoes into even pieces. Boil in salted water until very tender." },
@@ -1010,7 +1082,7 @@ const initialRecipes: Recipe[] = [
       { step: "Mash potatoes. Heat butter, milk, and heavy cream until warm. Gradually add to potatoes, mixing until smooth and creamy." },
       { step: "Season with salt and pepper to taste. Serve hot." },
     ],
-    baseCost: 12.00,
+    baseCost: 0,
   },
   {
     id: "r25",
@@ -1021,17 +1093,17 @@ const initialRecipes: Recipe[] = [
     servings: "8",
     category: "Side Dish",
     ingredients: [
-      { name: "Quinoa", quantity: "0.75 lb" },
-      { name: "Vegetable Broth", quantity: "0.6 quart" },
-      { name: "Bell Peppers (Assorted)", quantity: "2 count" },
-      { name: "Zucchini", quantity: "1 count" },
-      { name: "Red Onion", quantity: "0.25 lb" },
-      { name: "Cherry Tomatoes", quantity: "0.5 lb" },
-      { name: "Olive Oil", quantity: "3 tbsp" },
-      { name: "Red Wine Vinegar", quantity: "2 tbsp" },
-      { name: "Fresh Parsley", quantity: "0.1 bunch" },
-      { name: "Salt", quantity: "1 tsp" },
-      { name: "Black Pepper", quantity: "0.5 tsp" },
+      { name: "Quinoa", quantity: 0.75, unit: "lb" },
+      { name: "Vegetable Broth", quantity: 0.6, unit: "quart" },
+      { name: "Bell Peppers (Assorted)", quantity: 2, unit: "count" },
+      { name: "Zucchini", quantity: 1, unit: "count" },
+      { name: "Red Onion", quantity: 0.25, unit: "lb" },
+      { name: "Cherry Tomatoes", quantity: 0.5, unit: "lb" },
+      { name: "Olive Oil", quantity: 3, unit: "tbsp" },
+      { name: "Red Wine Vinegar", quantity: 2, unit: "tbsp" },
+      { name: "Fresh Parsley", quantity: 0.1, unit: "bunch" },
+      { name: "Salt", quantity: 1, unit: "tsp" },
+      { name: "Black Pepper", quantity: 0.5, unit: "tsp" },
     ],
     instructions: [
       { step: "Rinse quinoa thoroughly. Cook quinoa in vegetable broth according to package directions; fluff with a fork." },
@@ -1039,7 +1111,7 @@ const initialRecipes: Recipe[] = [
       { step: "Combine cooked quinoa, roasted vegetables, and halved cherry tomatoes in a large bowl." },
       { step: "Whisk together olive oil, red wine vinegar, salt, and pepper for dressing. Pour over salad and toss. Garnish with fresh parsley." },
     ],
-    baseCost: 16.00,
+    baseCost: 0,
   },
   // NEW NON-ALCOHOLIC BEVERAGE RECIPES
   {
@@ -1051,12 +1123,12 @@ const initialRecipes: Recipe[] = [
     servings: "4",
     category: "Non-Alcoholic Beverage",
     ingredients: [
-      { name: "Cucumber", quantity: "1 count" },
-      { name: "Fresh Mint", quantity: "0.5 bunch" },
-      { name: "Lemon", quantity: "2 count" },
-      { name: "Sugar", quantity: "0.1 lb" },
-      { name: "Water", quantity: "1 quart" },
-      { name: "Sparkling Water (Extra)", quantity: "0.5 quart" },
+      { name: "Cucumber", quantity: 1, unit: "count" },
+      { name: "Fresh Mint", quantity: 0.5, unit: "bunch" },
+      { name: "Lemon", quantity: 2, unit: "count" },
+      { name: "Sugar", quantity: 0.1, unit: "lb" },
+      { name: "Water", quantity: 1, unit: "quart" },
+      { name: "Sparkling Water (Extra)", quantity: 0.5, unit: "quart" },
     ],
     instructions: [
       { step: "Peel and chop cucumber. Muddle cucumber slices with mint leaves and sugar in a pitcher." },
@@ -1064,7 +1136,7 @@ const initialRecipes: Recipe[] = [
       { step: "Strain the mixture, pressing solids to extract juice. Top with sparkling water and ice." },
       { step: "Garnish with fresh cucumber slices and mint sprigs." },
     ],
-    baseCost: 7.00,
+    baseCost: 0,
   },
   {
     id: "r27",
@@ -1075,11 +1147,11 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Non-Alcoholic Beverage",
     ingredients: [
-      { name: "Apple Cider", quantity: "1.5 quart" },
-      { name: "Cinnamon Sticks", quantity: "3 count" },
-      { name: "Ground Cloves", quantity: "0.5 tsp" },
-      { name: "Oranges", quantity: "1 count" },
-      { name: "Brown Sugar", quantity: "0.1 lb" },
+      { name: "Apple Cider", quantity: 1.5, unit: "quart" },
+      { name: "Cinnamon Sticks", quantity: 3, unit: "count" },
+      { name: "Ground Cloves", quantity: 0.5, unit: "tsp" },
+      { name: "Oranges", quantity: 1, unit: "count" },
+      { name: "Brown Sugar", quantity: 0.1, unit: "lb" },
     ],
     instructions: [
       { step: "Combine apple cider, cinnamon sticks, ground cloves, and orange slices in a large pot." },
@@ -1087,7 +1159,7 @@ const initialRecipes: Recipe[] = [
       { step: "Bring to a simmer over medium heat, then reduce heat to low and let steep for at least 15-20 minutes." },
       { step: "Serve warm, garnished with fresh orange slices and cinnamon sticks." },
     ],
-    baseCost: 9.00,
+    baseCost: 0,
   },
   {
     id: "r28",
@@ -1098,20 +1170,20 @@ const initialRecipes: Recipe[] = [
     servings: "10",
     category: "Non-Alcoholic Beverage",
     ingredients: [
-      { name: "Coffee Beans (Ground)", quantity: "0.5 lb" },
-      { name: "Water", quantity: "1.5 quart" }, // For cold brew
-      { name: "Milk", quantity: "1 quart" },
-      { name: "Heavy Cream", quantity: "0.5 quart" }, // For creamer
-      { name: "Simple Syrup", quantity: "0.2 quart" },
-      { name: "Vanilla Extract", quantity: "2 tsp" }, // For vanilla syrup
-      { name: "Ice", quantity: "2.2 lb" },
+      { name: "Coffee Beans (Ground)", quantity: 0.5, unit: "lb" },
+      { name: "Water", quantity: 1.5, unit: "quart" }, // For cold brew
+      { name: "Milk", quantity: 1, unit: "quart" },
+      { name: "Heavy Cream", quantity: 0.5, unit: "quart" }, // For creamer
+      { name: "Simple Syrup", quantity: 0.2, unit: "quart" },
+      { name: "Vanilla Extract", quantity: 2, unit: "tsp" }, // For vanilla syrup
+      { name: "Ice", quantity: 2.2, unit: "lb" },
     ],
     instructions: [
       { step: "Prepare cold brew coffee: combine ground coffee and water, steep for 12-18 hours, then strain." },
       { step: "Prepare vanilla syrup: combine simple syrup and vanilla extract." },
       { step: "Set up a station with cold brew, milk, heavy cream, vanilla syrup, and ice. Allow guests to customize." },
     ],
-    baseCost: 18.00,
+    baseCost: 0,
   },
   // NEW DESSERT RECIPES
   {
@@ -1123,12 +1195,12 @@ const initialRecipes: Recipe[] = [
     servings: "6",
     category: "Dessert",
     ingredients: [
-      { name: "Heavy Cream (Dessert)", quantity: "0.4 quart" },
-      { name: "Lemon", quantity: "3 count" },
-      { name: "Sugar", quantity: "0.25 lb" },
-      { name: "Gelatin Powder", quantity: "1 tsp" },
-      { name: "Fresh Berries (Mixed)", quantity: "0.5 lb" }, // Using mixed berries for raspberries
-      { name: "Fresh Mint", quantity: "0.05 bunch" }, // For garnish
+      { name: "Heavy Cream (Dessert)", quantity: 0.4, unit: "quart" },
+      { name: "Lemon", quantity: 3, unit: "count" },
+      { name: "Sugar", quantity: 0.25, unit: "lb" },
+      { name: "Gelatin Powder", quantity: 1, unit: "tsp" },
+      { name: "Fresh Berries (Mixed)", quantity: 0.5, unit: "lb" }, // Using mixed berries for raspberries
+      { name: "Fresh Mint", quantity: 0.05, unit: "bunch" }, // For garnish
     ],
     instructions: [
       { step: "Whip heavy cream to soft peaks; set aside." },
@@ -1136,7 +1208,7 @@ const initialRecipes: Recipe[] = [
       { step: "Fold lemon mixture into whipped cream. Gently fold in half of the raspberries." },
       { step: "Spoon mousse into serving glasses, layering with remaining raspberries. Chill for at least 2 hours. Garnish with mint." },
     ],
-    baseCost: 15.00,
+    baseCost: 0,
   },
   {
     id: "r30",
@@ -1147,14 +1219,14 @@ const initialRecipes: Recipe[] = [
     servings: "12",
     category: "Dessert",
     ingredients: [
-      { name: "Cream Cheese", quantity: "1.1 lb" },
-      { name: "Sugar", quantity: "0.33 lb" },
-      { name: "Eggs", quantity: "2 count" },
-      { name: "Vanilla Extract", quantity: "1 tsp" },
-      { name: "Graham Cracker Crumbs", quantity: "0.25 lb" },
-      { name: "Butter", quantity: "4 tbsp" },
-      { name: "Fresh Berries (Mixed)", quantity: "0.5 lb" }, // For compote
-      { name: "Lemon", quantity: "1 count" }, // For compote
+      { name: "Cream Cheese", quantity: 1.1, unit: "lb" },
+      { name: "Sugar", quantity: 0.33, unit: "lb" },
+      { name: "Eggs", quantity: 2, unit: "count" },
+      { name: "Vanilla Extract", quantity: 1, unit: "tsp" },
+      { name: "Graham Cracker Crumbs", quantity: 0.25, unit: "lb" },
+      { name: "Butter", quantity: 4, unit: "tbsp" },
+      { name: "Fresh Berries (Mixed)", quantity: 0.5, unit: "lb" }, // For compote
+      { name: "Lemon", quantity: 1, unit: "count" }, // For compote
     ],
     instructions: [
       { step: "Preheat oven to 325°F (160°C). Line a muffin tin with paper liners. Press graham cracker crust into each liner." },
@@ -1162,7 +1234,7 @@ const initialRecipes: Recipe[] = [
       { step: "Fill liners with cheesecake batter. Bake for 18-20 minutes until centers are almost set. Cool completely, then chill." },
       { step: "Prepare fruit compotes (e.g., berry, lemon curd). Top chilled cheesecakes with assorted compotes before serving." },
     ],
-    baseCost: 20.00,
+    baseCost: 0,
   },
   {
     id: "r31",
@@ -1173,14 +1245,14 @@ const initialRecipes: Recipe[] = [
     servings: "8",
     category: "Dessert",
     ingredients: [
-      { name: "Apples (Granny Smith)", quantity: "2.2 lb" },
-      { name: "Oats (Rolled)", quantity: "0.33 lb" },
-      { name: "All-Purpose Flour (Dessert)", quantity: "0.25 lb" },
-      { name: "Brown Sugar", quantity: "0.25 lb" },
-      { name: "Butter", quantity: "0.25 lb" },
-      { name: "Ground Cinnamon", quantity: "1 tsp" },
-      { name: "Nutmeg (Ground)", quantity: "0.25 tsp" },
-      { name: "Vanilla Ice Cream", quantity: "1 quart" }, // Placeholder for ice cream
+      { name: "Apples (Granny Smith)", quantity: 2.2, unit: "lb" },
+      { name: "Oats (Rolled)", quantity: 0.33, unit: "lb" },
+      { name: "All-Purpose Flour (Dessert)", quantity: 0.25, unit: "lb" },
+      { name: "Brown Sugar", quantity: 0.25, unit: "lb" },
+      { name: "Butter", quantity: 0.25, unit: "lb" },
+      { name: "Ground Cinnamon", quantity: 1, unit: "tsp" },
+      { name: "Nutmeg (Ground)", quantity: 0.25, unit: "tsp" },
+      { name: "Vanilla Ice Cream", quantity: 1, unit: "quart" }, // Placeholder for ice cream
     ],
     instructions: [
       { step: "Preheat oven to 375°F (190°C). Peel, core, and slice apples. Toss with a little sugar and cinnamon; place in a baking dish." },
@@ -1188,7 +1260,7 @@ const initialRecipes: Recipe[] = [
       { step: "Sprinkle crumble topping evenly over apples. Bake for 35-40 minutes until apples are tender and topping is golden brown." },
       { step: "Serve warm with a scoop of vanilla ice cream." },
     ],
-    baseCost: 16.00,
+    baseCost: 0,
   },
   // NEW ALCOHOLIC BEVERAGE RECIPES
   {
@@ -1200,12 +1272,12 @@ const initialRecipes: Recipe[] = [
     servings: "1",
     category: "Alcoholic Beverage",
     ingredients: [
-      { name: "Vodka (Standard)", quantity: "1.5 fl oz" },
-      { name: "Coffee Liqueur", quantity: "0.75 fl oz" },
-      { name: "Espresso Powder", quantity: "0.35 oz" }, // Using powder for simplicity, assume brewed
-      { name: "Simple Syrup", quantity: "0.5 fl oz" },
-      { name: "Ice", quantity: "cubed" },
-      { name: "Coffee Beans (Ground)", quantity: "3 count" }, // For garnish, using ground coffee as a proxy
+      { name: "Vodka (Standard)", quantity: 1.5, unit: "fl oz" },
+      { name: "Coffee Liqueur", quantity: 0.75, unit: "fl oz" },
+      { name: "Espresso Powder", quantity: 0.35, unit: "oz" }, // Using powder for simplicity, assume brewed
+      { name: "Simple Syrup", quantity: 0.5, unit: "fl oz" },
+      { name: "Ice", quantity: 1, unit: "cubed" },
+      { name: "Coffee Beans (Ground)", quantity: 3, unit: "count" }, // For garnish, using ground coffee as a proxy
     ],
     instructions: [
       { step: "Brew espresso (or dissolve espresso powder in a small amount of hot water and cool). Chill." },
@@ -1213,7 +1285,7 @@ const initialRecipes: Recipe[] = [
       { step: "Shake vigorously until well-chilled and a frothy head forms." },
       { step: "Strain into a chilled martini glass. Garnish with three coffee beans." },
     ],
-    baseCost: 12.00,
+    baseCost: 0,
   },
   {
     id: "r33",
@@ -1224,20 +1296,20 @@ const initialRecipes: Recipe[] = [
     servings: "1",
     category: "Alcoholic Beverage",
     ingredients: [
-      { name: "Whiskey (Bourbon)", quantity: "2 fl oz" },
-      { name: "Lemon", quantity: "0.5 count" }, // For fresh lemon juice
-      { name: "Simple Syrup", quantity: "0.75 fl oz" },
-      { name: "Egg", quantity: "1 white only" }, // Optional, for foam
-      { name: "Angostura Bitters", quantity: "1 dash" }, // For garnish
-      { name: "Ice", quantity: "cubed" },
-      { name: "Oranges", quantity: "1 slice" }, // For garnish
+      { name: "Whiskey (Bourbon)", quantity: 2, unit: "fl oz" },
+      { name: "Lemon", quantity: 0.5, unit: "count" }, // For fresh lemon juice
+      { name: "Simple Syrup", quantity: 0.75, unit: "fl oz" },
+      { name: "Egg", quantity: 1, unit: "white only" }, // Optional, for foam
+      { name: "Angostura Bitters", quantity: 1, unit: "dash" }, // For garnish
+      { name: "Ice", quantity: 1, unit: "cubed" },
+      { name: "Oranges", quantity: 1, unit: "slice" }, // For garnish
     ],
     instructions: [
       { step: "Combine whiskey, fresh lemon juice, simple syrup, and egg white (if using) in a shaker without ice. Dry shake vigorously for 15 seconds." },
       { step: "Add ice to the shaker and shake again until well-chilled." },
       { step: "Strain into a chilled coupe or rocks glass over fresh ice. Garnish with an orange slice and a dash of Angostura bitters." },
     ],
-    baseCost: 11.00,
+    baseCost: 0,
   },
 ];
 
@@ -1291,7 +1363,21 @@ export const useCateringStore = create<CateringState>()(
   persist(
     (set, get) => ({
       inventory: initialInventory,
-      recipes: initialRecipes, // Initialize with some recipes
+      recipes: initialRecipes.map(recipe => {
+        // Calculate initial baseCost for existing recipes
+        let calculatedCost = 0;
+        for (const ingredient of recipe.ingredients) {
+          const inventoryItem = initialInventory.find(
+            (item) => item.name.toLowerCase() === ingredient.name.toLowerCase() && item.unit.toLowerCase() === ingredient.unit.toLowerCase()
+          );
+          if (inventoryItem) {
+            calculatedCost += ingredient.quantity * inventoryItem.costPerUnit;
+          } else {
+            console.warn(`Ingredient "${ingredient.name}" with unit "${ingredient.unit}" not found in initial inventory for recipe "${recipe.name}".`);
+          }
+        }
+        return { ...recipe, baseCost: calculatedCost };
+      }),
       bookings: [],
       clients: [], // Initialize clients
       proposals: [], // Initialize proposals
@@ -1318,16 +1404,16 @@ export const useCateringStore = create<CateringState>()(
 
         // First, check if there's enough stock for all ingredients
         for (const recipeIng of recipe.ingredients) {
-          const inventoryItem = updatedInventory.find(inv => inv.name.toLowerCase() === recipeIng.name.toLowerCase());
+          const inventoryItem = updatedInventory.find(
+            inv => inv.name.toLowerCase() === recipeIng.name.toLowerCase() && inv.unit.toLowerCase() === recipeIng.unit.toLowerCase()
+          );
           if (!inventoryItem) {
-            console.warn(`Ingredient "${recipeIng.name}" not found in inventory.`);
+            console.warn(`Ingredient "${recipeIng.name}" with unit "${recipeIng.unit}" not found in inventory.`);
             canDeduct = false;
             break;
           }
-          // Simple quantity parsing for now, assumes recipeIng.quantity is a number string
-          const requiredQuantity = parseFloat(recipeIng.quantity);
-          if (isNaN(requiredQuantity) || inventoryItem.currentStock < requiredQuantity) {
-            console.warn(`Insufficient stock for "${recipeIng.name}". Needed: ${requiredQuantity}, Available: ${inventoryItem.currentStock}`);
+          if (inventoryItem.currentStock < recipeIng.quantity) {
+            console.warn(`Insufficient stock for "${recipeIng.name}" (${recipeIng.unit}). Needed: ${recipeIng.quantity}, Available: ${inventoryItem.currentStock}`);
             canDeduct = false;
             break;
           }
@@ -1337,10 +1423,11 @@ export const useCateringStore = create<CateringState>()(
 
         // If enough stock, proceed with deduction
         for (const recipeIng of recipe.ingredients) {
-          const inventoryItem = updatedInventory.find(inv => inv.name.toLowerCase() === recipeIng.name.toLowerCase());
+          const inventoryItem = updatedInventory.find(
+            inv => inv.name.toLowerCase() === recipeIng.name.toLowerCase() && inv.unit.toLowerCase() === recipeIng.unit.toLowerCase()
+          );
           if (inventoryItem) {
-            const requiredQuantity = parseFloat(recipeIng.quantity);
-            inventoryItem.currentStock -= requiredQuantity;
+            inventoryItem.currentStock -= recipeIng.quantity;
           }
         }
 
@@ -1367,14 +1454,40 @@ export const useCateringStore = create<CateringState>()(
         return false;
       },
 
-      addRecipe: (recipe) => set((state) => ({
-        recipes: [...state.recipes, { ...recipe, id: crypto.randomUUID() }],
-      })),
-      updateRecipe: (updatedRecipe) => set((state) => ({
-        recipes: state.recipes.map((recipe) =>
-          recipe.id === updatedRecipe.id ? updatedRecipe : recipe
-        ),
-      })),
+      addRecipe: (recipe) => set((state) => {
+        let calculatedCost = 0;
+        for (const ingredient of recipe.ingredients) {
+          const inventoryItem = state.inventory.find(
+            (item) => item.name.toLowerCase() === ingredient.name.toLowerCase() && item.unit.toLowerCase() === ingredient.unit.toLowerCase()
+          );
+          if (inventoryItem) {
+            calculatedCost += ingredient.quantity * inventoryItem.costPerUnit;
+          } else {
+            console.warn(`Ingredient "${ingredient.name}" with unit "${ingredient.unit}" not found in inventory for new recipe "${recipe.name}".`);
+          }
+        }
+        return {
+          recipes: [...state.recipes, { ...recipe, id: crypto.randomUUID(), baseCost: calculatedCost }],
+        };
+      }),
+      updateRecipe: (updatedRecipe) => set((state) => {
+        let calculatedCost = 0;
+        for (const ingredient of updatedRecipe.ingredients) {
+          const inventoryItem = state.inventory.find(
+            (item) => item.name.toLowerCase() === ingredient.name.toLowerCase() && item.unit.toLowerCase() === ingredient.unit.toLowerCase()
+          );
+          if (inventoryItem) {
+            calculatedCost += ingredient.quantity * inventoryItem.costPerUnit;
+          } else {
+            console.warn(`Ingredient "${ingredient.name}" with unit "${ingredient.unit}" not found in inventory for updated recipe "${updatedRecipe.name}".`);
+          }
+        }
+        return {
+          recipes: state.recipes.map((recipe) =>
+            recipe.id === updatedRecipe.id ? { ...updatedRecipe, baseCost: calculatedCost } : recipe
+          ),
+        };
+      }),
       deleteRecipe: (id) => set((state) => ({
         recipes: state.recipes.filter((recipe) => recipe.id !== id),
       })),

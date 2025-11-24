@@ -34,12 +34,12 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Trash2, Link as LinkIcon } from "lucide-react"; // Added LinkIcon
+import { PlusCircle, Trash2, Link as LinkIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useCateringStore, Recipe, RecipeIngredient, RecipeInstruction } from "@/store/cateringStore"; // Import from store
+import { useCateringStore, Recipe, RecipeIngredient, RecipeInstruction } from "@/store/cateringStore";
 
 // Define the main schema for a recipe
 const recipeFormSchema = z.object({
@@ -53,22 +53,24 @@ const recipeFormSchema = z.object({
   }),
   ingredients: z.array(z.object({
     name: z.string().min(1, "Ingredient name is required"),
-    quantity: z.string().min(1, "Quantity is required"),
+    quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0"),
+    unit: z.string().min(1, "Unit is required"),
   })).min(1, "At least one ingredient is required"),
   instructions: z.array(z.object({
     step: z.string().min(1, "Instruction step is required"),
   })).min(1, "At least one instruction step is required"),
-  sourceUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")), // New: Source URL
+  sourceUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
-type RecipeFormData = z.infer<typeof recipeFormSchema>; // Infer type directly from the schema
+type RecipeFormData = z.infer<typeof recipeFormSchema>;
 
 const Recipes = () => {
   const recipes = useCateringStore((state) => state.recipes);
   const addRecipe = useCateringStore((state) => state.addRecipe);
   const deleteRecipe = useCateringStore((state) => state.deleteRecipe);
+  const inventory = useCateringStore((state) => state.inventory);
 
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false); // State for import dialog
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeFormSchema),
@@ -79,9 +81,9 @@ const Recipes = () => {
       cookTime: "",
       servings: "",
       category: "Main Course",
-      ingredients: [{ name: "", quantity: "" }],
+      ingredients: [{ name: "", quantity: 0.01, unit: "lb" }],
       instructions: [{ step: "" }],
-      sourceUrl: "", // Initialize sourceUrl
+      sourceUrl: "",
     },
   });
 
@@ -96,7 +98,8 @@ const Recipes = () => {
   });
 
   const onSubmit = (data: RecipeFormData) => {
-    addRecipe(data as Omit<Recipe, 'id'>); // Explicitly cast data
+    // Explicitly cast data to the expected type for addRecipe
+    addRecipe(data as Omit<Recipe, 'id' | 'baseCost'>);
     form.reset({
       name: "",
       description: "",
@@ -104,10 +107,10 @@ const Recipes = () => {
       cookTime: "",
       servings: "",
       category: "Main Course",
-      ingredients: [{ name: "", quantity: "" }],
+      ingredients: [{ name: "", quantity: 0.01, unit: "lb" }],
       instructions: [{ step: "" }],
       sourceUrl: "",
-    }); // Reset the form after submission
+    });
     toast.success("Recipe added successfully!");
   };
 
@@ -117,19 +120,17 @@ const Recipes = () => {
   };
 
   const handleImportRecipe = () => {
-    // In a real scenario, you'd send the URL to a backend for scraping.
-    // For this simulation, we'll just open the main form and pre-fill the URL.
-    // The user would then manually fill the rest.
     const url = form.getValues("sourceUrl");
     if (url) {
       toast.info(`Simulating import from: ${url}. Please fill details manually.`);
-      // For now, just set the URL in the main form and close the import dialog.
       form.setValue("sourceUrl", url);
     } else {
       toast.error("Please enter a URL to import.");
     }
     setIsImportDialogOpen(false);
   };
+
+  const availableUnits = Array.from(new Set(inventory.map(item => item.unit)));
 
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
@@ -169,7 +170,7 @@ const Recipes = () => {
                       id="recipeUrl"
                       placeholder="https://www.example.com/recipe"
                       className="col-span-3"
-                      value={form.watch("sourceUrl")} // Bind to form's sourceUrl
+                      value={form.watch("sourceUrl")}
                       onChange={(e) => form.setValue("sourceUrl", e.target.value)}
                     />
                   </div>
@@ -301,11 +302,33 @@ const Recipes = () => {
                           control={form.control}
                           name={`ingredients.${index}.quantity`}
                           render={({ field }) => (
-                            <FormItem className="flex-1">
+                            <FormItem className="w-24">
                               <FormLabel className={cn(index !== 0 && "sr-only")}>Quantity</FormLabel>
                               <FormControl>
-                                <Input placeholder="e.g., 1.5 lbs" {...field} />
+                                <Input type="number" step="0.01" placeholder="1.5" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                               </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`ingredients.${index}.unit`}
+                          render={({ field }) => (
+                            <FormItem className="w-28">
+                              <FormLabel className={cn(index !== 0 && "sr-only")}>Unit</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Unit" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {availableUnits.map(unit => (
+                                    <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -327,7 +350,7 @@ const Recipes = () => {
                     variant="outline"
                     size="sm"
                     className="mt-4"
-                    onClick={() => appendIngredient({ name: "", quantity: "" })}
+                    onClick={() => appendIngredient({ name: "", quantity: 0.01, unit: "lb" })}
                   >
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Ingredient
                   </Button>
@@ -415,6 +438,7 @@ const Recipes = () => {
                         <div className="mt-2 text-sm">
                           <p><strong>Category:</strong> {recipe.category}</p>
                           <p><strong>Prep:</strong> {recipe.prepTime} | <strong>Cook:</strong> {recipe.cookTime} | <strong>Servings:</strong> {recipe.servings}</p>
+                          <p><strong>Base Cost:</strong> ${recipe.baseCost.toFixed(2)}</p>
                           {recipe.sourceUrl && (
                             <p>
                               <strong>Source:</strong>{" "}
@@ -428,7 +452,7 @@ const Recipes = () => {
                           <h4 className="font-medium">Ingredients:</h4>
                           <ul className="list-disc list-inside text-sm text-muted-foreground">
                             {recipe.ingredients.map((ing, idx) => (
-                              <li key={idx}>{ing.quantity} {ing.name}</li>
+                              <li key={idx}>{ing.quantity} {ing.unit} {ing.name}</li>
                             ))}
                           </ul>
                         </div>
