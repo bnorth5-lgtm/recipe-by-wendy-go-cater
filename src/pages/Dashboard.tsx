@@ -6,36 +6,54 @@ import { Link } from "react-router-dom";
 import {
   DollarSign,
   Calendar,
-  ClipboardList, // For Action Items
-  FileText, // For Build Proposal
-  Warehouse, // For Manage Inventory
-  MenuSquare, // For Build Menu
-  Utensils, // For Build Recipes
-  CalendarPlus, // For Build Event
-} from "lucide-react"; // Import Lucide React icons
-import { useCateringStore } from "@/store/cateringStore"; // Import the store
+  ClipboardList,
+  FileText,
+  Warehouse,
+  MenuSquare,
+  Utensils,
+  CalendarPlus,
+  UserPlus,
+} from "lucide-react";
+import { useCateringStore, Client } from "@/store/cateringStore"; // Import Client type
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ClientForm, ClientFormData } from "@/components/ClientForm";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
 
   const proposals = useCateringStore((state) => state.proposals);
+  const addClient = useCateringStore((state) => state.addClient);
 
-  // Calculate dynamic counts for the Quote Pipeline
+  const [isClientFormDialogOpen, setIsClientFormDialogOpen] = useState(false);
+
   const newLeadsCount = proposals.filter(p => p.status === "Draft").length;
   const proposalsSentCount = proposals.filter(p => p.status === "Sent").length;
   const confirmedBookingsCount = proposals.filter(p => p.status === "Accepted").length;
+
+  const handleAddClientSubmit = (data: ClientFormData) => {
+    addClient(data as Omit<Client, 'id'>); // Explicitly cast data to Omit<Client, 'id'>
+    toast.success("New client added successfully!");
+    setIsClientFormDialogOpen(false);
+  };
 
   return (
     <div
       className="space-y-6 min-h-full p-6 bg-cover bg-center relative"
       style={{ backgroundImage: "url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}
     >
-      {/* Overlay for better text readability */}
-      <div className="absolute inset-0 bg-black opacity-40 rounded-lg"></div> 
-      {/* Removed: <h1 className="text-3xl font-bold text-white relative z-10">Dashboard</h1> */}
+      <div className="absolute inset-0 bg-black opacity-40 rounded-lg"></div>
 
       <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 relative z-10">
-        {/* Existing Cards - Now clickable */}
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -93,7 +111,6 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        {/* New "Build" Cards */}
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -178,6 +195,40 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </Link>
+
+        <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Create New Client
+            </CardTitle>
+            <UserPlus className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold mb-2">Add a new client to your database</div>
+            <p className="text-xs text-muted-foreground mb-4">
+              Quickly add contact and company information for a new client.
+            </p>
+            <Dialog open={isClientFormDialogOpen} onOpenChange={setIsClientFormDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <UserPlus className="mr-2 h-4 w-4" /> Add Client
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Client</DialogTitle>
+                  <DialogDescription>
+                    Fill in the details to add a new client to your database.
+                  </DialogDescription>
+                </DialogHeader>
+                <ClientForm
+                  onSubmit={handleAddClientSubmit}
+                  onCancel={() => setIsClientFormDialogOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
       </div>
       <MadeWithDyad />
     </div>

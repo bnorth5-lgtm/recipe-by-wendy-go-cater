@@ -3,18 +3,6 @@
 import React, { useState } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import {
   Table,
   TableBody,
@@ -30,26 +18,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useCateringStore, Client } from "@/store/cateringStore";
-
-// Define the schema for a client
-const clientFormSchema = z.object({
-  name: z.string().min(1, "Company/Client name is required"),
-  contactPerson: z.string().min(1, "Contact person's name is required"),
-  email: z.string().email("Must be a valid email address").min(1, "Email is required"),
-  phone: z.string().min(1, "Phone number is required"),
-  address: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-type ClientFormData = z.infer<typeof clientFormSchema>; // Infer type directly from the schema
+import { ClientForm, ClientFormData } from "@/components/ClientForm"; // Import the new ClientForm and its type
 
 const Clients = () => {
   const clients = useCateringStore((state) => state.clients);
@@ -60,34 +34,23 @@ const Clients = () => {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const form = useForm<ClientFormData>({
-    resolver: zodResolver(clientFormSchema),
-    defaultValues: {
-      name: "",
-      contactPerson: "",
-      email: "",
-      phone: "",
-      address: "",
-      notes: "",
-    },
-  });
+  const handleAddClientSubmit = (data: ClientFormData) => {
+    addClient(data as Omit<Client, 'id'>);
+    toast.success("Client added successfully!");
+    setIsDialogOpen(false);
+  };
 
-  const onSubmit = (data: ClientFormData) => {
+  const handleUpdateClientSubmit = (data: ClientFormData) => {
     if (editingClient) {
-      updateClient({ ...data, id: editingClient.id } as Client); // Explicitly cast data
+      updateClient({ ...data, id: editingClient.id } as Client);
       toast.success("Client updated successfully!");
-    } else {
-      addClient(data as Omit<Client, 'id'>); // Explicitly cast data
-      toast.success("Client added successfully!");
     }
-    form.reset();
     setEditingClient(null);
     setIsDialogOpen(false);
   };
 
   const handleEdit = (client: Client) => {
     setEditingClient(client);
-    form.reset(client); // Populate form with client data
     setIsDialogOpen(true);
   };
 
@@ -116,7 +79,12 @@ const Clients = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) { // Reset editing client when dialog closes
+                setEditingClient(null);
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button className="w-full mb-6">
                   <PlusCircle className="mr-2 h-4 w-4" /> Add New Client
@@ -129,93 +97,11 @@ const Clients = () => {
                     {editingClient ? "Make changes to the client's information here. Click save when you're done." : "Add a new client to your database. Click save when you're done."}
                   </DialogDescription>
                 </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Company/Client Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Acme Corp" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="contactPerson"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contact Person</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Jane Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="e.g., jane.doe@example.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone</FormLabel>
-                            <FormControl>
-                              <Input type="tel" placeholder="e.g., (555) 123-4567" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Address (Optional)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., 123 Main St, Anytown, USA" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Notes (Optional)</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Any specific client preferences or details..." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter>
-                      <Button type="submit">{editingClient ? "Save changes" : "Add Client"}</Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
+                <ClientForm
+                  initialData={editingClient || undefined}
+                  onSubmit={editingClient ? handleUpdateClientSubmit : handleAddClientSubmit}
+                  onCancel={() => setIsDialogOpen(false)}
+                />
               </DialogContent>
             </Dialog>
           </CardContent>
