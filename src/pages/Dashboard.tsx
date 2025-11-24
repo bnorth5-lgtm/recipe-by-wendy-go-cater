@@ -48,7 +48,7 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 bg-cover bg-center relative" // Removed min-h-full
+      className="space-y-6 p-6 bg-cover bg-center relative"
       style={{ backgroundImage: "url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}
     >
       <div className="absolute inset-0 bg-black opacity-40 rounded-lg"></div>
@@ -196,7 +196,7 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm bg-red-500"> {/* Added temporary red background */}
+        <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm"> {/* Removed bg-red-500 */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client
