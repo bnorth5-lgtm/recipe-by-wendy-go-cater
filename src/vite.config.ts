@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(({ command }) => ({
-  base: command === 'build' ? './' : '/', // Set base to './' for build, '/' for dev
+  base: '/', // Always use absolute path for Vercel deployments
   server: {
     host: "::",
     port: 8080,
