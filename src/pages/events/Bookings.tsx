@@ -16,7 +16,12 @@ import { CheckCircle, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useCateringStore, EventBooking } from "@/store/cateringStore";
 import { Badge } from "@/components/ui/badge";
-import { BookingForm } from "@/components/BookingForm"; // Import the new BookingForm
+import { BookingForm } from "@/components/BookingForm";
+import { format } from "date-fns"; // Import format from date-fns
+import * as z from "zod"; // Import Zod
+import { bookingFormSchema } from "@/components/BookingForm"; // Import the schema
+
+type BookingFormData = z.infer<typeof bookingFormSchema>; // Infer type from schema
 
 const Bookings = () => {
   const bookings = useCateringStore((state) => state.bookings);
@@ -25,11 +30,12 @@ const Bookings = () => {
   const completeBooking = useCateringStore((state) => state.completeBooking);
   const deleteBooking = useCateringStore((state) => state.deleteBooking);
 
-  const handleAddBookingSubmit = (data: Omit<EventBooking, 'id' | 'status'>) => {
+  // Explicitly type data as BookingFormData
+  const handleAddBookingSubmit = (data: BookingFormData) => {
     addBooking({
       eventName: data.eventName,
       clientName: data.clientName,
-      eventDate: format(data.eventDate, "yyyy-MM-dd"), // Format date for storage
+      eventDate: format(data.eventDate, "yyyy-MM-dd"),
       numberOfGuests: data.numberOfGuests,
       selectedRecipeIds: data.selectedRecipeIds,
     });
@@ -70,7 +76,6 @@ const Bookings = () => {
           </CardContent>
         </Card>
 
-        {/* Display Existing Bookings */}
         <Card className="bg-card p-6 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Current Bookings</CardTitle>

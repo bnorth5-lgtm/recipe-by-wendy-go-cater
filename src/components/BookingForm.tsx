@@ -75,7 +75,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({ options, selectedValues, onCh
 };
 
 // Define the schema for an event booking form
-const bookingFormSchema = z.object({
+export const bookingFormSchema = z.object({ // Exported the schema
   eventName: z.string().min(1, "Event name is required"),
   clientName: z.string().min(1, "Client name is required"),
   eventDate: z.date({

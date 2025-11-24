@@ -8,25 +8,28 @@ import { format, isSameDay, parseISO } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button"; // Import Button
-import { Edit } from "lucide-react"; // Import Edit icon
+import { Button } from "@/components/ui/button";
+import { Edit } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"; // Import Dialog components
-import { BookingForm } from "@/components/BookingForm"; // Import the new BookingForm
+} from "@/components/ui/dialog";
+import { BookingForm } from "@/components/BookingForm";
+import * as z from "zod"; // Import Zod
+import { bookingFormSchema } from "@/components/BookingForm"; // Import the schema
+
+type BookingFormData = z.infer<typeof bookingFormSchema>; // Infer type from schema
 
 const Calendar = () => {
   const bookings = useCateringStore((state) => state.bookings);
-  const updateBooking = useCateringStore((state) => state.updateBooking); // Get update function
+  const updateBooking = useCateringStore((state) => state.updateBooking);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [editingBooking, setEditingBooking] = useState<EventBooking | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  // Prepare modifiers for dates with events
   const bookedDates = bookings.map(booking => parseISO(booking.eventDate));
   const modifiers = {
     hasEvent: bookedDates,
@@ -35,7 +38,6 @@ const Calendar = () => {
     hasEvent: "bg-primary text-primary-foreground rounded-full",
   };
 
-  // Filter events for the selected date
   const eventsOnSelectedDate = selectedDate
     ? bookings.filter(booking => isSameDay(parseISO(booking.eventDate), selectedDate))
     : [];
@@ -45,10 +47,11 @@ const Calendar = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateBookingSubmit = (data: Omit<EventBooking, 'id' | 'status'>) => {
+  // Explicitly type data as BookingFormData
+  const handleUpdateBookingSubmit = (data: BookingFormData) => {
     if (editingBooking) {
       updateBooking({
-        ...editingBooking, // Keep existing ID and status
+        ...editingBooking,
         eventName: data.eventName,
         clientName: data.clientName,
         eventDate: format(data.eventDate, "yyyy-MM-dd"),
@@ -70,7 +73,6 @@ const Calendar = () => {
       </div>
 
       <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Calendar View */}
         <Card className="bg-card p-6 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Event Overview</CardTitle>
@@ -90,7 +92,6 @@ const Calendar = () => {
           </CardContent>
         </Card>
 
-        {/* Events List for Selected Date */}
         <Card className="bg-card p-6 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
@@ -138,7 +139,6 @@ const Calendar = () => {
       </div>
       <MadeWithDyad />
 
-      {/* Edit Booking Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
