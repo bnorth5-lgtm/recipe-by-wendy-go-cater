@@ -1,33 +1,17 @@
 "use client";
 
-import {
-  DollarSign,
-  CalendarCheck,
-  LayoutDashboard,
-  FileText,
-  Warehouse,
-  BookText,
-  Utensils,
-  CalendarPlus,
-  Settings, // Added for Sidebar
-  ChevronDown, // Added for Sidebar
-  ChevronRight, // Added for Sidebar
-  Leaf, // Added for Sidebar
-  MenuIcon, // Added for Sidebar
-} from "lucide-react";
+import * as LucideIcons from "lucide-react";
 
-export {
-  DollarSign,
-  CalendarCheck,
-  LayoutDashboard,
-  FileText,
-  Warehouse,
-  BookText,
-  Utensils,
-  CalendarPlus,
-  Settings,
-  ChevronDown,
-  ChevronRight,
-  Leaf,
-  MenuIcon,
-};
+export const DollarSign = LucideIcons.DollarSign;
+export const CalendarCheck = LucideIcons.CalendarCheck;
+export const LayoutDashboard = LucideIcons.LayoutDashboard;
+export const FileText = LucideIcons.FileText;
+export const Warehouse = LucideIcons.Warehouse;
+export const BookText = LucideIcons.BookText;
+export const Utensils = LucideIcons.Utensils;
+export const CalendarPlus = LucideIcons.CalendarPlus;
+export const Settings = LucideIcons.Settings;
+export const ChevronDown = LucideIcons.ChevronDown;
+export const ChevronRight = LucideIcons.ChevronRight;
+export const Leaf = LucideIcons.Leaf;
+export const MenuIcon = LucideIcons.MenuIcon;
