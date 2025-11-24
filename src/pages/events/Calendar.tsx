@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit } from "lucide-react";
+import { Edit, XCircle } from "lucide-react"; // Import XCircle for cancel icon
 import {
   Dialog,
   DialogContent,
@@ -17,11 +17,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
 import { BookingForm } from "@/components/BookingForm";
-import * as z from "zod"; // Import Zod
-import { bookingFormSchema } from "@/components/BookingForm"; // Import the schema
+import * as z from "zod";
+import { bookingFormSchema } from "@/components/BookingForm";
+import { toast } from "sonner"; // Import toast for notifications
 
-type BookingFormData = z.infer<typeof bookingFormSchema>; // Infer type from schema
+type BookingFormData = z.infer<typeof bookingFormSchema>;
 
 const Calendar = () => {
   const bookings = useCateringStore((state) => state.bookings);
@@ -29,7 +41,9 @@ const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [editingBooking, setEditingBooking] = useState<EventBooking | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<EventBooking | null>(null); // State for booking to cancel
 
+  // Prepare modifiers for dates with events
   const bookedDates = bookings.map(booking => parseISO(booking.eventDate));
   const modifiers = {
     hasEvent: bookedDates,
@@ -38,6 +52,7 @@ const Calendar = () => {
     hasEvent: "bg-primary text-primary-foreground rounded-full",
   };
 
+  // Filter events for the selected date
   const eventsOnSelectedDate = selectedDate
     ? bookings.filter(booking => isSameDay(parseISO(booking.eventDate), selectedDate))
     : [];
@@ -47,11 +62,10 @@ const Calendar = () => {
     setIsEditDialogOpen(true);
   };
 
-  // Explicitly type data as BookingFormData
   const handleUpdateBookingSubmit = (data: BookingFormData) => {
     if (editingBooking) {
       updateBooking({
-        ...editingBooking,
+        ...editingBooking, // Keep existing ID and status
         eventName: data.eventName,
         clientName: data.clientName,
         eventDate: format(data.eventDate, "yyyy-MM-dd"),
@@ -60,6 +74,19 @@ const Calendar = () => {
       });
       setEditingBooking(null);
       setIsEditDialogOpen(false);
+      toast.success("Event booking updated successfully!");
+    }
+  };
+
+  const handleCancelBooking = (booking: EventBooking) => {
+    setBookingToCancel(booking);
+  };
+
+  const confirmCancelBooking = () => {
+    if (bookingToCancel) {
+      updateBooking({ ...bookingToCancel, status: "cancelled" });
+      toast.info(`Event "${bookingToCancel.eventName}" has been cancelled.`);
+      setBookingToCancel(null); // Clear the booking to cancel
     }
   };
 
@@ -73,6 +100,7 @@ const Calendar = () => {
       </div>
 
       <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Calendar View */}
         <Card className="bg-card p-6 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Event Overview</CardTitle>
@@ -92,6 +120,7 @@ const Calendar = () => {
           </CardContent>
         </Card>
 
+        {/* Events List for Selected Date */}
         <Card className="bg-card p-6 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
@@ -117,18 +146,50 @@ const Calendar = () => {
                         <p className="text-sm text-muted-foreground">Guests: {booking.numberOfGuests}</p>
                         <Badge
                           className="mt-2"
-                          variant={booking.status === "completed" ? "default" : booking.status === "cancelled" ? "destructive" : "secondary"}
+                          variant={
+                            booking.status === "completed" ? "default" :
+                            booking.status === "cancelled" ? "destructive" :
+                            "secondary"
+                          }
                         >
                           {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                         </Badge>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditBooking(booking)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditBooking(booking)}
+                          disabled={booking.status === "cancelled"} // Disable edit if cancelled
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        {booking.status !== "cancelled" && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => handleCancelBooking(booking)}
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will mark the event "{bookingToCancel?.eventName}" as cancelled.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setBookingToCancel(null)}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={confirmCancelBooking}>Continue</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -139,6 +200,7 @@ const Calendar = () => {
       </div>
       <MadeWithDyad />
 
+      {/* Edit Booking Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
