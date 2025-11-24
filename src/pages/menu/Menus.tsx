@@ -34,12 +34,13 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Edit, Trash2, Utensils, ChevronDown, ChevronRight, Wine, Coffee, Cake, Salad } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Utensils, ChevronDown, ChevronRight, Wine, Coffee, Cake, Salad, Link as LinkIcon, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useCateringStore, Menu, Recipe } from "@/store/cateringStore";
+import { useCateringStore, Menu, Recipe, InventoryItem } from "@/store/cateringStore";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 // Multi-select component for recipes (reusing from Bookings, slightly adapted)
 interface MultiSelectProps {
@@ -110,14 +111,30 @@ const menuFormSchema = z.object({
 
 type MenuFormData = z.infer<typeof menuFormSchema>;
 
+// Define a simple structure for simulated imported menu data
+interface SimulatedImportedMenu {
+  name: string;
+  description: string;
+  category: "Wedding" | "Corporate" | "Seasonal" | "Buffet" | "Plated" | "Other";
+  appetizerIds?: string[];
+  mainCourseIds?: string[];
+  dessertIds?: string[];
+  alcoholicBeverageIds?: string[];
+  nonAlcoholicBeverageIds?: string[];
+  sideDishIds?: string[];
+}
+
 const Menus = () => {
   const menus = useCateringStore((state) => state.menus);
   const recipes = useCateringStore((state) => state.recipes);
+  const inventory = useCateringStore((state) => state.inventory);
   const addMenu = useCateringStore((state) => state.addMenu);
   const updateMenu = useCateringStore((state) => state.updateMenu);
   const deleteMenu = useCateringStore((state) => state.deleteMenu);
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importJson, setImportJson] = useState(""); // State for the JSON input
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
   const [selectedMenuId, setSelectedMenuId] = useState<string | undefined>(undefined); // New state for dropdown selection
 
@@ -167,13 +184,13 @@ const Menus = () => {
     }
     form.reset();
     setEditingMenu(null);
-    setIsDialogOpen(false);
+    setIsFormDialogOpen(false);
   };
 
   const handleEdit = (menu: Menu) => {
     setEditingMenu(menu);
     form.reset(menu); // Populate form with menu data
-    setIsDialogOpen(true);
+    setIsFormDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -181,6 +198,30 @@ const Menus = () => {
     toast.info("Menu deleted.");
     if (selectedMenuId === id) {
       setSelectedMenuId(undefined); // Clear selected menu if deleted
+    }
+  };
+
+  const handleSimulateMenuImport = () => {
+    try {
+      const importedMenu: SimulatedImportedMenu = JSON.parse(importJson);
+      form.reset({
+        name: importedMenu.name || "",
+        description: importedMenu.description || "",
+        category: importedMenu.category || "Other",
+        appetizerIds: importedMenu.appetizerIds || [],
+        mainCourseIds: importedMenu.mainCourseIds || [],
+        dessertIds: importedMenu.dessertIds || [],
+        alcoholicBeverageIds: importedMenu.alcoholicBeverageIds || [],
+        nonAlcoholicBeverageIds: importedMenu.nonAlcoholicBeverageIds || [],
+        sideDishIds: importedMenu.sideDishIds || [],
+      });
+      toast.success("Menu details pre-filled from import!");
+      setIsImportDialogOpen(false);
+      setImportJson(""); // Clear the textarea
+      setIsFormDialogOpen(true); // Open the form dialog after pre-filling
+    } catch (error) {
+      toast.error("Failed to parse JSON. Please ensure it's valid JSON format.");
+      console.error("JSON parsing error:", error);
     }
   };
 
@@ -224,6 +265,36 @@ const Menus = () => {
   const isSelectedMenuPlated = selectedMenu?.category === "Plated";
   const isSelectedMenuBuffet = selectedMenu?.category === "Buffet";
 
+  // Function to get all unique missing ingredients for a given menu
+  const getMissingIngredientsForMenu = (menu: Menu) => {
+    const allRecipeIds = [
+      ...(menu.appetizerIds || []),
+      ...(menu.mainCourseIds || []),
+      ...(menu.dessertIds || []),
+      ...(menu.alcoholicBeverageIds || []),
+      ...(menu.nonAlcoholicBeverageIds || []),
+      ...(menu.sideDishIds || []),
+    ];
+
+    const uniqueMissingIngredients = new Set<string>();
+
+    allRecipeIds.forEach(recipeId => {
+      const recipe = recipes.find(r => r.id === recipeId);
+      if (recipe) {
+        recipe.ingredients.forEach(ing => {
+          const found = inventory.some(item =>
+            item.name.toLowerCase() === ing.name.toLowerCase() &&
+            item.unit.toLowerCase() === ing.unit.toLowerCase()
+          );
+          if (!found) {
+            uniqueMissingIngredients.add(`${ing.name} (${ing.unit})`);
+          }
+        });
+      }
+    });
+    return Array.from(uniqueMissingIngredients);
+  };
+
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
       <div className="text-center mb-8">
@@ -244,211 +315,248 @@ const Menus = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Dialog open={isDialogOpen} onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) { // If dialog is closing
-                form.reset();
-                setEditingMenu(null);
-              }
-            }}>
-              <DialogTrigger asChild>
-                <Button className="w-full mb-6">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Create New Menu
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>{editingMenu ? "Edit Menu" : "Create New Menu"}</DialogTitle>
-                  <DialogDescription>
-                    {editingMenu ? "Make changes to the menu here. Click save when you're done." : "Define a new menu by selecting recipes and providing details."}
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Menu Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Summer Wedding Package" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="A delightful selection of seasonal dishes..." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Menu Type/Category</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <Dialog open={isFormDialogOpen} onOpenChange={(open) => {
+                setIsFormDialogOpen(open);
+                if (!open) { // If dialog is closing
+                  form.reset();
+                  setEditingMenu(null);
+                }
+              }}>
+                <DialogTrigger asChild>
+                  <Button className="w-full sm:w-1/2">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Create New Menu
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>{editingMenu ? "Edit Menu" : "Create New Menu"}</DialogTitle>
+                    <DialogDescription>
+                      {editingMenu ? "Make changes to the menu here. Click save when you're done." : "Define a new menu by selecting recipes and providing details."}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Menu Name</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a category" />
-                              </SelectTrigger>
+                              <Input placeholder="e.g., Summer Wedding Package" {...field} />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Wedding">Wedding</SelectItem>
-                              <SelectItem value="Corporate">Corporate</SelectItem>
-                              <SelectItem value="Seasonal">Seasonal</SelectItem>
-                              <SelectItem value="Buffet">Buffet</SelectItem>
-                              <SelectItem value="Plated">Plated</SelectItem>
-                              <SelectItem value="Other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="A delightful selection of seasonal dishes..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Menu Type/Category</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Wedding">Wedding</SelectItem>
+                                <SelectItem value="Corporate">Corporate</SelectItem>
+                                <SelectItem value="Seasonal">Seasonal</SelectItem>
+                                <SelectItem value="Buffet">Buffet</SelectItem>
+                                <SelectItem value="Plated">Plated</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    {/* Categorized Recipe Selection - Conditional based on Menu Type */}
-                    <h3 className="text-lg font-medium mt-4">
-                      Select Recipes by Category {watchedCategory === "Plated" && "(Choose 1-2 per category)"}
-                      {watchedCategory === "Buffet" && "(Select multiple offerings per category)"}
-                    </h3>
-                    {watchedCategory === "Plated" && (
-                      <p className="text-sm text-muted-foreground -mt-2 mb-4">
-                        For a plated menu, select the specific dishes offered for each course.
-                      </p>
-                    )}
-                    {watchedCategory === "Buffet" && (
-                      <p className="text-sm text-muted-foreground -mt-2 mb-4">
-                        For a buffet menu, select all items that will be available in each category.
-                      </p>
-                    )}
+                      {/* Categorized Recipe Selection - Conditional based on Menu Type */}
+                      <h3 className="text-lg font-medium mt-4">
+                        Select Recipes by Category {watchedCategory === "Plated" && "(Choose 1-2 per category)"}
+                        {watchedCategory === "Buffet" && "(Select multiple offerings per category)"}
+                      </h3>
+                      {watchedCategory === "Plated" && (
+                        <p className="text-sm text-muted-foreground -mt-2 mb-4">
+                          For a plated menu, select the specific dishes offered for each course.
+                        </p>
+                      )}
+                      {watchedCategory === "Buffet" && (
+                        <p className="text-sm text-muted-foreground -mt-2 mb-4">
+                          For a buffet menu, select all items that will be available in each category.
+                        </p>
+                      )}
 
-                    <FormField
-                      control={form.control}
-                      name="appetizerIds"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Appetizers</FormLabel>
-                          <FormControl>
-                            <MultiSelect
-                              options={getRecipeOptions("Appetizer")}
-                              selectedValues={field.value || []}
-                              onChange={field.onChange}
-                              placeholder={watchedCategory === "Plated" ? "Select appetizer choices" : "Select buffet appetizers"}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="mainCourseIds"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Main Courses</FormLabel>
-                          <FormControl>
-                            <MultiSelect
-                              options={getRecipeOptions("Main Course").concat(getRecipeOptions("Vegetarian Main"))}
-                              selectedValues={field.value || []}
-                              onChange={field.onChange}
-                              placeholder={watchedCategory === "Plated" ? "Select main course choices" : "Select buffet main courses"}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="sideDishIds"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Side Dishes</FormLabel>
-                          <FormControl>
-                            <MultiSelect
-                              options={getRecipeOptions("Side Dish")}
-                              selectedValues={field.value || []}
-                              onChange={field.onChange}
-                              placeholder={watchedCategory === "Plated" ? "Select side dish choices" : "Select buffet side dishes"}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="dessertIds"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Desserts</FormLabel>
-                          <FormControl>
-                            <MultiSelect
-                              options={getRecipeOptions("Dessert")}
-                              selectedValues={field.value || []}
-                              onChange={field.onChange}
-                              placeholder={watchedCategory === "Plated" ? "Select dessert choices" : "Select buffet desserts"}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="nonAlcoholicBeverageIds"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Non-Alcoholic Beverages</FormLabel>
-                          <FormControl>
-                            <MultiSelect
-                              options={getRecipeOptions("Non-Alcoholic Beverage")}
-                              selectedValues={field.value || []}
-                              onChange={field.onChange}
-                              placeholder={watchedCategory === "Plated" ? "Select non-alcoholic drink choices" : "Select buffet non-alcoholic drinks"}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="alcoholicBeverageIds"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Alcoholic Beverages</FormLabel>
-                          <FormControl>
-                            <MultiSelect
-                              options={getRecipeOptions("Alcoholic Beverage")}
-                              selectedValues={field.value || []}
-                              onChange={field.onChange}
-                              placeholder={watchedCategory === "Plated" ? "Select alcoholic drink choices" : "Select buffet alcoholic drinks"}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name="appetizerIds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Appetizers</FormLabel>
+                            <FormControl>
+                              <MultiSelect
+                                options={getRecipeOptions("Appetizer")}
+                                selectedValues={field.value || []}
+                                onChange={field.onChange}
+                                placeholder={watchedCategory === "Plated" ? "Select appetizer choices" : "Select buffet appetizers"}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="mainCourseIds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Main Courses</FormLabel>
+                            <FormControl>
+                              <MultiSelect
+                                options={getRecipeOptions("Main Course").concat(getRecipeOptions("Vegetarian Main"))}
+                                selectedValues={field.value || []}
+                                onChange={field.onChange}
+                                placeholder={watchedCategory === "Plated" ? "Select main course choices" : "Select buffet main courses"}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="sideDishIds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Side Dishes</FormLabel>
+                            <FormControl>
+                              <MultiSelect
+                                options={getRecipeOptions("Side Dish")}
+                                selectedValues={field.value || []}
+                                onChange={field.onChange}
+                                placeholder={watchedCategory === "Plated" ? "Select side dish choices" : "Select buffet side dishes"}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dessertIds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Desserts</FormLabel>
+                            <FormControl>
+                              <MultiSelect
+                                options={getRecipeOptions("Dessert")}
+                                selectedValues={field.value || []}
+                                onChange={field.onChange}
+                                placeholder={watchedCategory === "Plated" ? "Select dessert choices" : "Select buffet desserts"}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="nonAlcoholicBeverageIds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Non-Alcoholic Beverages</FormLabel>
+                            <FormControl>
+                              <MultiSelect
+                                options={getRecipeOptions("Non-Alcoholic Beverage")}
+                                selectedValues={field.value || []}
+                                onChange={field.onChange}
+                                placeholder={watchedCategory === "Plated" ? "Select non-alcoholic drink choices" : "Select buffet non-alcoholic drinks"}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="alcoholicBeverageIds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Alcoholic Beverages</FormLabel>
+                            <FormControl>
+                              <MultiSelect
+                                options={getRecipeOptions("Alcoholic Beverage")}
+                                selectedValues={field.value || []}
+                                onChange={field.onChange}
+                                placeholder={watchedCategory === "Plated" ? "Select alcoholic drink choices" : "Select buffet alcoholic drinks"}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <DialogFooter>
-                      <Button type="submit">{editingMenu ? "Save changes" : "Create Menu"}</Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+                      <DialogFooter>
+                        <Button type="submit">{editingMenu ? "Save changes" : "Create Menu"}</Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full sm:w-1/2">
+                    <LinkIcon className="mr-2 h-4 w-4" /> Simulate Menu Import
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px]">
+                  <DialogHeader>
+                    <DialogTitle>Simulate Menu Import</DialogTitle>
+                    <DialogDescription>
+                      Paste menu details in JSON format. This will pre-fill the "Create New Menu" form.
+                      <br />
+                      <span className="text-xs text-muted-foreground">
+                        (Note: For legal reasons, direct web scraping is not supported. Please ensure your source is legal.)
+                      </span>
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <Label htmlFor="menuJson" className="text-left">
+                      Menu JSON
+                    </Label>
+                    <Textarea
+                      id="menuJson"
+                      placeholder={`{\n  "name": "Example Menu",\n  "description": "A delightful example menu.",\n  "category": "Wedding",\n  "appetizerIds": ["r10", "r21"],\n  "mainCourseIds": ["r3", "r7"]\n}`}
+                      className="min-h-[200px] font-mono text-xs"
+                      value={importJson}
+                      onChange={(e) => setImportJson(e.target.value)}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" onClick={handleSimulateMenuImport}>Pre-fill Form</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardContent>
         </Card>
 
@@ -514,6 +622,22 @@ const Menus = () => {
                       {renderRecipeList(selectedMenu.dessertIds, "Desserts", Cake, isSelectedMenuPlated)}
                       {renderRecipeList(selectedMenu.nonAlcoholicBeverageIds, "Non-Alcoholic Beverages", Coffee, isSelectedMenuPlated)}
                       {renderRecipeList(selectedMenu.alcoholicBeverageIds, "Alcoholic Beverages", Wine, isSelectedMenuPlated)}
+
+                      <Separator className="my-6" />
+
+                      {/* Missing Ingredients Section */}
+                      <h4 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <AlertCircle className="h-5 w-5 text-destructive" /> Missing Ingredients for this Menu:
+                      </h4>
+                      {getMissingIngredientsForMenu(selectedMenu).length > 0 ? (
+                        <ul className="list-disc list-inside space-y-1 text-sm text-destructive ml-4">
+                          {getMissingIngredientsForMenu(selectedMenu).map((ingredient, idx) => (
+                            <li key={idx}>{ingredient}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-green-600 text-sm ml-4">All ingredients for this menu are currently in your inventory!</p>
+                      )}
                     </div>
                   </div>
                 ) : (
