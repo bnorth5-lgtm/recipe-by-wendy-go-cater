@@ -13,9 +13,17 @@ import {
   Utensils, // For Build Recipes
   CalendarPlus, // For Build Event
 } from "lucide-react"; // Import Lucide React icons
+import { useCateringStore } from "@/store/cateringStore"; // Import the store
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
+
+  const proposals = useCateringStore((state) => state.proposals);
+
+  // Calculate dynamic counts for the Quote Pipeline
+  const newLeadsCount = proposals.filter(p => p.status === "Draft").length;
+  const proposalsSentCount = proposals.filter(p => p.status === "Sent").length;
+  const confirmedBookingsCount = proposals.filter(p => p.status === "Accepted").length;
 
   return (
     <div
@@ -37,9 +45,9 @@ const Dashboard = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">3 New Leads</div>
+              <div className="text-2xl font-bold">{newLeadsCount} New Leads</div>
               <p className="text-xs text-muted-foreground">
-                5 Proposals Sent, 2 Confirmed Bookings
+                {proposalsSentCount} Proposals Sent, {confirmedBookingsCount} Confirmed Bookings
               </p>
             </CardContent>
           </Card>
