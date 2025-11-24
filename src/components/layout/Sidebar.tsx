@@ -5,46 +5,57 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import React from "react";
+import {
+  LayoutDashboard,
+  Warehouse,
+  Leaf,
+  BookText,
+  Menu as MenuIcon,
+  DollarSign,
+  CalendarCheck,
+  Settings,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react"; // Import Lucide React icons
 
 export const Sidebar = () => {
-  console.log("Sidebar.tsx is rendering without LucideIcons!");
   const location = useLocation();
 
   const navItems = [
     {
       name: "Dashboard",
       href: "/dashboard",
-      // icon: LayoutDashboard, // Temporarily removed icon
+      icon: LayoutDashboard,
       children: [],
     },
     {
       name: "Inventory",
       href: "/menu/inventory",
-      // icon: Warehouse, // Temporarily removed icon
+      icon: Warehouse,
       children: [],
     },
     {
       name: "Ingredients",
       href: "/menu/ingredients",
-      // icon: Leaf, // Temporarily removed icon
+      icon: Leaf,
       children: [],
     },
     {
       name: "Recipes",
       href: "/menu/recipes",
-      // icon: BookText, // Temporarily removed icon
+      icon: BookText,
       children: [],
     },
     {
       name: "Menus",
       href: "/menu/menus",
-      // icon: MenuIcon, // Temporarily removed icon
+      icon: MenuIcon,
       children: [],
     },
     {
       name: "Quoting & Proposals",
       href: "/quoting",
-      // icon: DollarSign, // Temporarily removed icon
+      icon: DollarSign,
       children: [
         { name: "Clients", href: "/quoting/clients" },
         { name: "Proposals", href: "/quoting/proposals" },
@@ -54,7 +65,7 @@ export const Sidebar = () => {
     {
       name: "Events & Planning",
       href: "/events",
-      // icon: CalendarCheck, // Temporarily removed icon
+      icon: CalendarCheck,
       children: [
         { name: "Calendar", href: "/events/calendar" },
         { name: "Bookings", href: "/events/bookings" },
@@ -64,7 +75,7 @@ export const Sidebar = () => {
     {
       name: "Settings",
       href: "/settings",
-      // icon: Settings, // Temporarily removed icon
+      icon: Settings,
       children: [
         { name: "General", href: "/settings/general" },
         { name: "Users", href: "/settings/users" },
@@ -86,6 +97,7 @@ export const Sidebar = () => {
           {navItems.map((item) => {
             const isActiveParent = location.pathname.startsWith(item.href);
             const hasChildren = item.children && item.children.length > 0;
+            const Icon = item.icon; // Get the icon component
 
             return (
               <React.Fragment key={item.href}>
@@ -100,9 +112,9 @@ export const Sidebar = () => {
                   )}
                 >
                   <Link to={item.href}>
-                    {/* {item.icon && <item.icon className="mr-3 h-5 w-5" />} */} {/* Temporarily removed icon rendering */}
+                    {Icon && <Icon className="mr-3 h-5 w-5" />}
                     {item.name}
-                    {hasChildren && (isActiveParent ? <span className="ml-auto h-4 w-4">▼</span> : <span className="ml-auto h-4 w-4">▶</span>)} {/* Placeholder for chevron icons */}
+                    {hasChildren && (isActiveParent ? <ChevronDown className="ml-auto h-4 w-4" /> : <ChevronRight className="ml-auto h-4 w-4" />)}
                   </Link>
                 </Button>
                 {hasChildren && isActiveParent && (
