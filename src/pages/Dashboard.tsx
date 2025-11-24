@@ -3,16 +3,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Link } from "react-router-dom"; // Import Link for navigation
-import {
-  DollarSign,
-  CalendarCheck,
-  LayoutDashboard,
-  FileText, // For Build Proposal
-  Warehouse, // For Build Inventory
-  BookText, // For Build Menu
-  Utensils, // For Build Recipes
-  CalendarPlus, // For Build Event
-} from "lucide-react"; // Added imports for new icons
+import { DollarSign } from "lucide-react";
+import { CalendarCheck } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
+import { FileText } from "lucide-react"; // For Build Proposal
+import { Warehouse } from "lucide-react"; // For Build Inventory
+import { BookText } from "lucide-react"; // For Build Menu
+import { Utensils } from "lucide-react"; // For Build Recipes
+import { CalendarPlus } from "lucide-react"; // For Build Event
+
 
 const Dashboard = () => {
   return (
