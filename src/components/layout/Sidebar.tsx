@@ -87,24 +87,25 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="flex flex-col h-full w-64 bg-primary text-primary-foreground"> {/* Entire sidebar is now primary blue */}
-      <div className="relative h-32 w-full overflow-hidden border-b border-primary-foreground/20 flex flex-col items-center justify-center px-4 text-white">
+    <aside className="flex flex-col h-full w-64 bg-sidebar text-sidebar-foreground"> {/* Entire sidebar (except header) is now light background */}
+      <div className="relative h-32 w-full overflow-hidden border-b border-primary-foreground/20 flex flex-col items-center justify-center px-4 bg-primary text-white"> {/* Header is blue */}
         <ChefHat className="h-8 w-8 text-white mb-2" />
         <h1 className="text-xl font-serif font-semibold text-white">
           Catering by Cronkhite
         </h1>
       </div>
-      <ScrollArea className="flex-1 py-4"> {/* ScrollArea takes remaining space */}
+      <ScrollArea className="flex-1 py-4"> {/* ScrollArea takes remaining space, inherits light background */}
         <nav className="grid items-start px-4 text-sm font-medium">
           {navItems.map((item) => {
             const isActiveParent = location.pathname.startsWith(item.href);
             const hasChildren = item.children && item.children.length > 0;
             const Icon = item.icon;
 
-            // Styling for all nav items against the blue background
-            const baseTextColor = "text-primary-foreground";
-            const hoverBg = "hover:bg-primary-foreground/10"; // Light transparent white on hover
-            const activeBg = "bg-primary-foreground/20"; // Slightly more opaque transparent white when active
+            // Styling for all nav items against the light background
+            const baseTextColor = "text-sidebar-foreground";
+            const hoverBg = "hover:bg-sidebar-accent"; // Lighter blue for hover
+            const activeBg = "bg-sidebar-accent"; // Lighter blue for active background
+            const activeTextColor = "text-sidebar-accent-foreground"; // Primary blue for active text
 
             return (
               <React.Fragment key={item.href}>
@@ -115,7 +116,7 @@ export const Sidebar = () => {
                     "justify-start mb-1",
                     baseTextColor,
                     hoverBg,
-                    isActiveParent ? cn(activeBg, baseTextColor) : "" // Active text color remains primary-foreground
+                    isActiveParent ? cn(activeBg, activeTextColor) : ""
                   )}
                 >
                   <Link to={item.href}>
@@ -137,7 +138,7 @@ export const Sidebar = () => {
                             "justify-start w-full mb-1 text-xs",
                             baseTextColor,
                             hoverBg,
-                            isChildActive ? cn(activeBg, baseTextColor) : ""
+                            isChildActive ? cn(activeBg, activeTextColor) : ""
                           )}
                         >
                           <Link to={child.href}>
@@ -153,7 +154,6 @@ export const Sidebar = () => {
           })}
         </nav>
       </ScrollArea>
-      {/* Removed the flex-grow div as the entire aside is now blue */}
     </aside>
   );
 };
