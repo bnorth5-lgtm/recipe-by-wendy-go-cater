@@ -14,7 +14,7 @@ import {
   CalendarPlus,
   UserPlus,
 } from "lucide-react";
-import { useCateringStore, Client } from "@/store/cateringStore"; // Import Client type
+import { useCateringStore, Client } from "@/store/cateringStore";
 import {
   Dialog,
   DialogContent,
@@ -41,14 +41,14 @@ const Dashboard = () => {
   const confirmedBookingsCount = proposals.filter(p => p.status === "Accepted").length;
 
   const handleAddClientSubmit = (data: ClientFormData) => {
-    addClient(data as Omit<Client, 'id'>); // Explicitly cast data to Omit<Client, 'id'>
+    addClient(data as Omit<Client, 'id'>);
     toast.success("New client added successfully!");
     setIsClientFormDialogOpen(false);
   };
 
   return (
     <div
-      className="space-y-6 min-h-full p-6 bg-cover bg-center relative"
+      className="space-y-6 p-6 bg-cover bg-center relative" // Removed min-h-full
       style={{ backgroundImage: "url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}
     >
       <div className="absolute inset-0 bg-black opacity-40 rounded-lg"></div>
@@ -196,7 +196,7 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+        <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm bg-red-500"> {/* Added temporary red background */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client
