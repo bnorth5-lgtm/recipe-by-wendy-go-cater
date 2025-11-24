@@ -210,28 +210,10 @@ const Dashboard = () => {
             <p className="text-xs text-muted-foreground mb-4">
               Quickly add contact and company information for a new client.
             </p>
-            <Dialog open={isClientFormDialogOpen} onOpenChange={setIsClientFormDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  size="sm"
-                  className="bg-black text-white hover:bg-gray-800"
-                >
-                  <UserPlus className="mr-2 h-4 w-4" /> Add Client
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Client</DialogTitle>
-                  <DialogDescription>
-                    Fill in the details to add a new client to your database.
-                  </DialogDescription>
-                </DialogHeader>
-                <ClientForm
-                  onSubmit={handleAddClientSubmit}
-                  onCancel={() => setIsClientFormDialogOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
+            {/* Diagnostic: Simplified content to check if the card renders */}
+            <div className="bg-red-500 p-4 text-white">
+              TEST: This should be visible!
+            </div>
           </CardContent>
         </Card>
       </div>
