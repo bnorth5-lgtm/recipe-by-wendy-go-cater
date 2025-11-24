@@ -52,14 +52,14 @@ const Dashboard = () => {
     >
       <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[200px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Quote Pipeline
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col justify-between h-full">
               <div className="text-2xl font-bold">{newLeadsCount} New Leads</div>
               <p className="text-xs text-muted-foreground">
                 {proposalsSentCount} Proposals Sent, {confirmedBookingsCount} Confirmed Bookings
@@ -69,14 +69,14 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/calendar" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[200px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Upcoming Events
               </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col justify-between h-full">
               <div className="text-2xl font-bold">Next 3 Events</div>
               <p className="text-xs text-muted-foreground">
                 July 20: Sarah & John Wedding (150 Guests)
@@ -89,14 +89,14 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[200px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Action Items
               </CardTitle>
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col justify-between h-full">
               <div className="text-2xl font-bold">Today's Tasks</div>
               <p className="text-xs text-muted-foreground">
                 Prep chicken for Sarah & John Wedding
@@ -109,14 +109,14 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[200px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Proposal
               </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col justify-between h-full">
               <div className="text-lg font-bold">Create a new client proposal</div>
               <p className="text-xs text-muted-foreground">
                 Generate detailed quotes for upcoming events.
@@ -126,14 +126,14 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/inventory" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[200px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
               </CardTitle>
               <Warehouse className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col justify-between h-full">
               <div className="text-lg font-bold">Add or update stock levels</div>
               <p className="text-xs text-muted-foreground">
                 Keep track of all your ingredients and equipment.
@@ -143,14 +143,14 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/menus" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[200px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Menu
               </CardTitle>
               <MenuSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col justify-between h-full">
               <div className="text-lg font-bold">Design new event menus</div>
               <p className="text-xs text-muted-foreground">
                 Combine recipes into curated offerings for clients.
@@ -160,14 +160,14 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/recipes" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[200px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Recipes
               </CardTitle>
               <Utensils className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col justify-between h-full">
               <div className="text-lg font-bold">Create or modify recipes</div>
               <p className="text-xs text-muted-foreground">
                 Manage ingredients and instructions for all your dishes.
@@ -177,14 +177,14 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[200px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Event
               </CardTitle>
               <CalendarPlus className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col justify-between h-full">
               <div className="text-lg font-bold">Schedule a new event booking</div>
               <p className="text-xs text-muted-foreground">
                 Add confirmed events to your calendar and manage details.
@@ -193,14 +193,14 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-card min-h-[200px]">
+        <Card className="hover:shadow-lg transition-shadow bg-card min-h-[240px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client
             </CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col justify-between h-full">
             <div className="text-lg font-bold mb-2">Add a new client to your database</div>
             <p className="text-xs text-muted-foreground mb-4">
               Quickly add contact and company information for a new client.
