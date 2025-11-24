@@ -3,15 +3,28 @@
 import React, { useState } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
-import { useCateringStore } from "@/store/cateringStore";
+import { useCateringStore, EventBooking } from "@/store/cateringStore";
 import { format, isSameDay, parseISO } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button"; // Import Button
+import { Edit } from "lucide-react"; // Import Edit icon
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"; // Import Dialog components
+import { BookingForm } from "@/components/BookingForm"; // Import the new BookingForm
 
 const Calendar = () => {
   const bookings = useCateringStore((state) => state.bookings);
+  const updateBooking = useCateringStore((state) => state.updateBooking); // Get update function
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [editingBooking, setEditingBooking] = useState<EventBooking | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // Prepare modifiers for dates with events
   const bookedDates = bookings.map(booking => parseISO(booking.eventDate));
@@ -26,6 +39,26 @@ const Calendar = () => {
   const eventsOnSelectedDate = selectedDate
     ? bookings.filter(booking => isSameDay(parseISO(booking.eventDate), selectedDate))
     : [];
+
+  const handleEditBooking = (booking: EventBooking) => {
+    setEditingBooking(booking);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateBookingSubmit = (data: Omit<EventBooking, 'id' | 'status'>) => {
+    if (editingBooking) {
+      updateBooking({
+        ...editingBooking, // Keep existing ID and status
+        eventName: data.eventName,
+        clientName: data.clientName,
+        eventDate: format(data.eventDate, "yyyy-MM-dd"),
+        numberOfGuests: data.numberOfGuests,
+        selectedRecipeIds: data.selectedRecipeIds,
+      });
+      setEditingBooking(null);
+      setIsEditDialogOpen(false);
+    }
+  };
 
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
@@ -76,16 +109,25 @@ const Calendar = () => {
               <ScrollArea className="h-[300px] pr-4">
                 <div className="space-y-4">
                   {eventsOnSelectedDate.map((booking) => (
-                    <div key={booking.id} className="border p-3 rounded-md bg-secondary/20">
-                      <h3 className="font-semibold text-lg">{booking.eventName}</h3>
-                      <p className="text-sm text-muted-foreground">Client: {booking.clientName}</p>
-                      <p className="text-sm text-muted-foreground">Guests: {booking.numberOfGuests}</p>
-                      <Badge
-                        className="mt-2"
-                        variant={booking.status === "completed" ? "default" : booking.status === "cancelled" ? "destructive" : "secondary"}
+                    <div key={booking.id} className="border p-3 rounded-md bg-secondary/20 flex justify-between items-center">
+                      <div>
+                        <h3 className="font-semibold text-lg">{booking.eventName}</h3>
+                        <p className="text-sm text-muted-foreground">Client: {booking.clientName}</p>
+                        <p className="text-sm text-muted-foreground">Guests: {booking.numberOfGuests}</p>
+                        <Badge
+                          className="mt-2"
+                          variant={booking.status === "completed" ? "default" : booking.status === "cancelled" ? "destructive" : "secondary"}
+                        >
+                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                        </Badge>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditBooking(booking)}
                       >
-                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                      </Badge>
+                        <Edit className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -95,6 +137,25 @@ const Calendar = () => {
         </Card>
       </div>
       <MadeWithDyad />
+
+      {/* Edit Booking Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Event Booking</DialogTitle>
+            <DialogDescription>
+              Make changes to the event details here. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          {editingBooking && (
+            <BookingForm
+              initialData={editingBooking}
+              onSubmit={handleUpdateBookingSubmit}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
