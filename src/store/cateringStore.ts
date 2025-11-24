@@ -427,6 +427,7 @@ const initialInventory: InventoryItem[] = [
   { id: "inv_oliveoil_tbsp", name: "Olive Oil", category: "Food Ingredient", currentStock: 640, unit: "tbsp", lowStockThreshold: 30, costPerUnit: 8.00 / 64, markupPercentage: 0.00 }, // 1 quart = 64 tbsp
   { id: "inv_redwinevinegar_tbsp", name: "Red Wine Vinegar", category: "Food Ingredient", currentStock: 640, unit: "tbsp", lowStockThreshold: 30, costPerUnit: 4.00 / 64, markupPercentage: 0.00 }, // 1 quart = 64 tbsp
   { id: "inv_salt_tbsp", name: "Salt", category: "Food Ingredient", currentStock: 1000, unit: "tbsp", lowStockThreshold: 50, costPerUnit: 0.05, markupPercentage: 0.00 },
+  { id: "inv_salt_tsp", name: "Salt", category: "Food Ingredient", currentStock: 3000, unit: "tsp", lowStockThreshold: 150, costPerUnit: 0.05 / 3, markupPercentage: 0.00 }, // Added for tsp unit
   { id: "inv_blackpepper_tsp", name: "Black Pepper", category: "Food Ingredient", currentStock: 1000, unit: "tsp", lowStockThreshold: 50, costPerUnit: 0.10, markupPercentage: 0.00 },
   { id: "inv_chickenbreast_count", name: "Chicken Breast (per breast, ~7oz)", category: "Food Ingredient", currentStock: 100, unit: "count", lowStockThreshold: 20, costPerUnit: (4.50 / 16) * 7, markupPercentage: 0.20 },
   { id: "inv_allpurposeflour_cup", name: "All-Purpose Flour", category: "Food Ingredient", currentStock: 100, unit: "cup", lowStockThreshold: 10, costPerUnit: 0.45 / 4, markupPercentage: 0.00 },
