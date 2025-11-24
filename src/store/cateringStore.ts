@@ -472,6 +472,10 @@ const initialInventory: InventoryItem[] = [
   { id: "inv_clubsoda_floz", name: "Club Soda", category: "Beverage", currentStock: 288, unit: "fl oz", lowStockThreshold: 50, costPerUnit: 0.50 / 12, markupPercentage: 0.00 }, // 1 can = 12 fl oz
   { id: "inv_simplesyrup_floz", name: "Simple Syrup", category: "Food Ingredient", currentStock: 64, unit: "fl oz", lowStockThreshold: 10, costPerUnit: 6.00 / 32, markupPercentage: 0.00 }, // 1 quart = 32 fl oz
   { id: "inv_chickenbreast_count", name: "Chicken Breast (per breast, ~7oz)", category: "Food Ingredient", currentStock: 100, unit: "count", lowStockThreshold: 20, costPerUnit: (4.50 / 16) * 7, markupPercentage: 0.20 }, // Added for recipe compatibility
+  { id: "inv_artichokehearts_lb", name: "Artichoke Hearts (Canned)", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 6.00, markupPercentage: 0.20 }, // Added for recipe compatibility (2 cans per lb)
+  { id: "inv_parmesancheesegrated_cup", name: "Parmesan Cheese (grated)", category: "Food Ingredient", currentStock: 20, unit: "cup", lowStockThreshold: 4, costPerUnit: 2.04, markupPercentage: 0.20 }, // Added for recipe compatibility (4 cups per lb)
+  { id: "inv_ice_lb", name: "Ice", category: "Food Ingredient", currentStock: 50, unit: "lb", lowStockThreshold: 10, costPerUnit: 0.50, markupPercentage: 0.00 }, // Added for recipe compatibility
+  { id: "inv_vanillaicecream_quart", name: "Vanilla Ice Cream", category: "Food Ingredient", currentStock: 5, unit: "quart", lowStockThreshold: 1, costPerUnit: 5.00, markupPercentage: 0.20 }, // Added for recipe compatibility
 ];
 
 const initialRecipes: Recipe[] = [
@@ -1409,7 +1413,7 @@ export const useCateringStore = create<CateringState>()(
             inv => inv.name.toLowerCase() === recipeIng.name.toLowerCase() && inv.unit.toLowerCase() === recipeIng.unit.toLowerCase()
           );
           if (!inventoryItem) {
-            console.warn(`Ingredient "${recipeIng.name}" with unit "${recipeIng.unit}" not found in inventory.`);
+            console.warn(`Insufficient stock for "${recipeIng.name}" (${recipeIng.unit}). Needed: ${recipeIng.quantity}, Available: ${inventoryItem.currentStock}`);
             canDeduct = false;
             break;
           }
