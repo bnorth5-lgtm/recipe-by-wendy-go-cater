@@ -211,7 +211,7 @@ const Dashboard = () => {
               Quickly add contact and company information for a new client.
             </p>
             <Dialog open={isClientFormDialogOpen} onOpenChange={setIsClientFormDialogOpen}>
-              <DialogTrigger asChild>
+              <DialogTrigger> {/* Removed asChild */}
                 <Button
                   size="sm"
                   className="bg-black text-white hover:bg-gray-800"
