@@ -94,7 +94,7 @@ export const Sidebar = () => {
           Catering by Cronkhite
         </h1>
       </div>
-      <ScrollArea className="flex-1 py-4 bg-sidebar text-sidebar-foreground"> {/* Applied light background to scroll area */}
+      <ScrollArea className="py-4 bg-sidebar text-sidebar-foreground"> {/* Removed flex-1 from here */}
         <nav className="grid items-start px-4 text-sm font-medium">
           {navItems.map((item) => {
             const isActiveParent = location.pathname.startsWith(item.href);
