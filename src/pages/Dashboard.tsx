@@ -12,7 +12,7 @@ import {
   BookText, // For Build Menu
   Utensils, // For Build Recipes
   CalendarPlus, // For Build Event
-} from "@/components/icons"; // Importing from our new local icons file
+} from "lucide-react"; // Importing directly from lucide-react
 
 
 const Dashboard = () => {

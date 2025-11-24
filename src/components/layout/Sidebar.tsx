@@ -16,7 +16,7 @@ import {
   Leaf, // For Ingredients
   BookText, // For Recipes
   MenuIcon, // For Menus
-} from "@/components/icons"; // Importing from our new local icons file
+} from "lucide-react"; // Importing directly from lucide-react
 import React from "react";
 
 const navItems = [
