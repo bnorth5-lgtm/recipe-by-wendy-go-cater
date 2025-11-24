@@ -419,58 +419,59 @@ const initialInventory: InventoryItem[] = [
   { id: "b20", name: "White Bread (per slice)", category: "Food Ingredient", currentStock: 200, unit: "slice", lowStockThreshold: 40, costPerUnit: 0.15, markupPercentage: 0.20 },
   { id: "b21", name: "Wheat Bread (per slice)", category: "Food Ingredient", currentStock: 150, unit: "slice", lowStockThreshold: 30, costPerUnit: 0.18, markupPercentage: 0.20 },
 
-  // Beverages
-  { id: "b1", name: "Cabernet Sauvignon", category: "Beverage", currentStock: 12, unit: "bottle", lowStockThreshold: 3, costPerUnit: 15.00, markupPercentage: 0.30 },
-  { id: "b2", name: "Chardonnay", category: "Beverage", currentStock: 10, unit: "bottle", lowStockThreshold: 2, costPerUnit: 12.00, markupPercentage: 0.30 },
-  { id: "b3", name: "Pilsner Beer", category: "Beverage", currentStock: 48, unit: "can", lowStockThreshold: 12, costPerUnit: 1.50, markupPercentage: 0.30 },
-  { id: "b4", name: "IPA Beer", category: "Beverage", currentStock: 36, unit: "can", lowStockThreshold: 9, costPerUnit: 2.00, markupPercentage: 0.30 },
-  { id: "b5", name: "Vodka (Standard)", category: "Beverage", currentStock: 6, unit: "bottle", lowStockThreshold: 1, costPerUnit: 20.00, markupPercentage: 0.35 },
-  { id: "b6", name: "Gin (Dry)", category: "Beverage", currentStock: 4, unit: "bottle", lowStockThreshold: 1, costPerUnit: 18.00, markupPercentage: 0.35 },
-  { id: "b7", name: "Orange Juice", category: "Beverage", currentStock: 10, unit: "quart", lowStockThreshold: 2, costPerUnit: 3.00, markupPercentage: 0.20 },
-  { id: "b8", name: "Tonic Water", category: "Beverage", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.75, markupPercentage: 0.20 },
-  { id: "b9", name: "Coca-Cola", category: "Beverage", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60, markupPercentage: 0.20 },
-  { id: "b10", name: "Local Craft Beer (Assorted)", category: "Beverage", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 3.00, markupPercentage: 0.30 },
-  { id: "b11", name: "Sparkling Wine (Prosecco)", category: "Beverage", currentStock: 8, unit: "bottle", lowStockThreshold: 2, costPerUnit: 18.00, markupPercentage: 0.30 },
-  { id: "b12", name: "Diet Cola", category: "Beverage", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60, markupPercentage: 0.20 },
-  { id: "b13", name: "Lemon-Lime Soda", category: "Beverage", currentStock: 30, unit: "can", lowStockThreshold: 10, costPerUnit: 0.60, markupPercentage: 0.20 },
-  { id: "b14", name: "Cranberry Juice", category: "Beverage", currentStock: 8, unit: "quart", lowStockThreshold: 2, costPerUnit: 3.50, markupPercentage: 0.20 },
-  { id: "b15", name: "Apple Juice", category: "Beverage", currentStock: 8, unit: "quart", lowStockThreshold: 2, costPerUnit: 3.00, markupPercentage: 0.20 },
-  { id: "b16", name: "Sparkling Water (Lime)", category: "Beverage", currentStock: 24, unit: "can", lowStockThreshold: 6, costPerUnit: 0.80, markupPercentage: 0.20 },
-
-  // Furniture
-  { id: "f1", name: "Round Dining Table (60in)", category: "Furniture", currentStock: 20, unit: "table", lowStockThreshold: 5, costPerUnit: 50.00, markupPercentage: 0.15 },
-  { id: "f2", name: "Folding Chair (White)", category: "Furniture", currentStock: 200, unit: "chair", lowStockThreshold: 50, costPerUnit: 5.00, markupPercentage: 0.15 },
-  { id: "f3", name: "High-Top Cocktail Table", category: "Furniture", currentStock: 15, unit: "table", lowStockThreshold: 3, costPerUnit: 30.00, markupPercentage: 0.15 },
-  { id: "f4", name: "Buffet Table (8ft)", category: "Furniture", currentStock: 10, unit: "table", lowStockThreshold: 2, costPerUnit: 60.00, markupPercentage: 0.15 },
-
-  // Tableware
-  { id: "t1", name: "Dinner Plate (White Ceramic)", category: "Tableware", currentStock: 250, unit: "plate", lowStockThreshold: 50, costPerUnit: 2.50, markupPercentage: 0.15 },
-  { id: "t2", name: "Salad Plate (White Ceramic)", category: "Tableware", currentStock: 250, unit: "plate", lowStockThreshold: 50, costPerUnit: 2.00, markupPercentage: 0.15 },
-  { id: "t3", name: "Bread Plate (White Ceramic)", category: "Tableware", currentStock: 250, unit: "plate", lowStockThreshold: 50, costPerUnit: 1.50, markupPercentage: 0.15 },
-  { id: "t4", name: "Coffee Cup (White Ceramic)", category: "Tableware", currentStock: 100, unit: "cup", lowStockThreshold: 20, costPerUnit: 1.80, markupPercentage: 0.15 },
-
-  // Silverware
-  { id: "s1", name: "Dinner Fork", category: "Silverware", currentStock: 300, unit: "piece", lowStockThreshold: 60, costPerUnit: 0.75, markupPercentage: 0.15 },
-  { id: "s2", name: "Dinner Knife", category: "Silverware", currentStock: 300, unit: "piece", lowStockThreshold: 60, costPerUnit: 0.75, markupPercentage: 0.15 },
-  { id: "s3", name: "Dinner Spoon", category: "Silverware", currentStock: 300, unit: "piece", lowStockThreshold: 60, costPerUnit: 0.75, markupPercentage: 0.15 },
-  { id: "s4", name: "Dessert Fork", category: "Silverware", currentStock: 200, unit: "piece", lowStockThreshold: 40, costPerUnit: 0.60, markupPercentage: 0.15 },
-
-  // Glassware
-  { id: "g1", name: "Water Glass (12oz)", category: "Glassware", currentStock: 250, unit: "glass", lowStockThreshold: 50, costPerUnit: 1.20, markupPercentage: 0.15 },
-  { id: "g2", name: "Wine Glass (Red, 16oz)", category: "Glassware", currentStock: 150, unit: "glass", lowStockThreshold: 30, costPerUnit: 1.50, markupPercentage: 0.15 },
-  { id: "g3", name: "Wine Glass (White, 12oz)", category: "Glassware", currentStock: 150, unit: "glass", lowStockThreshold: 30, costPerUnit: 1.50, markupPercentage: 0.15 },
-  { id: "g4", name: "Champagne Flute", category: "Glassware", currentStock: 100, unit: "glass", lowStockThreshold: 20, costPerUnit: 1.80, markupPercentage: 0.15 },
-  { id: "g5", name: "Cocktail Glass (Rocks)", category: "Glassware", currentStock: 100, unit: "glass", lowStockThreshold: 20, costPerUnit: 1.30, markupPercentage: 0.15 },
-
-  // Linens
-  { id: "l1", name: "Tablecloth (White, 90x90)", category: "Linens", currentStock: 50, unit: "linen", lowStockThreshold: 10, costPerUnit: 10.00, markupPercentage: 0.15 },
-  { id: "l2", name: "Napkin (White Cotton)", category: "Linens", currentStock: 300, unit: "napkin", lowStockThreshold: 60, costPerUnit: 1.00, markupPercentage: 0.15 },
-  { id: "l3", name: "Tablecloth (Black, 90x90)", category: "Linens", currentStock: 20, unit: "linen", lowStockThreshold: 5, costPerUnit: 10.00, markupPercentage: 0.15 },
-
-  // Serving Equipment
-  { id: "se1", name: "Chafing Dish (Full Size)", category: "Serving Equipment", currentStock: 15, unit: "unit", lowStockThreshold: 3, costPerUnit: 40.00, markupPercentage: 0.15 },
-  { id: "se2", name: "Serving Platter (Large)", category: "Serving Equipment", currentStock: 25, unit: "unit", lowStockThreshold: 5, costPerUnit: 15.00, markupPercentage: 0.15 },
-  { id: "se3", name: "Beverage Dispenser (3 Gallon)", category: "Serving Equipment", currentStock: 10, unit: "unit", lowStockThreshold: 2, costPerUnit: 35.00, markupPercentage: 0.15 },
+  // NEW: Common small units for existing ingredients
+  { id: "inv_salt_tbsp", name: "Salt", category: "Food Ingredient", currentStock: 1000, unit: "tbsp", lowStockThreshold: 50, costPerUnit: 0.05, markupPercentage: 0.00 }, // Estimated from a large bag
+  { id: "inv_salt_tsp", name: "Salt", category: "Food Ingredient", currentStock: 3000, unit: "tsp", lowStockThreshold: 150, costPerUnit: 0.05 / 3, markupPercentage: 0.00 },
+  { id: "inv_blackpepper_tsp", name: "Black Pepper", category: "Food Ingredient", currentStock: 1000, unit: "tsp", lowStockThreshold: 50, costPerUnit: 0.10, markupPercentage: 0.00 }, // Estimated
+  { id: "inv_oliveoil_tbsp", name: "Olive Oil", category: "Food Ingredient", currentStock: 640, unit: "tbsp", lowStockThreshold: 30, costPerUnit: 8.00 / 64, markupPercentage: 0.00 }, // 1 quart = 64 tbsp
+  { id: "inv_redwinevinegar_tbsp", name: "Red Wine Vinegar", category: "Food Ingredient", currentStock: 640, unit: "tbsp", lowStockThreshold: 30, costPerUnit: 4.00 / 64, markupPercentage: 0.00 }, // 1 quart = 64 tbsp
+  { id: "inv_butter_tbsp", name: "Butter", category: "Food Ingredient", currentStock: 320, unit: "tbsp", lowStockThreshold: 20, costPerUnit: 5.44 / 32, markupPercentage: 0.00 }, // 1 lb = 32 tbsp
+  { id: "inv_allpurposeflour_cup", name: "All-Purpose Flour", category: "Food Ingredient", currentStock: 100, unit: "cup", lowStockThreshold: 10, costPerUnit: 0.45 / 4, markupPercentage: 0.00 }, // 1 lb = ~4 cups
+  { id: "inv_allpurposeflour_dessert_cup", name: "All-Purpose Flour (Dessert)", category: "Food Ingredient", currentStock: 100, unit: "cup", lowStockThreshold: 10, costPerUnit: 0.45 / 4, markupPercentage: 0.00 }, // 1 lb = ~4 cups
+  { id: "inv_sugar_tsp", name: "Sugar", category: "Food Ingredient", currentStock: 1000, unit: "tsp", lowStockThreshold: 50, costPerUnit: 0.32 / 200, markupPercentage: 0.00 }, // 1 lb = ~200 tsp
+  { id: "inv_sugar_cube", name: "Sugar", category: "Food Ingredient", currentStock: 200, unit: "cube", lowStockThreshold: 20, costPerUnit: 0.10, markupPercentage: 0.00 }, // Estimated
+  { id: "inv_honey_tbsp", name: "Honey", category: "Food Ingredient", currentStock: 64, unit: "tbsp", lowStockThreshold: 5, costPerUnit: 4.54 / 32, markupPercentage: 0.00 }, // 1 lb = ~32 tbsp
+  { id: "inv_vanillaextract_tsp", name: "Vanilla Extract", category: "Food Ingredient", currentStock: 320, unit: "tsp", lowStockThreshold: 20, costPerUnit: 25.00 / 96, markupPercentage: 0.00 }, // 16 fl oz = 96 tsp
+  { id: "inv_mustardseeds_tsp", name: "Mustard Seeds", category: "Food Ingredient", currentStock: 100, unit: "tsp", lowStockThreshold: 10, costPerUnit: 0.23 / 6, markupPercentage: 0.00 }, // 1 oz = ~6 tsp
+  { id: "inv_groundcinnamon_tsp", name: "Ground Cinnamon", category: "Food Ingredient", currentStock: 100, unit: "tsp", lowStockThreshold: 10, costPerUnit: 0.43 / 6, markupPercentage: 0.00 }, // 1 oz = ~6 tsp
+  { id: "inv_groundcloves_tsp", name: "Ground Cloves", category: "Food Ingredient", currentStock: 50, unit: "tsp", lowStockThreshold: 5, costPerUnit: 0.57 / 6, markupPercentage: 0.00 }, // 0.5 oz = ~3 tsp
+  { id: "inv_redpepperflakes_tsp", name: "Red Pepper Flakes", category: "Food Ingredient", currentStock: 100, unit: "tsp", lowStockThreshold: 10, costPerUnit: 0.34 / 6, markupPercentage: 0.00 }, // 1 oz = ~6 tsp
+  { id: "inv_nutmeg_tsp", name: "Nutmeg (Ground)", category: "Food Ingredient", currentStock: 50, unit: "tsp", lowStockThreshold: 5, costPerUnit: 0.43 / 6, markupPercentage: 0.00 }, // 0.1 oz = ~0.6 tsp
+  { id: "inv_gelatinpowder_tsp", name: "Gelatin Powder", category: "Food Ingredient", currentStock: 20, unit: "tsp", lowStockThreshold: 2, costPerUnit: 0.85 / 2, markupPercentage: 0.00 }, // 0.2 oz = ~2 tsp
+  { id: "inv_espressopowder_oz", name: "Espresso Powder", category: "Food Ingredient", currentStock: 1, unit: "oz", lowStockThreshold: 0.1, costPerUnit: 0.85, markupPercentage: 0.00 }, // Already exists as 0.1 oz, but recipe uses 0.7 oz, so keeping oz unit.
+  { id: "inv_darkchocolate_oz", name: "Dark Chocolate", category: "Food Ingredient", currentStock: 48, unit: "oz", lowStockThreshold: 5, costPerUnit: 9.07 / 16, markupPercentage: 0.00 }, // 3 lb = 48 oz
+  { id: "inv_coffeebeans_count", name: "Coffee Beans (Ground)", category: "Food Ingredient", currentStock: 100, unit: "count", lowStockThreshold: 10, costPerUnit: 0.05, markupPercentage: 0.00 }, // For garnish, estimated
+  { id: "inv_angosturabitters_dashes", name: "Angostura Bitters", category: "Food Ingredient", currentStock: 100, unit: "dashes", lowStockThreshold: 10, costPerUnit: 15.00 / 200, markupPercentage: 0.00 }, // 0.1 bottle = ~200 dashes
+  { id: "inv_egg_whiteonly", name: "Egg", category: "Food Ingredient", currentStock: 100, unit: "white only", lowStockThreshold: 10, costPerUnit: 0.10, markupPercentage: 0.00 }, // Estimated cost of egg white
+  { id: "inv_water_quart", name: "Water", category: "Food Ingredient", currentStock: 100, unit: "quart", lowStockThreshold: 10, costPerUnit: 0.01, markupPercentage: 0.00 }, // Very low cost
+  { id: "inv_ice_largecube", name: "Ice", category: "Food Ingredient", currentStock: 500, unit: "large cube", lowStockThreshold: 50, costPerUnit: 0.02, markupPercentage: 0.00 }, // Estimated
+  { id: "inv_ice_crushed", name: "Ice", category: "Food Ingredient", currentStock: 500, unit: "crushed", lowStockThreshold: 50, costPerUnit: 0.01, markupPercentage: 0.00 }, // Estimated
+  { id: "inv_ice_cubed", name: "Ice", category: "Food Ingredient", currentStock: 500, unit: "cubed", lowStockThreshold: 50, costPerUnit: 0.01, markupPercentage: 0.00 }, // Estimated
+  { id: "inv_orangeblossomwater_tsp", name: "Orange Blossom Water", category: "Food Ingredient", currentStock: 10, unit: "tsp", lowStockThreshold: 1, costPerUnit: 0.50, markupPercentage: 0.00 }, // Estimated
+  { id: "inv_freshmozzarella_lb", name: "Fresh Mozzarella Balls (mini)", category: "Food Ingredient", currentStock: 5, unit: "lb", lowStockThreshold: 1, costPerUnit: 7.00, markupPercentage: 0.20 }, // Estimated
+  { id: "inv_freshbasil_count", name: "Fresh Basil Leaves", category: "Food Ingredient", currentStock: 50, unit: "count", lowStockThreshold: 10, costPerUnit: 0.10, markupPercentage: 0.00 }, // Estimated
+  { id: "inv_balsamicglaze_tbsp", name: "Balsamic Glaze", category: "Food Ingredient", currentStock: 20, unit: "tbsp", lowStockThreshold: 5, costPerUnit: 0.50, markupPercentage: 0.00 }, // Estimated
+  { id: "inv_cinnamonsticks_count", name: "Cinnamon Sticks", category: "Food Ingredient", currentStock: 20, unit: "count", lowStockThreshold: 5, costPerUnit: 0.75, markupPercentage: 0.00 }, // Estimated
+  { id: "inv_sourcream_quart", name: "Sour Cream", category: "Food Ingredient", currentStock: 5, unit: "quart", lowStockThreshold: 1, costPerUnit: 4.00, markupPercentage: 0.20 }, // Added
+  { id: "inv_cherrytomatoes_lb", name: "Cherry Tomatoes", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 3.00, markupPercentage: 0.20 }, // Added
+  { id: "inv_cucumber_lb", name: "Cucumber", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 1.50, markupPercentage: 0.20 }, // Added
+  { id: "inv_bellpeppers_lb", name: "Bell Peppers (Assorted)", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 2.00, markupPercentage: 0.20 }, // Added
+  { id: "inv_apples_lb", name: "Apples (Granny Smith)", category: "Food Ingredient", currentStock: 15, unit: "lb", lowStockThreshold: 3, costPerUnit: 2.50, markupPercentage: 0.20 }, // Added
+  { id: "inv_drywhitewine_quart", name: "Dry White Wine (cooking)", category: "Food Ingredient", currentStock: 5, unit: "quart", lowStockThreshold: 1, costPerUnit: 8.00, markupPercentage: 0.20 }, // Added
+  { id: "inv_freshmint_sprig", name: "Fresh Mint", category: "Food Ingredient", currentStock: 50, unit: "sprig", lowStockThreshold: 10, costPerUnit: 2.00 / 10, markupPercentage: 0.00 }, // 1 bunch = ~10 sprigs
+  { id: "inv_lemon_wedge", name: "Lemon", category: "Food Ingredient", currentStock: 100, unit: "wedge", lowStockThreshold: 20, costPerUnit: 0.75 / 8, markupPercentage: 0.00 }, // 1 lemon = ~8 wedges
+  { id: "inv_lemon_peel", name: "Lemon", category: "Food Ingredient", currentStock: 100, unit: "peel", lowStockThreshold: 20, costPerUnit: 0.75 / 8, markupPercentage: 0.00 }, // 1 lemon = ~8 peels
+  { id: "inv_orange_peel", name: "Oranges", category: "Food Ingredient", currentStock: 100, unit: "peel", lowStockThreshold: 20, costPerUnit: 0.80 / 8, markupPercentage: 0.00 }, // 1 orange = ~8 peels
+  { id: "inv_orange_slice", name: "Oranges", category: "Food Ingredient", currentStock: 100, unit: "slice", lowStockThreshold: 20, costPerUnit: 0.80 / 8, markupPercentage: 0.00 }, // 1 orange = ~8 slices
+  { id: "inv_freshmint_leaves", name: "Fresh Mint", category: "Food Ingredient", currentStock: 100, unit: "leaves", lowStockThreshold: 20, costPerUnit: 2.00 / 20, markupPercentage: 0.00 }, // 1 bunch = ~20 leaves
+  { id: "inv_vodka_floz", name: "Vodka (Standard)", category: "Beverage", currentStock: 150, unit: "fl oz", lowStockThreshold: 20, costPerUnit: 20.00 / 25.36, markupPercentage: 0.00 }, // 1 bottle (750ml) = 25.36 fl oz
+  { id: "inv_orangejuice_floz", name: "Orange Juice", category: "Beverage", currentStock: 320, unit: "fl oz", lowStockThreshold: 50, costPerUnit: 3.00 / 32, markupPercentage: 0.00 }, // 1 quart = 32 fl oz
+  { id: "inv_coffeeliqueur_floz", name: "Coffee Liqueur", category: "Beverage", currentStock: 150, unit: "fl oz", lowStockThreshold: 20, costPerUnit: 25.00 / 25.36, markupPercentage: 0.00 }, // 1 bottle (750ml) = 25.36 fl oz
+  { id: "inv_whiskey_floz", name: "Whiskey (Bourbon)", category: "Beverage", currentStock: 150, unit: "fl oz", lowStockThreshold: 20, costPerUnit: 30.00 / 25.36, markupPercentage: 0.00 }, // 1 bottle (750ml) = 25.36 fl oz
+  { id: "inv_whiterum_floz", name: "White Rum", category: "Beverage", currentStock: 150, unit: "fl oz", lowStockThreshold: 20, costPerUnit: 22.00 / 25.36, markupPercentage: 0.00 }, // 1 bottle (750ml) = 25.36 fl oz
+  { id: "inv_clubsoda_floz", name: "Club Soda", category: "Beverage", currentStock: 288, unit: "fl oz", lowStockThreshold: 50, costPerUnit: 0.50 / 12, markupPercentage: 0.00 }, // 1 can = 12 fl oz
+  { id: "inv_simplesyrup_floz", name: "Simple Syrup", category: "Food Ingredient", currentStock: 64, unit: "fl oz", lowStockThreshold: 10, costPerUnit: 6.00 / 32, markupPercentage: 0.00 }, // 1 quart = 32 fl oz
+  { id: "inv_chickenbreast_count", name: "Chicken Breast (per breast, ~7oz)", category: "Food Ingredient", currentStock: 100, unit: "count", lowStockThreshold: 20, costPerUnit: (4.50 / 16) * 7, markupPercentage: 0.20 }, // Added for recipe compatibility
 ];
 
 const initialRecipes: Recipe[] = [
@@ -623,7 +624,7 @@ const initialRecipes: Recipe[] = [
       { name: "Mixed Wild Mushrooms", quantity: 1, unit: "lb" },
       { name: "Vegetable Broth", quantity: 1.5, unit: "quart" },
       { name: "Parmesan Cheese", quantity: 0.25, unit: "lb" },
-      { name: "Dry White Wine (cooking)", quantity: 0.15, unit: "bottle" },
+      { name: "Dry White Wine (cooking)", quantity: 0.15, unit: "quart" },
       { name: "Onions", quantity: 0.33, unit: "lb" },
       { name: "Garlic", quantity: 2, unit: "head" },
       { name: "Olive Oil", quantity: 3, unit: "tbsp" },
