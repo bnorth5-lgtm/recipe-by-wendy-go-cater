@@ -196,42 +196,37 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-blue-200"> {/* Changed to solid blue background */}
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Create New Client
-            </CardTitle>
-            <UserPlus className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold mb-2">Add a new client to your database</div>
-            <p className="text-xs text-muted-foreground mb-4">
-              Quickly add contact and company information for a new client.
+        {/* Temporarily replacing the Card with a simple div for debugging */}
+        <div className="p-6 rounded-lg shadow-md bg-purple-500 text-white hover:shadow-lg transition-shadow flex flex-col justify-between">
+          <div>
+            <h3 className="text-lg font-bold mb-2">DEBUG: Create New Client</h3>
+            <p className="text-sm mb-4">
+              This is a test to see if this element renders.
             </p>
-            <Dialog open={isClientFormDialogOpen} onOpenChange={setIsClientFormDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  size="sm"
-                  className="bg-black text-white hover:bg-gray-800"
-                >
-                  <UserPlus className="mr-2 h-4 w-4" /> Add Client
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Client</DialogTitle>
-                  <DialogDescription>
-                    Fill in the details to add a new client to your database.
-                  </DialogDescription>
-                </DialogHeader>
-                <ClientForm
-                  onSubmit={handleAddClientSubmit}
-                  onCancel={() => setIsClientFormDialogOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </Card>
+          </div>
+          <Dialog open={isClientFormDialogOpen} onOpenChange={setIsClientFormDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                size="sm"
+                className="bg-black text-white hover:bg-gray-800"
+              >
+                <UserPlus className="mr-2 h-4 w-4" /> Add Client
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>Add New Client</DialogTitle>
+                <DialogDescription>
+                  Fill in the details to add a new client to your database.
+                </DialogDescription>
+              </DialogHeader>
+              <ClientForm
+                onSubmit={handleAddClientSubmit}
+                onCancel={() => setIsClientFormDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       <MadeWithDyad />
     </div>
