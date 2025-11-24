@@ -16,6 +16,6 @@ export default defineConfig(({ command }) => ({
     },
   },
   optimizeDeps: {
-    include: ['lucide-react'], // Explicitly include lucide-react for optimization
+    exclude: ['lucide-react'], // Changed from 'include' to 'exclude'
   },
 }));

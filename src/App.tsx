@@ -30,6 +30,8 @@ import BrandingSettings from "./pages/settings/Branding.tsx";
 import CateringAverages from "./pages/settings/CateringAverages.tsx";
 
 const App = () => {
+  console.log("App.tsx is rendering!"); // Diagnostic log
+
   return (
     <BrowserRouter>
       <ErrorBoundary>
