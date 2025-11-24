@@ -5,18 +5,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import React from "react";
-import {
-  LayoutDashboard,
-  Warehouse,
-  Leaf,
-  BookText,
-  Menu as MenuIcon,
-  DollarSign,
-  CalendarCheck,
-  Settings,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react"; // Import Lucide React icons
+import * as LucideIcons from "lucide-react"; // Changed to import all icons as LucideIcons
 
 export const Sidebar = () => {
   const location = useLocation();
@@ -25,37 +14,37 @@ export const Sidebar = () => {
     {
       name: "Dashboard",
       href: "/dashboard",
-      icon: LayoutDashboard,
+      icon: LucideIcons.LayoutDashboard,
       children: [],
     },
     {
       name: "Inventory",
       href: "/menu/inventory",
-      icon: Warehouse,
+      icon: LucideIcons.Warehouse,
       children: [],
     },
     {
       name: "Ingredients",
       href: "/menu/ingredients",
-      icon: Leaf,
+      icon: LucideIcons.Leaf,
       children: [],
     },
     {
       name: "Recipes",
       href: "/menu/recipes",
-      icon: BookText,
+      icon: LucideIcons.BookText,
       children: [],
     },
     {
       name: "Menus",
       href: "/menu/menus",
-      icon: MenuIcon,
+      icon: LucideIcons.Menu,
       children: [],
     },
     {
       name: "Quoting & Proposals",
       href: "/quoting/clients", // Direct link to default sub-page
-      icon: DollarSign,
+      icon: LucideIcons.DollarSign,
       children: [
         { name: "Clients", href: "/quoting/clients" },
         { name: "Proposals", href: "/quoting/proposals" },
@@ -65,7 +54,7 @@ export const Sidebar = () => {
     {
       name: "Events & Planning",
       href: "/events/calendar", // Direct link to default sub-page
-      icon: CalendarCheck,
+      icon: LucideIcons.CalendarCheck,
       children: [
         { name: "Calendar", href: "/events/calendar" },
         { name: "Bookings", href: "/events/bookings" },
@@ -75,7 +64,7 @@ export const Sidebar = () => {
     {
       name: "Settings",
       href: "/settings/general", // Direct link to default sub-page
-      icon: Settings,
+      icon: LucideIcons.Settings,
       children: [
         { name: "General", href: "/settings/general" },
         { name: "Users", href: "/settings/users" },
@@ -87,7 +76,8 @@ export const Sidebar = () => {
 
   return (
     <aside className="flex flex-col h-full w-64 border-r bg-sidebar text-sidebar-foreground">
-      <div className="flex items-center justify-center h-16 border-b px-4">
+      <div className="flex flex-col items-center justify-center h-24 border-b px-4">
+        <LucideIcons.ChefHat className="h-8 w-8 text-sidebar-primary mb-2" />
         <h1 className="text-xl font-serif font-semibold text-sidebar-primary-foreground">
           Catering by Cronkhite
         </h1>
@@ -114,7 +104,7 @@ export const Sidebar = () => {
                   <Link to={item.href}>
                     {Icon && <Icon className="mr-3 h-5 w-5" />}
                     {item.name}
-                    {hasChildren && (isActiveParent ? <ChevronDown className="ml-auto h-4 w-4" /> : <ChevronRight className="ml-auto h-4 w-4" />)}
+                    {hasChildren && (isActiveParent ? <LucideIcons.ChevronDown className="ml-auto h-4 w-4" /> : <LucideIcons.ChevronRight className="ml-auto h-4 w-4" />)}
                   </Link>
                 </Button>
                 {hasChildren && isActiveParent && (
