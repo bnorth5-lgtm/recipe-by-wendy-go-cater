@@ -87,7 +87,7 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="flex flex-col h-full w-64 bg-sidebar text-sidebar-foreground">
+    <aside className="flex flex-col h-full w-64 bg-primary text-primary-foreground"> {/* Changed bg-sidebar to bg-primary and text-sidebar-foreground to text-primary-foreground */}
       <div className="relative h-32 w-full overflow-hidden border-b bg-primary flex flex-col items-center justify-center px-4 text-white">
         <ChefHat className="h-8 w-8 text-white mb-2" />
         <h1 className="text-xl font-serif font-semibold text-white">
@@ -109,8 +109,8 @@ export const Sidebar = () => {
                   className={cn(
                     "justify-start mb-1",
                     isActiveParent && !hasChildren
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                      ? "bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30" // Adjusted active state for primary background
+                      : "text-primary-foreground hover:bg-primary-foreground/10" // Adjusted ghost state for primary background
                   )}
                 >
                   <Link to={item.href}>
@@ -129,8 +129,8 @@ export const Sidebar = () => {
                         className={cn(
                           "justify-start w-full mb-1 text-xs",
                           location.pathname === child.href
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90"
-                            : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                            ? "bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30" // Adjusted active state for primary background
+                            : "text-primary-foreground hover:bg-primary-foreground/10" // Adjusted ghost state for primary background
                         )}
                       >
                         <Link to={child.href}>
