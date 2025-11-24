@@ -86,38 +86,26 @@ export const Sidebar = () => {
     },
   ];
 
-  // Flag to track if we've reached the "Settings" item
-  let reachedSettings = false;
-
   return (
-    <aside className="flex flex-col h-full w-64 bg-sidebar text-sidebar-foreground"> {/* Reverted to original sidebar background */}
+    <aside className="flex flex-col h-full w-64"> {/* Removed background from aside, children will define it */}
       <div className="relative h-32 w-full overflow-hidden border-b bg-primary flex flex-col items-center justify-center px-4 text-white">
         <ChefHat className="h-8 w-8 text-white mb-2" />
         <h1 className="text-xl font-serif font-semibold text-white">
           Catering by Cronkhite
         </h1>
       </div>
-      <ScrollArea className="flex-1 py-4">
+      <ScrollArea className="flex-1 py-4 bg-sidebar text-sidebar-foreground"> {/* Applied light background to scroll area */}
         <nav className="grid items-start px-4 text-sm font-medium">
           {navItems.map((item) => {
             const isActiveParent = location.pathname.startsWith(item.href);
             const hasChildren = item.children && item.children.length > 0;
             const Icon = item.icon;
 
-            if (item.name === "Settings") {
-              reachedSettings = true;
-            }
-
-            // Determine styles based on whether we've reached the settings section
-            const isBlueSection = reachedSettings;
-
-            const baseTextColor = isBlueSection ? "text-primary-foreground" : "text-sidebar-foreground";
-            const hoverBg = isBlueSection ? "hover:bg-primary-foreground/10" : "hover:bg-sidebar-accent";
-            const activeBg = isBlueSection ? "bg-primary-foreground/20" : "bg-sidebar-accent";
-            const activeTextColor = isBlueSection ? "text-primary-foreground" : "text-sidebar-accent-foreground";
-            
-            // Apply bg-primary to the Settings parent button itself
-            const parentButtonSpecificBg = item.name === "Settings" ? "bg-primary" : "";
+            // Default styling for all nav items (light background)
+            const baseTextColor = "text-sidebar-foreground";
+            const hoverBg = "hover:bg-sidebar-accent";
+            const activeBg = "bg-sidebar-accent";
+            const activeTextColor = "text-sidebar-accent-foreground";
 
             return (
               <React.Fragment key={item.href}>
@@ -128,8 +116,7 @@ export const Sidebar = () => {
                     "justify-start mb-1",
                     baseTextColor,
                     hoverBg,
-                    isActiveParent ? cn(activeBg, activeTextColor) : "",
-                    parentButtonSpecificBg
+                    isActiveParent ? cn(activeBg, activeTextColor) : ""
                   )}
                 >
                   <Link to={item.href}>
@@ -139,7 +126,7 @@ export const Sidebar = () => {
                   </Link>
                 </Button>
                 {hasChildren && isActiveParent && (
-                  <div className={cn("ml-6 pl-2 mb-1", isBlueSection ? "bg-primary" : "")}> {/* Apply blue background to children container if in settings section */}
+                  <div className="ml-6 pl-2 mb-1"> {/* Children also use default light styling */}
                     {item.children.map((child) => {
                       const isChildActive = location.pathname === child.href;
                       return (
@@ -167,6 +154,8 @@ export const Sidebar = () => {
           })}
         </nav>
       </ScrollArea>
+      {/* This div will fill the remaining space at the bottom with blue */}
+      <div className="flex-grow bg-primary"></div>
     </aside>
   );
 };
