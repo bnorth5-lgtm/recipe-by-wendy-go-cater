@@ -51,8 +51,10 @@ const Dashboard = () => {
       className="space-y-6 p-6 bg-cover bg-center relative"
       style={{ backgroundImage: "url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}
     >
-      <div className="absolute inset-0 bg-black opacity-40 rounded-lg"></div>
+      {/* Overlay - explicitly set z-index to ensure it's behind the content grid */}
+      <div className="absolute inset-0 bg-black opacity-40 rounded-lg z-0"></div>
 
+      {/* Grid container - ensure it's above the overlay */}
       <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 relative z-10">
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
@@ -196,7 +198,8 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-white relative z-20">
+        {/* Problem card - now relies on parent grid's z-index */}
+        <Card className="hover:shadow-lg transition-shadow bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client
