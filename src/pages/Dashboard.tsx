@@ -38,13 +38,11 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 bg-background" // Removed background image classes and style
+      className="space-y-6 p-6 bg-red-200" // Temporarily forced to red-200 for diagnostic
     >
-      {/* Removed the overlay div as it's no longer needed without the background image */}
-
-      <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3"> {/* Removed relative z-10 as overlay is gone */}
+      <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
+          <Card className="hover:shadow-lg transition-shadow bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Quote Pipeline
@@ -61,7 +59,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/calendar" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
+          <Card className="hover:shadow-lg transition-shadow bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Upcoming Events
@@ -81,7 +79,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
+          <Card className="hover:shadow-lg transition-shadow bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Action Items
@@ -101,7 +99,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
+          <Card className="hover:shadow-lg transition-shadow bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Proposal
@@ -118,7 +116,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/inventory" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
+          <Card className="hover:shadow-lg transition-shadow bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
@@ -135,7 +133,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/menus" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
+          <Card className="hover:shadow-lg transition-shadow bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Menu
@@ -152,7 +150,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/recipes" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
+          <Card className="hover:shadow-lg transition-shadow bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Recipes
@@ -169,7 +167,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
+          <Card className="hover:shadow-lg transition-shadow bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Event
@@ -185,7 +183,7 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
+        <Card className="hover:shadow-lg transition-shadow bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client
