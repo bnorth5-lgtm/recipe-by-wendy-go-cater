@@ -4,48 +4,49 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LayoutDashboard, Warehouse, Leaf, BookText, MenuIcon, DollarSign, CalendarCheck, Settings, ChevronDown, ChevronRight } from "lucide-react"; // Explicitly importing each icon
+// Temporarily removed lucide-react imports to diagnose ReferenceError
+// import { LayoutDashboard, Warehouse, Leaf, BookText, MenuIcon, DollarSign, CalendarCheck, Settings, ChevronDown, ChevronRight } from "lucide-react"; 
 import React from "react";
 
 export const Sidebar = () => {
-  console.log("Sidebar.tsx is rendering with explicit LucideIcons imports!"); // Updated console log
+  console.log("Sidebar.tsx is rendering without LucideIcons!");
   const location = useLocation();
 
   const navItems = [
     {
       name: "Dashboard",
       href: "/dashboard",
-      icon: LayoutDashboard,
+      // icon: LayoutDashboard, // Temporarily removed icon
       children: [],
     },
     {
       name: "Inventory",
       href: "/menu/inventory",
-      icon: Warehouse,
+      // icon: Warehouse, // Temporarily removed icon
       children: [],
     },
     {
       name: "Ingredients",
       href: "/menu/ingredients",
-      icon: Leaf,
+      // icon: Leaf, // Temporarily removed icon
       children: [],
     },
     {
       name: "Recipes",
       href: "/menu/recipes",
-      icon: BookText,
+      // icon: BookText, // Temporarily removed icon
       children: [],
     },
     {
       name: "Menus",
       href: "/menu/menus",
-      icon: MenuIcon,
+      // icon: MenuIcon, // Temporarily removed icon
       children: [],
     },
     {
       name: "Quoting & Proposals",
       href: "/quoting",
-      icon: DollarSign,
+      // icon: DollarSign, // Temporarily removed icon
       children: [
         { name: "Clients", href: "/quoting/clients" },
         { name: "Proposals", href: "/quoting/proposals" },
@@ -55,7 +56,7 @@ export const Sidebar = () => {
     {
       name: "Events & Planning",
       href: "/events",
-      icon: CalendarCheck,
+      // icon: CalendarCheck, // Temporarily removed icon
       children: [
         { name: "Calendar", href: "/events/calendar" },
         { name: "Bookings", href: "/events/bookings" },
@@ -65,7 +66,7 @@ export const Sidebar = () => {
     {
       name: "Settings",
       href: "/settings",
-      icon: Settings,
+      // icon: Settings, // Temporarily removed icon
       children: [
         { name: "General", href: "/settings/general" },
         { name: "Users", href: "/settings/users" },
@@ -101,9 +102,9 @@ export const Sidebar = () => {
                   )}
                 >
                   <Link to={item.href}>
-                    <item.icon className="mr-3 h-5 w-5" />
+                    {/* {item.icon && <item.icon className="mr-3 h-5 w-5" />} */} {/* Temporarily removed icon rendering */}
                     {item.name}
-                    {hasChildren && (isActiveParent ? <ChevronDown className="ml-auto h-4 w-4" /> : <ChevronRight className="ml-auto h-4 w-4" />)}
+                    {hasChildren && (isActiveParent ? <span className="ml-auto h-4 w-4">▼</span> : <span className="ml-auto h-4 w-4">▶</span>)} {/* Placeholder for chevron icons */}
                   </Link>
                 </Button>
                 {hasChildren && isActiveParent && (

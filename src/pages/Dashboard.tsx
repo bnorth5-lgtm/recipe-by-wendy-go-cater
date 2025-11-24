@@ -3,10 +3,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Link } from "react-router-dom";
-import { DollarSign, CalendarCheck, LayoutDashboard, FileText, Warehouse, BookText, Utensils, CalendarPlus } from "lucide-react"; // Explicitly importing each icon
+// Temporarily removed lucide-react imports to diagnose ReferenceError
+// import { DollarSign, CalendarCheck, LayoutDashboard, FileText, Warehouse, BookText, Utensils, CalendarPlus } from "lucide-react"; 
 
 const Dashboard = () => {
-  console.log("Dashboard.tsx is rendering with explicit LucideIcons imports!"); // Updated console log
+  console.log("Dashboard.tsx is rendering with text placeholders instead of LucideIcons!");
 
   return (
     <div
@@ -25,7 +26,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Quote Pipeline
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <span className="h-4 w-4 text-muted-foreground">$</span> {/* Placeholder */}
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">3 New Leads</div>
@@ -42,7 +43,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Upcoming Events
               </CardTitle>
-              <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+              <span className="h-4 w-4 text-muted-foreground">Cal</span> {/* Placeholder */}
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">Next 3 Events</div>
@@ -62,7 +63,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Action Items
               </CardTitle>
-              <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+              <span className="h-4 w-4 text-muted-foreground">Dash</span> {/* Placeholder */}
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">Today's Tasks</div>
@@ -83,7 +84,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Proposal
               </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span className="h-4 w-4 text-muted-foreground">File</span> {/* Placeholder */}
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Create a new client proposal</div>
@@ -100,7 +101,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
               </CardTitle>
-              <Warehouse className="h-4 w-4 text-muted-foreground" />
+              <span className="h-4 w-4 text-muted-foreground">Ware</span> {/* Placeholder */}
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Add or update stock levels</div>
@@ -117,7 +118,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Menu
               </CardTitle>
-              <BookText className="h-4 w-4 text-muted-foreground" />
+              <span className="h-4 w-4 text-muted-foreground">Menu</span> {/* Placeholder */}
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Design new event menus</div>
@@ -134,7 +135,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Recipes
               </CardTitle>
-              <Utensils className="h-4 w-4 text-muted-foreground" />
+              <span className="h-4 w-4 text-muted-foreground">Utens</span> {/* Placeholder */}
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Create or modify recipes</div>
@@ -151,7 +152,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Event
               </CardTitle>
-              <CalendarPlus className="h-4 w-4 text-muted-foreground" />
+              <span className="h-4 w-4 text-muted-foreground">Cal+</span> {/* Placeholder */}
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Schedule a new event booking</div>
