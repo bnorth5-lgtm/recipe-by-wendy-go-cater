@@ -196,7 +196,7 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm"> {/* Reverted background */}
+        <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client
@@ -210,7 +210,10 @@ const Dashboard = () => {
             </p>
             <Dialog open={isClientFormDialogOpen} onOpenChange={setIsClientFormDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full">
+                <Button
+                  size="sm" // Make it smaller
+                  className="bg-black text-white hover:bg-gray-800" // Make it black
+                >
                   <UserPlus className="mr-2 h-4 w-4" /> Add Client
                 </Button>
               </DialogTrigger>
