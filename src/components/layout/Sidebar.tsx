@@ -4,60 +4,48 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  LayoutDashboard,
-  Utensils,
-  DollarSign,
-  CalendarCheck,
-  Settings,
-  ChevronDown,
-  ChevronRight,
-  Warehouse,
-  Leaf,
-  BookText,
-  MenuIcon,
-} from "lucide-react"; // Importing directly from lucide-react
+import * as LucideIcons from "lucide-react"; // Importing all icons as LucideIcons
 import React from "react";
 
 export const Sidebar = () => {
-  console.log("Sidebar.tsx is rendering with lucide-react icons!"); // Added console log
+  console.log("Sidebar.tsx is rendering with LucideIcons alias!"); // Updated console log
   const location = useLocation();
 
   const navItems = [
     {
       name: "Dashboard",
       href: "/dashboard",
-      icon: LayoutDashboard,
+      icon: LucideIcons.LayoutDashboard,
       children: [],
     },
     {
       name: "Inventory",
       href: "/menu/inventory",
-      icon: Warehouse,
+      icon: LucideIcons.Warehouse,
       children: [],
     },
     {
       name: "Ingredients",
       href: "/menu/ingredients",
-      icon: Leaf,
+      icon: LucideIcons.Leaf,
       children: [],
     },
     {
       name: "Recipes",
       href: "/menu/recipes",
-      icon: BookText,
+      icon: LucideIcons.BookText,
       children: [],
     },
     {
       name: "Menus",
       href: "/menu/menus",
-      icon: MenuIcon,
+      icon: LucideIcons.MenuIcon,
       children: [],
     },
     {
       name: "Quoting & Proposals",
       href: "/quoting",
-      icon: DollarSign,
+      icon: LucideIcons.DollarSign,
       children: [
         { name: "Clients", href: "/quoting/clients" },
         { name: "Proposals", href: "/quoting/proposals" },
@@ -67,7 +55,7 @@ export const Sidebar = () => {
     {
       name: "Events & Planning",
       href: "/events",
-      icon: CalendarCheck,
+      icon: LucideIcons.CalendarCheck,
       children: [
         { name: "Calendar", href: "/events/calendar" },
         { name: "Bookings", href: "/events/bookings" },
@@ -77,7 +65,7 @@ export const Sidebar = () => {
     {
       name: "Settings",
       href: "/settings",
-      icon: Settings,
+      icon: LucideIcons.Settings,
       children: [
         { name: "General", href: "/settings/general" },
         { name: "Users", href: "/settings/users" },
@@ -115,7 +103,7 @@ export const Sidebar = () => {
                   <Link to={item.href}>
                     <item.icon className="mr-3 h-5 w-5" />
                     {item.name}
-                    {hasChildren && (isActiveParent ? <ChevronDown className="ml-auto h-4 w-4" /> : <ChevronRight className="ml-auto h-4 w-4" />)}
+                    {hasChildren && (isActiveParent ? <LucideIcons.ChevronDown className="ml-auto h-4 w-4" /> : <LucideIcons.ChevronRight className="ml-auto h-4 w-4" />)}
                   </Link>
                 </Button>
                 {hasChildren && isActiveParent && (
