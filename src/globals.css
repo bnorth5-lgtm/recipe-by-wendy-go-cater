@@ -39,7 +39,7 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 200 80% 90%; /* TEMPORARY: Light blue for debugging */
+    --sidebar-background: 210 20% 95%; /* Changed to a slightly more distinct light gray */
     --sidebar-foreground: 222.2 47.4% 11.2%; /* Dark text */
     --sidebar-primary: 217.2 91.2% 59.8%; /* Matching new primary blue */
     --sidebar-primary-foreground: 210 40% 98%; /* White text for primary elements */
