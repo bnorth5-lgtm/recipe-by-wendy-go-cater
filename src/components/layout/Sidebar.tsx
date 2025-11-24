@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import React from "react";
-import * as LucideIcons from "lucide-react"; // Changed to import all icons as LucideIcons
+import * as LucideIcons from "lucide-react";
 
 export const Sidebar = () => {
   const location = useLocation();
@@ -43,7 +43,7 @@ export const Sidebar = () => {
     },
     {
       name: "Quoting & Proposals",
-      href: "/quoting/clients", // Direct link to default sub-page
+      href: "/quoting/clients",
       icon: LucideIcons.DollarSign,
       children: [
         { name: "Clients", href: "/quoting/clients" },
@@ -53,7 +53,7 @@ export const Sidebar = () => {
     },
     {
       name: "Events & Planning",
-      href: "/events/calendar", // Direct link to default sub-page
+      href: "/events/calendar",
       icon: LucideIcons.CalendarCheck,
       children: [
         { name: "Calendar", href: "/events/calendar" },
@@ -63,7 +63,7 @@ export const Sidebar = () => {
     },
     {
       name: "Settings",
-      href: "/settings/general", // Direct link to default sub-page
+      href: "/settings/general",
       icon: LucideIcons.Settings,
       children: [
         { name: "General", href: "/settings/general" },
@@ -77,7 +77,7 @@ export const Sidebar = () => {
   return (
     <aside className="flex flex-col h-full w-64 border-r bg-sidebar text-sidebar-foreground">
       <div className="flex flex-col items-center justify-center h-32 border-b px-4">
-        <LucideIcons.ChefHat className="h-12 w-12 text-red-500 mb-2" /> {/* Increased size and changed color for diagnostic */}
+        <LucideIcons.ChefHat className="h-8 w-8 text-primary mb-2" /> {/* Reverted size and color */}
         <h1 className="text-xl font-serif font-semibold text-sidebar-primary-foreground">
           Catering by Cronkhite
         </h1>
@@ -87,7 +87,7 @@ export const Sidebar = () => {
           {navItems.map((item) => {
             const isActiveParent = location.pathname.startsWith(item.href);
             const hasChildren = item.children && item.children.length > 0;
-            const Icon = item.icon; // Get the icon component
+            const Icon = item.icon;
 
             return (
               <React.Fragment key={item.href}>

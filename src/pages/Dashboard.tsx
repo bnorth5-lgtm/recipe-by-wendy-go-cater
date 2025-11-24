@@ -38,7 +38,7 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 bg-red-200" // Temporarily forced to red-200 for diagnostic
+      className="space-y-6 p-6" // Reverted background to default
     >
       <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
         <Link to="/quoting/proposals" className="block">
