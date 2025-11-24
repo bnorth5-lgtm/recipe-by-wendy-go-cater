@@ -4,10 +4,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 
 // Import your page components
 import Dashboard from "./pages/Dashboard";
-// Removed MenuManagement as its sub-pages are now direct links
-import QuotingGenerator from "./pages/QuotingGenerator";
-import EventsPlanning from "./pages/EventsPlanning";
-import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 // Import new sub-page components
