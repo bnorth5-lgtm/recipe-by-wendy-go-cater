@@ -86,8 +86,11 @@ export const Sidebar = () => {
     },
   ];
 
+  // Flag to track if we've reached the "Settings" item
+  let reachedSettings = false;
+
   return (
-    <aside className="flex flex-col h-full w-64 bg-primary text-primary-foreground"> {/* Changed bg-sidebar to bg-primary and text-sidebar-foreground to text-primary-foreground */}
+    <aside className="flex flex-col h-full w-64 bg-sidebar text-sidebar-foreground"> {/* Reverted to original sidebar background */}
       <div className="relative h-32 w-full overflow-hidden border-b bg-primary flex flex-col items-center justify-center px-4 text-white">
         <ChefHat className="h-8 w-8 text-white mb-2" />
         <h1 className="text-xl font-serif font-semibold text-white">
@@ -101,16 +104,32 @@ export const Sidebar = () => {
             const hasChildren = item.children && item.children.length > 0;
             const Icon = item.icon;
 
+            if (item.name === "Settings") {
+              reachedSettings = true;
+            }
+
+            // Determine styles based on whether we've reached the settings section
+            const isBlueSection = reachedSettings;
+
+            const baseTextColor = isBlueSection ? "text-primary-foreground" : "text-sidebar-foreground";
+            const hoverBg = isBlueSection ? "hover:bg-primary-foreground/10" : "hover:bg-sidebar-accent";
+            const activeBg = isBlueSection ? "bg-primary-foreground/20" : "bg-sidebar-accent";
+            const activeTextColor = isBlueSection ? "text-primary-foreground" : "text-sidebar-accent-foreground";
+            
+            // Apply bg-primary to the Settings parent button itself
+            const parentButtonSpecificBg = item.name === "Settings" ? "bg-primary" : "";
+
             return (
               <React.Fragment key={item.href}>
                 <Button
                   asChild
-                  variant={isActiveParent && !hasChildren ? "secondary" : "ghost"}
+                  variant="ghost"
                   className={cn(
                     "justify-start mb-1",
-                    isActiveParent && !hasChildren
-                      ? "bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30" // Adjusted active state for primary background
-                      : "text-primary-foreground hover:bg-primary-foreground/10" // Adjusted ghost state for primary background
+                    baseTextColor,
+                    hoverBg,
+                    isActiveParent ? cn(activeBg, activeTextColor) : "",
+                    parentButtonSpecificBg
                   )}
                 >
                   <Link to={item.href}>
@@ -120,24 +139,27 @@ export const Sidebar = () => {
                   </Link>
                 </Button>
                 {hasChildren && isActiveParent && (
-                  <div className="ml-6 pl-2 mb-1">
-                    {item.children.map((child) => (
-                      <Button
-                        key={child.href}
-                        asChild
-                        variant={location.pathname === child.href ? "secondary" : "ghost"}
-                        className={cn(
-                          "justify-start w-full mb-1 text-xs",
-                          location.pathname === child.href
-                            ? "bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30" // Adjusted active state for primary background
-                            : "text-primary-foreground hover:bg-primary-foreground/10" // Adjusted ghost state for primary background
-                        )}
-                      >
-                        <Link to={child.href}>
-                          {child.name}
-                        </Link>
-                      </Button>
-                    ))}
+                  <div className={cn("ml-6 pl-2 mb-1", isBlueSection ? "bg-primary" : "")}> {/* Apply blue background to children container if in settings section */}
+                    {item.children.map((child) => {
+                      const isChildActive = location.pathname === child.href;
+                      return (
+                        <Button
+                          key={child.href}
+                          asChild
+                          variant="ghost"
+                          className={cn(
+                            "justify-start w-full mb-1 text-xs",
+                            baseTextColor,
+                            hoverBg,
+                            isChildActive ? cn(activeBg, activeTextColor) : ""
+                          )}
+                        >
+                          <Link to={child.href}>
+                            {child.name}
+                          </Link>
+                        </Button>
+                      );
+                    })}
                   </div>
                 )}
               </React.Fragment>
