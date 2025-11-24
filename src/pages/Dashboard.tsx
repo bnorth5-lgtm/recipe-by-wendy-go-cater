@@ -3,8 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Link } from "react-router-dom";
-// Temporarily removed lucide-react imports to diagnose ReferenceError
-// import { DollarSign, CalendarCheck, LayoutDashboard, FileText, Warehouse, BookText, Utensils, CalendarPlus } from "lucide-react"; 
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with text placeholders instead of LucideIcons!");
