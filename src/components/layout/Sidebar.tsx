@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import React from "react";
-import * as LucideIcons from "lucide-react"; // Corrected import statement
+import * as LucideIcons from "lucide-react";
 
 export const Sidebar = () => {
   const location = useLocation();
@@ -75,7 +75,7 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="flex flex-col h-full w-64 bg-sidebar text-sidebar-foreground">
+    <aside className="flex flex-col h-full w-64 bg-sidebar text-sidebar-foreground"> {/* Ensure no border-r here */}
       <div className="flex flex-col items-center justify-center h-32 border-b px-4">
         <LucideIcons.ChefHat className="h-8 w-8 text-primary mb-2" />
         <h1 className="text-xl font-serif font-semibold text-sidebar-primary-foreground">
@@ -108,7 +108,7 @@ export const Sidebar = () => {
                   </Link>
                 </Button>
                 {hasChildren && isActiveParent && (
-                  <div className="ml-6 border-l border-sidebar-border pl-2 mb-1">
+                  <div className="ml-6 pl-2 mb-1"> {/* Removed border-l border-sidebar-border */}
                     {item.children.map((child) => (
                       <Button
                         key={child.href}
