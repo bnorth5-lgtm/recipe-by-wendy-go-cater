@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Link } from "react-router-dom";
-import * as LucideIcons from "lucide-react"; // Changed to import all icons as LucideIcons
+import * as LucideIcons from "lucide-react";
 import { useCateringStore, Client } from "@/store/cateringStore";
 import {
   Dialog,
@@ -38,21 +38,18 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 bg-cover bg-center relative"
-      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')" }}
+      className="space-y-6 p-6 bg-background" // Removed background image classes and style
     >
-      {/* Overlay - explicitly set z-index to ensure it's behind the content grid */}
-      <div className="absolute inset-0 bg-black opacity-40 rounded-lg z-0"></div>
+      {/* Removed the overlay div as it's no longer needed without the background image */}
 
-      {/* Grid container - ensure it's above the overlay */}
-      <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 relative z-10">
+      <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3"> {/* Removed relative z-10 as overlay is gone */}
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Quote Pipeline
               </CardTitle>
-              <LucideIcons.DollarSign className="h-4 w-4 text-muted-foreground" /> {/* Updated usage */}
+              <LucideIcons.DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{newLeadsCount} New Leads</div>
@@ -64,12 +61,12 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/calendar" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Upcoming Events
               </CardTitle>
-              <LucideIcons.Calendar className="h-4 w-4 text-muted-foreground" /> {/* Updated usage */}
+              <LucideIcons.Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">Next 3 Events</div>
@@ -84,12 +81,12 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Action Items
               </CardTitle>
-              <LucideIcons.ClipboardList className="h-4 w-4 text-muted-foreground" /> {/* Updated usage */}
+              <LucideIcons.ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">Today's Tasks</div>
@@ -104,12 +101,12 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Proposal
               </CardTitle>
-              <LucideIcons.FileText className="h-4 w-4 text-muted-foreground" /> {/* Updated usage */}
+              <LucideIcons.FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Create a new client proposal</div>
@@ -121,12 +118,12 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/inventory" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
               </CardTitle>
-              <LucideIcons.Warehouse className="h-4 w-4 text-muted-foreground" /> {/* Updated usage */}
+              <LucideIcons.Warehouse className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Add or update stock levels</div>
@@ -138,12 +135,12 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/menus" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Menu
               </CardTitle>
-              <LucideIcons.MenuSquare className="h-4 w-4 text-muted-foreground" /> {/* Updated usage */}
+              <LucideIcons.MenuSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Design new event menus</div>
@@ -155,12 +152,12 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/recipes" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Recipes
               </CardTitle>
-              <LucideIcons.Utensils className="h-4 w-4 text-muted-foreground" /> {/* Updated usage */}
+              <LucideIcons.Utensils className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Create or modify recipes</div>
@@ -172,12 +169,12 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+          <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Event
               </CardTitle>
-              <LucideIcons.CalendarPlus className="h-4 w-4 text-muted-foreground" /> {/* Updated usage */}
+              <LucideIcons.CalendarPlus className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Schedule a new event booking</div>
@@ -188,12 +185,12 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
+        <Card className="hover:shadow-lg transition-shadow bg-card"> {/* Removed /80 backdrop-blur-sm */}
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client
             </CardTitle>
-            <LucideIcons.UserPlus className="h-4 w-4 text-muted-foreground" /> {/* Updated usage */}
+            <LucideIcons.UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold mb-2">Add a new client to your database</div>
@@ -206,7 +203,7 @@ const Dashboard = () => {
                   size="sm"
                   className="bg-black text-white hover:bg-gray-800"
                 >
-                  <LucideIcons.UserPlus className="mr-2 h-4 w-4" /> Add Client {/* Updated usage */}
+                  <LucideIcons.UserPlus className="mr-2 h-4 w-4" /> Add Client
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
