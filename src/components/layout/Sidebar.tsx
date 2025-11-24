@@ -88,18 +88,11 @@ export const Sidebar = () => {
 
   return (
     <aside className="flex flex-col h-full w-64 bg-sidebar text-sidebar-foreground">
-      <div className="relative h-32 w-full overflow-hidden border-b">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url('https://images.unsplash.com/photo-1512621776951-a579fd9f8ed8?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')` }}
-        ></div>
-        <div className="absolute inset-0 bg-black opacity-40"></div> {/* Overlay for readability */}
-        <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-white">
-          <ChefHat className="h-8 w-8 text-white mb-2" />
-          <h1 className="text-xl font-serif font-semibold text-white">
-            Catering by Cronkhite
-          </h1>
-        </div>
+      <div className="relative h-32 w-full overflow-hidden border-b bg-primary flex flex-col items-center justify-center px-4 text-white">
+        <ChefHat className="h-8 w-8 text-white mb-2" />
+        <h1 className="text-xl font-serif font-semibold text-white">
+          Catering by Cronkhite
+        </h1>
       </div>
       <ScrollArea className="flex-1 py-4">
         <nav className="grid items-start px-4 text-sm font-medium">
