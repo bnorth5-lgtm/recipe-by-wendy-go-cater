@@ -75,9 +75,9 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="flex flex-col h-full w-64 border-r-8 border-red-500 bg-sidebar text-sidebar-foreground"> {/* Added prominent border */}
+    <aside className="flex flex-col h-full w-64 border-r bg-sidebar text-sidebar-foreground"> {/* Removed red border */}
       <div className="flex flex-col items-center justify-center h-32 border-b px-4">
-        <LucideIcons.ChefHat className="h-8 w-8 text-primary mb-2" /> {/* Reverted size and color */}
+        <LucideIcons.ChefHat className="h-8 w-8 text-primary mb-2" />
         <h1 className="text-xl font-serif font-semibold text-sidebar-primary-foreground">
           Catering by Cronkhite
         </h1>

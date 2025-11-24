@@ -38,11 +38,11 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6" // Reverted background to default
+      className="space-y-6 p-6"
     >
       <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[180px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Quote Pipeline
@@ -59,7 +59,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/calendar" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[180px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Upcoming Events
@@ -79,7 +79,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[180px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Action Items
@@ -99,7 +99,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[180px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Proposal
@@ -116,7 +116,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/inventory" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[180px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
@@ -133,7 +133,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/menus" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[180px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Menu
@@ -150,7 +150,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/recipes" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[180px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Recipes
@@ -167,7 +167,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card">
+          <Card className="hover:shadow-lg transition-shadow bg-card min-h-[180px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Event
@@ -183,7 +183,7 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-card">
+        <Card className="hover:shadow-lg transition-shadow bg-card min-h-[180px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client
@@ -199,7 +199,7 @@ const Dashboard = () => {
               <DialogTrigger>
                 <Button
                   size="sm"
-                  className="bg-blue-500 text-white hover:bg-blue-600" // Changed button color
+                  className="bg-blue-500 text-white hover:bg-blue-600"
                 >
                   <LucideIcons.UserPlus className="mr-2 h-4 w-4" /> Add Client
                 </Button>
