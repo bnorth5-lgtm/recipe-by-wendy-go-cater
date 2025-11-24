@@ -34,12 +34,13 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Trash2, Link as LinkIcon } from "lucide-react";
+import { PlusCircle, Trash2, Link as LinkIcon, AlertCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, Recipe, RecipeIngredient, RecipeInstruction } from "@/store/cateringStore";
+import { Badge } from "@/components/ui/badge"; // Import Badge for visual cues
 
 // Define the main schema for a recipe
 const recipeFormSchema = z.object({
@@ -64,6 +65,19 @@ const recipeFormSchema = z.object({
 
 type RecipeFormData = z.infer<typeof recipeFormSchema>;
 
+// Define a simple structure for simulated imported recipe data
+interface SimulatedImportedRecipe {
+  name: string;
+  description: string;
+  prepTime: string;
+  cookTime: string;
+  servings: string;
+  category: "Appetizer" | "Main Course" | "Dessert" | "Alcoholic Beverage" | "Non-Alcoholic Beverage" | "Side Dish" | "Breakfast" | "Vegetarian Main" | "Other";
+  ingredients: { name: string; quantity: number; unit: string }[];
+  instructions: { step: string }[];
+  sourceUrl?: string;
+}
+
 const Recipes = () => {
   const recipes = useCateringStore((state) => state.recipes);
   const addRecipe = useCateringStore((state) => state.addRecipe);
@@ -71,6 +85,7 @@ const Recipes = () => {
   const inventory = useCateringStore((state) => state.inventory);
 
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importJson, setImportJson] = useState(""); // State for the JSON input
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeFormSchema),
@@ -98,7 +113,24 @@ const Recipes = () => {
   });
 
   const onSubmit = (data: RecipeFormData) => {
-    // Explicitly cast data to the expected type for addRecipe
+    const missingIngredients: string[] = [];
+    data.ingredients.forEach(ing => {
+      const found = inventory.some(item =>
+        item.name.toLowerCase() === ing.name.toLowerCase() &&
+        item.unit.toLowerCase() === ing.unit.toLowerCase()
+      );
+      if (!found) {
+        missingIngredients.push(`${ing.name} (${ing.unit})`);
+      }
+    });
+
+    if (missingIngredients.length > 0) {
+      toast.warning(
+        `The following ingredients are not found in your inventory: ${missingIngredients.join(", ")}. Consider adding them to inventory.`,
+        { duration: 8000 }
+      );
+    }
+
     addRecipe(data as Omit<Recipe, 'id' | 'baseCost'>);
     form.reset({
       name: "",
@@ -119,15 +151,27 @@ const Recipes = () => {
     toast.info("Recipe deleted.");
   };
 
-  const handleImportRecipe = () => {
-    const url = form.getValues("sourceUrl");
-    if (url) {
-      toast.info(`Simulating import from: ${url}. Please fill details manually.`);
-      form.setValue("sourceUrl", url);
-    } else {
-      toast.error("Please enter a URL to import.");
+  const handleSimulateImport = () => {
+    try {
+      const importedRecipe: SimulatedImportedRecipe = JSON.parse(importJson);
+      form.reset({
+        name: importedRecipe.name || "",
+        description: importedRecipe.description || "",
+        prepTime: importedRecipe.prepTime || "",
+        cookTime: importedRecipe.cookTime || "",
+        servings: importedRecipe.servings || "",
+        category: importedRecipe.category || "Main Course",
+        ingredients: importedRecipe.ingredients || [{ name: "", quantity: 0.01, unit: "lb" }],
+        instructions: importedRecipe.instructions || [{ step: "" }],
+        sourceUrl: importedRecipe.sourceUrl || "",
+      });
+      toast.success("Recipe details pre-filled from import!");
+      setIsImportDialogOpen(false);
+      setImportJson(""); // Clear the textarea
+    } catch (error) {
+      toast.error("Failed to parse JSON. Please ensure it's valid JSON format.");
+      console.error("JSON parsing error:", error);
     }
-    setIsImportDialogOpen(false);
   };
 
   const availableUnits = Array.from(new Set(inventory.map(item => item.unit)));
@@ -151,32 +195,34 @@ const Recipes = () => {
             <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="w-full mb-6">
-                  <LinkIcon className="mr-2 h-4 w-4" /> Import Recipe from URL
+                  <LinkIcon className="mr-2 h-4 w-4" /> Simulate Recipe Import
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+              <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                  <DialogTitle>Import Recipe</DialogTitle>
+                  <DialogTitle>Simulate Recipe Import</DialogTitle>
                   <DialogDescription>
-                    Paste a recipe URL. In a real app, this would fetch data. For now, you'll fill the form manually.
+                    Paste recipe details in JSON format. This will pre-fill the form below.
+                    <br />
+                    <span className="text-xs text-muted-foreground">
+                      (Note: For legal reasons, direct web scraping is not supported. Please ensure your source is legal.)
+                    </span>
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="recipeUrl" className="text-right">
-                      Recipe URL
-                    </Label>
-                    <Input
-                      id="recipeUrl"
-                      placeholder="https://www.example.com/recipe"
-                      className="col-span-3"
-                      value={form.watch("sourceUrl")}
-                      onChange={(e) => form.setValue("sourceUrl", e.target.value)}
-                    />
-                  </div>
+                  <Label htmlFor="recipeJson" className="text-left">
+                    Recipe JSON
+                  </Label>
+                  <Textarea
+                    id="recipeJson"
+                    placeholder={`{\n  "name": "Example Dish",\n  "description": "A delicious example.",\n  "prepTime": "10 mins",\n  "cookTime": "20 mins",\n  "servings": "4",\n  "category": "Main Course",\n  "ingredients": [\n    { "name": "Chicken Breast", "quantity": 1, "unit": "lb" }\n  ],\n  "instructions": [\n    { "step": "Cook chicken." }\n  ],\n  "sourceUrl": "https://example.com/recipe"\n}`}
+                    className="min-h-[200px] font-mono text-xs"
+                    value={importJson}
+                    onChange={(e) => setImportJson(e.target.value)}
+                  />
                 </div>
                 <DialogFooter>
-                  <Button type="button" onClick={handleImportRecipe}>Simulate Import</Button>
+                  <Button type="button" onClick={handleSimulateImport}>Pre-fill Form</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -451,9 +497,22 @@ const Recipes = () => {
                         <div className="mt-2">
                           <h4 className="font-medium">Ingredients:</h4>
                           <ul className="list-disc list-inside text-sm text-muted-foreground">
-                            {recipe.ingredients.map((ing, idx) => (
-                              <li key={idx}>{ing.quantity} {ing.unit} {ing.name}</li>
-                            ))}
+                            {recipe.ingredients.map((ing, idx) => {
+                              const isIngredientInInventory = inventory.some(item =>
+                                item.name.toLowerCase() === ing.name.toLowerCase() &&
+                                item.unit.toLowerCase() === ing.unit.toLowerCase()
+                              );
+                              return (
+                                <li key={idx} className="flex items-center gap-1">
+                                  {ing.quantity} {ing.unit} {ing.name}
+                                  {!isIngredientInInventory && (
+                                    <Badge variant="destructive" className="ml-2">
+                                      <AlertCircle className="h-3 w-3 mr-1" /> Missing in Inventory
+                                    </Badge>
+                                  )}
+                                </li>
+                              );
+                            })}
                           </ul>
                         </div>
                         <div className="mt-2">
