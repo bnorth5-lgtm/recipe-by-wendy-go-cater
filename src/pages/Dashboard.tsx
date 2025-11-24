@@ -3,7 +3,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Link } from "react-router-dom";
-import * as LucideIcons from "lucide-react";
+import {
+  DollarSign,
+  Calendar,
+  ClipboardList,
+  FileText,
+  Warehouse,
+  MenuSquare,
+  Utensils,
+  CalendarPlus,
+  UserPlus,
+} from "lucide-react"; // Explicitly importing icons
 import { useCateringStore, Client } from "@/store/cateringStore";
 import {
   Dialog,
@@ -47,7 +57,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Quote Pipeline
               </CardTitle>
-              <LucideIcons.DollarSign className="h-4 w-4 text-muted-foreground" />
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{newLeadsCount} New Leads</div>
@@ -64,7 +74,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Upcoming Events
               </CardTitle>
-              <LucideIcons.Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">Next 3 Events</div>
@@ -84,7 +94,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Action Items
               </CardTitle>
-              <LucideIcons.ClipboardList className="h-4 w-4 text-muted-foreground" />
+              <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">Today's Tasks</div>
@@ -104,7 +114,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Proposal
               </CardTitle>
-              <LucideIcons.FileText className="h-4 w-4 text-muted-foreground" />
+              <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Create a new client proposal</div>
@@ -121,7 +131,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
               </CardTitle>
-              <LucideIcons.Warehouse className="h-4 w-4 text-muted-foreground" />
+              <Warehouse className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Add or update stock levels</div>
@@ -138,7 +148,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Menu
               </CardTitle>
-              <LucideIcons.MenuSquare className="h-4 w-4 text-muted-foreground" />
+              <MenuSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Design new event menus</div>
@@ -155,7 +165,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Recipes
               </CardTitle>
-              <LucideIcons.Utensils className="h-4 w-4 text-muted-foreground" />
+              <Utensils className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Create or modify recipes</div>
@@ -172,7 +182,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Event
               </CardTitle>
-              <LucideIcons.CalendarPlus className="h-4 w-4 text-muted-foreground" />
+              <CalendarPlus className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Schedule a new event booking</div>
@@ -188,7 +198,7 @@ const Dashboard = () => {
             <CardTitle className="text-sm font-medium">
               Create New Client
             </CardTitle>
-            <LucideIcons.UserPlus className="h-4 w-4 text-muted-foreground" />
+            <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold mb-2">Add a new client to your database</div>
@@ -201,7 +211,7 @@ const Dashboard = () => {
                   size="sm"
                   className="bg-blue-500 text-white hover:bg-blue-600"
                 >
-                  <LucideIcons.UserPlus className="mr-2 h-4 w-4" /> Add Client
+                  <UserPlus className="mr-2 h-4 w-4" /> Add Client
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
