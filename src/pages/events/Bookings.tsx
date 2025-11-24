@@ -38,7 +38,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CalendarIcon, CheckCircle, XCircle, Loader2, Utensils, Users, DollarSign, AlertCircle, Trash2 } from "lucide-react";
+import { CalendarIcon, CheckCircle, XCircle, Loader2, Utensils, Users, AlertCircle, Trash2 } from "lucide-react"; // Removed DollarSign
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, EventBooking } from "@/store/cateringStore";
