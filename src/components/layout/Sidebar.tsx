@@ -54,7 +54,7 @@ export const Sidebar = () => {
     },
     {
       name: "Quoting & Proposals",
-      href: "/quoting",
+      href: "/quoting/clients", // Direct link to default sub-page
       icon: DollarSign,
       children: [
         { name: "Clients", href: "/quoting/clients" },
@@ -64,7 +64,7 @@ export const Sidebar = () => {
     },
     {
       name: "Events & Planning",
-      href: "/events",
+      href: "/events/calendar", // Direct link to default sub-page
       icon: CalendarCheck,
       children: [
         { name: "Calendar", href: "/events/calendar" },
@@ -74,7 +74,7 @@ export const Sidebar = () => {
     },
     {
       name: "Settings",
-      href: "/settings",
+      href: "/settings/general", // Direct link to default sub-page
       icon: Settings,
       children: [
         { name: "General", href: "/settings/general" },
