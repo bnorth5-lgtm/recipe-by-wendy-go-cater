@@ -48,7 +48,7 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 relative bg-cover bg-center min-h-full"
+      className="space-y-6 p-6 relative bg-cover bg-center min-h-screen" // Changed min-h-full to min-h-screen
       style={{ backgroundImage: `url('https://images.unsplash.com/photo-1512621776951-a579fd9f8ed8?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')` }}
     >
       {/* Overlay for better contrast, if needed, but cards have solid backgrounds */}
