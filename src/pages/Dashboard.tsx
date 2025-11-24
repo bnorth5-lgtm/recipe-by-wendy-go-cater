@@ -2,20 +2,21 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Link } from "react-router-dom"; // Import Link for navigation
+import { Link } from "react-router-dom";
 import {
   DollarSign,
   CalendarCheck,
   LayoutDashboard,
-  FileText, // For Build Proposal
-  Warehouse, // For Build Inventory
-  BookText, // For Build Menu
-  Utensils, // For Build Recipes
-  CalendarPlus, // For Build Event
+  FileText,
+  Warehouse,
+  BookText,
+  Utensils,
+  CalendarPlus,
 } from "lucide-react"; // Importing directly from lucide-react
 
-
 const Dashboard = () => {
+  console.log("Dashboard.tsx is rendering with lucide-react icons!"); // Added console log
+
   return (
     <div
       className="space-y-6 min-h-full p-6 bg-cover bg-center relative"

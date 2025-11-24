@@ -15,7 +15,5 @@ export default defineConfig(({ command }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  optimizeDeps: {
-    exclude: ['lucide-react'], // Changed from 'include' to 'exclude'
-  },
+  // Removed optimizeDeps exclude for lucide-react
 }));

@@ -12,79 +12,80 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  Warehouse, // For Inventory
-  Leaf, // For Ingredients
-  BookText, // For Recipes
-  MenuIcon, // For Menus
+  Warehouse,
+  Leaf,
+  BookText,
+  MenuIcon,
 } from "lucide-react"; // Importing directly from lucide-react
 import React from "react";
 
-const navItems = [
-  {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    children: [],
-  },
-  {
-    name: "Inventory",
-    href: "/menu/inventory",
-    icon: Warehouse,
-    children: [],
-  },
-  {
-    name: "Ingredients",
-    href: "/menu/ingredients",
-    icon: Leaf,
-    children: [],
-  },
-  {
-    name: "Recipes",
-    href: "/menu/recipes",
-    icon: BookText,
-    children: [],
-  },
-  {
-    name: "Menus",
-    href: "/menu/menus",
-    icon: MenuIcon,
-    children: [],
-  },
-  {
-    name: "Quoting & Proposals",
-    href: "/quoting",
-    icon: DollarSign,
-    children: [
-      { name: "Clients", href: "/quoting/clients" },
-      { name: "Proposals", href: "/quoting/proposals" },
-      { name: "Estimates", href: "/quoting/estimates" },
-    ],
-  },
-  {
-    name: "Events & Planning",
-    href: "/events",
-    icon: CalendarCheck,
-    children: [
-      { name: "Calendar", href: "/events/calendar" },
-      { name: "Bookings", href: "/events/bookings" },
-      { name: "BEOs", href: "/events/beos" },
-    ],
-  },
-  {
-    name: "Settings",
-    href: "/settings",
-    icon: Settings,
-    children: [
-      { name: "General", href: "/settings/general" },
-      { name: "Users", href: "/settings/users" },
-      { name: "Branding", href: "/settings/branding" },
-      { name: "Catering Averages", href: "/settings/catering-averages" },
-    ],
-  },
-];
-
 export const Sidebar = () => {
+  console.log("Sidebar.tsx is rendering with lucide-react icons!"); // Added console log
   const location = useLocation();
+
+  const navItems = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      children: [],
+    },
+    {
+      name: "Inventory",
+      href: "/menu/inventory",
+      icon: Warehouse,
+      children: [],
+    },
+    {
+      name: "Ingredients",
+      href: "/menu/ingredients",
+      icon: Leaf,
+      children: [],
+    },
+    {
+      name: "Recipes",
+      href: "/menu/recipes",
+      icon: BookText,
+      children: [],
+    },
+    {
+      name: "Menus",
+      href: "/menu/menus",
+      icon: MenuIcon,
+      children: [],
+    },
+    {
+      name: "Quoting & Proposals",
+      href: "/quoting",
+      icon: DollarSign,
+      children: [
+        { name: "Clients", href: "/quoting/clients" },
+        { name: "Proposals", href: "/quoting/proposals" },
+        { name: "Estimates", href: "/quoting/estimates" },
+      ],
+    },
+    {
+      name: "Events & Planning",
+      href: "/events",
+      icon: CalendarCheck,
+      children: [
+        { name: "Calendar", href: "/events/calendar" },
+        { name: "Bookings", href: "/events/bookings" },
+        { name: "BEOs", href: "/events/beos" },
+      ],
+    },
+    {
+      name: "Settings",
+      href: "/settings",
+      icon: Settings,
+      children: [
+        { name: "General", href: "/settings/general" },
+        { name: "Users", href: "/settings/users" },
+        { name: "Branding", href: "/settings/branding" },
+        { name: "Catering Averages", href: "/settings/catering-averages" },
+      ],
+    },
+  ];
 
   return (
     <aside className="flex flex-col h-full w-64 border-r bg-sidebar text-sidebar-foreground">
