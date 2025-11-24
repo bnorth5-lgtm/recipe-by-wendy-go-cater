@@ -3,10 +3,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Link } from "react-router-dom";
-import * as LucideIcons from "lucide-react"; // Importing all icons as LucideIcons
+import { DollarSign, CalendarCheck, LayoutDashboard, FileText, Warehouse, BookText, Utensils, CalendarPlus } from "lucide-react"; // Explicitly importing each icon
 
 const Dashboard = () => {
-  console.log("Dashboard.tsx is rendering with LucideIcons alias!"); // Updated console log
+  console.log("Dashboard.tsx is rendering with explicit LucideIcons imports!"); // Updated console log
 
   return (
     <div
@@ -25,7 +25,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Quote Pipeline
               </CardTitle>
-              <LucideIcons.DollarSign className="h-4 w-4 text-muted-foreground" />
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">3 New Leads</div>
@@ -42,7 +42,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Upcoming Events
               </CardTitle>
-              <LucideIcons.CalendarCheck className="h-4 w-4 text-muted-foreground" />
+              <CalendarCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">Next 3 Events</div>
@@ -62,7 +62,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Action Items
               </CardTitle>
-              <LucideIcons.LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+              <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">Today's Tasks</div>
@@ -83,7 +83,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Proposal
               </CardTitle>
-              <LucideIcons.FileText className="h-4 w-4 text-muted-foreground" />
+              <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Create a new client proposal</div>
@@ -100,7 +100,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
               </CardTitle>
-              <LucideIcons.Warehouse className="h-4 w-4 text-muted-foreground" />
+              <Warehouse className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Add or update stock levels</div>
@@ -117,7 +117,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Menu
               </CardTitle>
-              <LucideIcons.BookText className="h-4 w-4 text-muted-foreground" />
+              <BookText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Design new event menus</div>
@@ -134,7 +134,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Recipes
               </CardTitle>
-              <LucideIcons.Utensils className="h-4 w-4 text-muted-foreground" />
+              <Utensils className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Create or modify recipes</div>
@@ -151,7 +151,7 @@ const Dashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Build Event
               </CardTitle>
-              <LucideIcons.CalendarPlus className="h-4 w-4 text-muted-foreground" />
+              <CalendarPlus className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">Schedule a new event booking</div>
