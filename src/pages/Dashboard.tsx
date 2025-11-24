@@ -198,8 +198,7 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        {/* Problem card - now relies on parent grid's z-index */}
-        <Card className="hover:shadow-lg transition-shadow bg-white">
+        <Card className="hover:shadow-lg transition-shadow bg-card/80 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client
