@@ -48,14 +48,14 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Edit, Trash2, CalendarIcon, Eye, Send, CheckCircle, XCircle, Archive, Utensils, Wine, Package } from "lucide-react"; // Added Package icon
+import { PlusCircle, Edit, Trash2, CalendarIcon, Eye, Send, CheckCircle, XCircle, Archive, Utensils, Wine, Package, Printer } from "lucide-react"; // Added Printer icon
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, Client, Recipe, InventoryItem, Proposal, ProposalItem } from "@/store/cateringStore";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { ProposalDocument } from "@/components/ProposalDocument"; // Import the new component
-import { useParams } from "react-router-dom"; // Import useParams
+import { useParams, Link } from "react-router-dom"; // Import useParams and Link
 
 // Define the schema for a proposal item within the form
 const proposalItemSchema = z.object({
@@ -92,6 +92,7 @@ const Proposals = () => {
   const recipes = useCateringStore((state) => state.recipes);
   const inventory = useCateringStore((state) => state.inventory); // Use unified inventory
   const proposals = useCateringStore((state) => state.proposals);
+  const bookings = useCateringStore((state) => state.bookings); // NEW: Get bookings to find associated BEOs
   const addProposal = useCateringStore((state) => state.addProposal);
   const updateProposal = useCateringStore((state) => state.updateProposal);
   const deleteProposal = useCateringStore((state) => state.deleteProposal);
@@ -581,9 +582,14 @@ const Proposals = () => {
                   <TableBody>
                     {proposals.map((proposal) => {
                       const client = clients.find(c => c.id === proposal.clientId);
+                      const associatedBooking = bookings.find(b => b.proposalId === proposal.id); // Find associated booking
                       return (
                         <TableRow key={proposal.id} className="border-l-4 border-primary"> {/* Blue border for proposals */}
-                          <TableCell className="font-medium">{proposal.eventName}</TableCell>
+                          <TableCell className="font-medium">
+                            <Link to={`/quoting/proposals/${proposal.id}`} className="hover:underline text-primary">
+                              {proposal.eventName}
+                            </Link>
+                          </TableCell>
                           <TableCell>{client ? client.name : "Unknown Client"}</TableCell>
                           <TableCell>{format(new Date(proposal.eventDate), "PPP")}</TableCell>
                           <TableCell>{proposal.numberOfGuests}</TableCell>
@@ -598,13 +604,20 @@ const Proposals = () => {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right flex justify-end space-x-2">
-                            <Button variant="outline" size="icon" onClick={() => handleView(proposal)}>
+                            {proposal.status === "Accepted" && associatedBooking && ( // NEW: View BEO button
+                              <Link to={`/events/beos/${associatedBooking.id}`}>
+                                <Button variant="outline" size="icon" className="mr-2" title="View BEO">
+                                  <Printer className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                            )}
+                            <Button variant="outline" size="icon" onClick={() => handleView(proposal)} title="View Proposal">
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleEdit(proposal)}>
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(proposal)} title="Edit Proposal">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Select onValueChange={(value: Proposal["status"]) => handleStatusChange(proposal.id, value)}>
+                            <Select onValueChange={(value: Proposal["status"]) => handleStatusChange(proposal.id, value)} value={proposal.status}>
                               <SelectTrigger className="w-[120px] h-9">
                                 <SelectValue placeholder="Change Status" />
                               </SelectTrigger>
@@ -616,7 +629,7 @@ const Proposals = () => {
                                 <SelectItem value="Archived">Archived</SelectItem>
                               </SelectContent>
                             </Select>
-                            <Button variant="destructive" size="icon" onClick={() => handleDelete(proposal.id)}>
+                            <Button variant="destructive" size="icon" onClick={() => handleDelete(proposal.id)} title="Delete Proposal">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>

@@ -32,12 +32,14 @@ const Clients = () => {
   const deleteClient = useCateringStore((state) => state.deleteClient);
 
   const [editingClient, setEditingClient] = useState<Client | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false); // Renamed from isDialogOpen to be more specific
+  const [viewingClient, setViewingClient] = useState<Client | null>(null); // NEW: State for client being viewed
+  const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false); // NEW: State for view details dialog
 
   const handleAddClientSubmit = (data: ClientFormData) => {
     addClient(data as Omit<Client, 'id'>);
     toast.success("Client added successfully!");
-    setIsDialogOpen(false);
+    setIsFormDialogOpen(false);
   };
 
   const handleUpdateClientSubmit = (data: ClientFormData) => {
@@ -46,17 +48,23 @@ const Clients = () => {
       toast.success("Client updated successfully!");
     }
     setEditingClient(null);
-    setIsDialogOpen(false);
+    setIsFormDialogOpen(false);
   };
 
   const handleEdit = (client: Client) => {
     setEditingClient(client);
-    setIsDialogOpen(true);
+    setIsFormDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
     deleteClient(id);
     toast.info("Client deleted.");
+  };
+
+  // NEW: Handler to view client details
+  const handleViewDetails = (client: Client) => {
+    setViewingClient(client);
+    setIsViewDetailsDialogOpen(true);
   };
 
   return (
@@ -79,8 +87,8 @@ const Clients = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Dialog open={isDialogOpen} onOpenChange={(open) => {
-              setIsDialogOpen(open);
+            <Dialog open={isFormDialogOpen} onOpenChange={(open) => {
+              setIsFormDialogOpen(open);
               if (!open) { // Reset editing client when dialog closes
                 setEditingClient(null);
               }
@@ -100,7 +108,7 @@ const Clients = () => {
                 <ClientForm
                   initialData={editingClient || undefined}
                   onSubmit={editingClient ? handleUpdateClientSubmit : handleAddClientSubmit}
-                  onCancel={() => setIsDialogOpen(false)}
+                  onCancel={() => setIsFormDialogOpen(false)}
                 />
               </DialogContent>
             </Dialog>
@@ -131,7 +139,14 @@ const Clients = () => {
                   <TableBody>
                     {clients.map((client) => (
                       <TableRow key={client.id}>
-                        <TableCell className="font-medium">{client.name}</TableCell>
+                        <TableCell className="font-medium">
+                          <span
+                            className="cursor-pointer hover:underline text-primary" // NEW: Make client name clickable
+                            onClick={() => handleViewDetails(client)}
+                          >
+                            {client.name}
+                          </span>
+                        </TableCell>
                         <TableCell>{client.contactPerson}</TableCell>
                         <TableCell>{client.email}</TableCell>
                         <TableCell>{client.phone}</TableCell>
@@ -162,6 +177,26 @@ const Clients = () => {
         </Card>
       </div>
       <MadeWithDyad />
+
+      {/* NEW: Client Details View Dialog */}
+      <Dialog open={isViewDetailsDialogOpen} onOpenChange={setIsViewDetailsDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Client Details</DialogTitle>
+            <DialogDescription>
+              Full contact and preference information for {viewingClient?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          {viewingClient && (
+            <ClientForm
+              initialData={viewingClient}
+              onSubmit={() => {}} // No submit action for read-only view
+              onCancel={() => setIsViewDetailsDialogOpen(false)}
+              readOnly={true} // Set to read-only
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

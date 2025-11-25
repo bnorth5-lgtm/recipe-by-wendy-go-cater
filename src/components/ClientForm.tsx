@@ -35,9 +35,10 @@ interface ClientFormProps {
   initialData?: Client; // Optional: for editing existing clients
   onSubmit: (data: ClientFormData) => void;
   onCancel?: () => void;
+  readOnly?: boolean; // NEW: Add readOnly prop
 }
 
-export const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, onCancel }) => {
+export const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, onCancel, readOnly = false }) => {
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: initialData || {
@@ -60,7 +61,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, o
             <FormItem>
               <FormLabel>Company/Client Name</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Acme Corp" {...field} />
+                <Input placeholder="e.g., Acme Corp" {...field} disabled={readOnly} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -73,7 +74,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, o
             <FormItem>
               <FormLabel>Contact Person</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Jane Doe" {...field} />
+                <Input placeholder="e.g., Jane Doe" {...field} disabled={readOnly} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -87,7 +88,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, o
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="e.g., jane.doe@example.com" {...field} />
+                  <Input type="email" placeholder="e.g., jane.doe@example.com" {...field} disabled={readOnly} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -100,7 +101,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, o
               <FormItem>
                 <FormLabel>Phone</FormLabel>
                 <FormControl>
-                  <Input type="tel" placeholder="e.g., (555) 123-4567" {...field} />
+                  <Input type="tel" placeholder="e.g., (555) 123-4567" {...field} disabled={readOnly} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -114,7 +115,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, o
             <FormItem>
               <FormLabel>Address (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., 123 Main St, Anytown, USA" {...field} />
+                <Input placeholder="e.g., 123 Main St, Anytown, USA" {...field} disabled={readOnly} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -127,16 +128,18 @@ export const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, o
             <FormItem>
               <FormLabel>Notes (Optional)</FormLabel>
               <FormControl>
-                <Textarea placeholder="Any specific client preferences or details..." {...field} />
+                <Textarea placeholder="Any specific client preferences or details..." {...field} disabled={readOnly} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className="flex justify-end gap-2 mt-4">
-          {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
-          <Button type="submit">{initialData ? "Save changes" : "Add Client"}</Button>
-        </div>
+        {!readOnly && ( // NEW: Conditionally render buttons
+          <div className="flex justify-end gap-2 mt-4">
+            {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
+            <Button type="submit">{initialData ? "Save changes" : "Add Client"}</Button>
+          </div>
+        )}
       </form>
     </Form>
   );
