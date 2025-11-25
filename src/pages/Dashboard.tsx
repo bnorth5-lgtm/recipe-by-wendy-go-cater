@@ -13,7 +13,6 @@ import {
   Utensils,
   CalendarPlus,
   UserPlus,
-  NotebookText, // Import NotebookText icon
 } from "lucide-react"; // Explicitly importing icons
 import { useCateringStore, Client } from "@/store/cateringStore";
 import {
@@ -28,7 +27,8 @@ import { Button } from "@/components/ui/button";
 import { ClientForm, ClientFormData } from "@/components/ClientForm";
 import { useState } from "react";
 import { toast } from "sonner";
-import { NotesCard } from "@/components/NotesCard"; // Import the new NotesCard
+import { NotesCard } from "@/components/NotesCard";
+import { DateTimeDisplay } from "@/components/DateTimeDisplay"; // Import the new DateTimeDisplay
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
@@ -50,12 +50,12 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 relative bg-cover bg-center min-h-screen"
+      className="space-y-6 p-6 relative bg-cover bg-center min-h-screen flex flex-col" // Added flex-col
       style={{ backgroundImage: `url('https://images.unsplash.com/photo-1512621776951-a579fd9f8ed8?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')` }}
     >
       {/* Overlay for better contrast, if needed, but cards have solid backgrounds */}
       <div className="absolute inset-0 bg-black opacity-10"></div>
-      <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+      <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3 flex-1"> {/* Added flex-1 */}
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -205,7 +205,7 @@ const Dashboard = () => {
             </CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="flex flex-col"> {/* Removed justify-between and h-full */}
+          <CardContent className="flex flex-col">
             <div className="text-lg font-bold mb-2">Add a new client to your database</div>
             <p className="text-xs text-muted-foreground mb-4">
               Quickly add contact and company information for a new client.
@@ -235,10 +235,13 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* NEW: Notes Card */}
         <NotesCard />
       </div>
-      <MadeWithDyad />
+      {/* Footer for MadeWithDyad and DateTimeDisplay */}
+      <div className="relative z-10 flex justify-between items-center mt-8 p-4 bg-card/90 rounded-lg shadow-md">
+        <DateTimeDisplay />
+        <MadeWithDyad />
+      </div>
     </div>
   );
 };
