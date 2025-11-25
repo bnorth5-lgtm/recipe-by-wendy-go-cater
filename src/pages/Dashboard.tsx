@@ -12,10 +12,14 @@ import {
   Utensils,
   CalendarPlus,
   UserPlus,
-  AlertCircle, // Added for overdue items
-  CalendarCheck, // Added for upcoming events
-} from "lucide-react"; // Explicitly importing icons
-import { useCateringStore, Client } from "@/store/cateringStore";
+  AlertCircle,
+  CalendarCheck,
+  Settings, // Added for the manage tasks button
+  Edit, // Added for editing tasks
+  Trash2, // Added for deleting tasks
+  PlusCircle, // Added for adding tasks
+} from "lucide-react";
+import { useCateringStore, Client, CriticalTask } from "@/store/cateringStore";
 import {
   Dialog,
   DialogContent,
@@ -23,27 +27,38 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter, // Added for dialog buttons
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ClientForm, ClientFormData } from "@/components/ClientForm";
 import { useState } from "react";
 import { toast } from "sonner";
 import { NotesCard } from "@/components/NotesCard";
-import { DateDisplay } from "@/components/DateDisplay"; // Import the new DateDisplay
-import { TimeDisplay } from "@/components/TimeDisplay"; // Import the new TimeDisplay
-import { TwoMonthCalendar } from "@/components/TwoMonthCalendar"; // Import the new calendar component
-import { OverdueSidebar } from "@/components/OverdueSidebar"; // NEW: Import OverdueSidebar
-import { format, isPast, differenceInDays, parseISO, isFuture } from "date-fns"; // Import date-fns for logic
+import { DateDisplay } from "@/components/DateDisplay";
+import { TimeDisplay } from "@/components/TimeDisplay";
+import { TwoMonthCalendar } from "@/components/TwoMonthCalendar";
+import { OverdueSidebar } from "@/components/OverdueSidebar";
+import { format, isPast, differenceInDays, parseISO, isFuture } from "date-fns";
+import { Input } from "@/components/ui/input"; // Added for task input
+import { Label } from "@/components/ui/label"; // Added for task label
+import { ScrollArea } from "@/components/ui/scroll-area"; // Added for scrollable task list
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
 
   const proposals = useCateringStore((state) => state.proposals);
   const bookings = useCateringStore((state) => state.bookings);
-  const estimates = useCateringStore((state) => state.estimates); // Get estimates from store
+  const estimates = useCateringStore((state) => state.estimates);
   const addClient = useCateringStore((state) => state.addClient);
+  const criticalTasks = useCateringStore((state) => state.criticalTasks); // Get critical tasks
+  const addCriticalTask = useCateringStore((state) => state.addCriticalTask);
+  const updateCriticalTask = useCateringStore((state) => state.updateCriticalTask);
+  const deleteCriticalTask = useCateringStore((state) => state.deleteCriticalTask);
 
   const [isClientFormDialogOpen, setIsClientFormDialogOpen] = useState(false);
+  const [isManageTasksDialogOpen, setIsManageTasksDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<CriticalTask | null>(null);
+  const [newTaskContent, setNewTaskContent] = useState("");
 
   const newLeadsCount = proposals.filter(p => p.status === "Draft").length;
   const proposalsSentCount = proposals.filter(p => p.status === "Sent").length;
@@ -56,8 +71,8 @@ const Dashboard = () => {
   };
 
   // --- Dynamic "Today's Tasks" Logic ---
-  const overdueThresholdDays = 7; // Define what 'overdue' means (e.g., 7 days old)
-  const upcomingEventsThresholdDays = 7; // Define 'upcoming' (e.g., next 7 days)
+  const overdueThresholdDays = 7;
+  const upcomingEventsThresholdDays = 7;
 
   const overdueProposals = proposals.filter(p => {
     const createdAtDate = parseISO(p.createdAt);
@@ -75,17 +90,39 @@ const Dashboard = () => {
     const eventDate = parseISO(b.eventDate);
     const today = new Date();
     return b.status === "pending" && isFuture(eventDate) && differenceInDays(eventDate, today) <= upcomingEventsThresholdDays;
-  }).sort((a, b) => parseISO(a.eventDate).getTime() - parseISO(b.eventDate).getTime()); // Sort by date
+  }).sort((a, b) => parseISO(a.eventDate).getTime() - parseISO(b.eventDate).getTime());
 
-  const criticalPathTasks = [
-    "Review new leads and assign follow-ups.",
-    "Check inventory levels for upcoming events.",
-    "Update recipe costs based on recent supplier invoices.",
-    "Engage with clients who received proposals last week.",
-    "Plan social media content for the next 3 days.",
-    "Review staff schedule for next week's events.",
-  ];
-  // --- End Dynamic "Today's Tasks" Logic ---
+  // --- Critical Task Management Handlers ---
+  const handleAddTask = () => {
+    if (newTaskContent.trim()) {
+      addCriticalTask(newTaskContent.trim());
+      setNewTaskContent("");
+      toast.success("Task added!");
+    } else {
+      toast.error("Task content cannot be empty.");
+    }
+  };
+
+  const handleEditTask = (task: CriticalTask) => {
+    setEditingTask(task);
+    setNewTaskContent(task.content);
+  };
+
+  const handleUpdateTask = () => {
+    if (editingTask && newTaskContent.trim()) {
+      updateCriticalTask(editingTask.id, newTaskContent.trim());
+      setEditingTask(null);
+      setNewTaskContent("");
+      toast.success("Task updated!");
+    } else if (!newTaskContent.trim()) {
+      toast.error("Task content cannot be empty.");
+    }
+  };
+
+  const handleDeleteTask = (id: string) => {
+    deleteCriticalTask(id);
+    toast.info("Task deleted.");
+  };
 
   return (
     <div
@@ -105,7 +142,75 @@ const Dashboard = () => {
             <CardTitle className="text-sm font-medium">
               Today's Action Items
             </CardTitle>
-            <ClipboardList className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2">
+              <Dialog open={isManageTasksDialogOpen} onOpenChange={setIsManageTasksDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-7 text-xs">
+                    <Settings className="mr-1 h-3 w-3" /> Manage Tasks
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Manage Daily Critical Path Tasks</DialogTitle>
+                    <DialogDescription>
+                      Add, edit, or remove tasks from your daily critical path.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="newTask"
+                        placeholder="New critical task..."
+                        value={newTaskContent}
+                        onChange={(e) => setNewTaskContent(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (editingTask) {
+                              handleUpdateTask();
+                            } else {
+                              handleAddTask();
+                            }
+                          }
+                        }}
+                      />
+                      <Button onClick={editingTask ? handleUpdateTask : handleAddTask}>
+                        {editingTask ? <Edit className="h-4 w-4" /> : <PlusCircle className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    <ScrollArea className="h-[200px] pr-4">
+                      <div className="space-y-2">
+                        {criticalTasks.length === 0 ? (
+                          <p className="text-muted-foreground text-sm text-center py-4">No critical tasks added yet.</p>
+                        ) : (
+                          criticalTasks.map((task) => (
+                            <div key={task.id} className="flex items-center justify-between p-2 border rounded-md bg-secondary/20">
+                              <span className="text-sm">{task.content}</span>
+                              <div className="flex gap-1">
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditTask(task)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="destructive" size="icon" className="h-7 w-7" onClick={() => handleDeleteTask(task.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => {
+                      setIsManageTasksDialogOpen(false);
+                      setEditingTask(null);
+                      setNewTaskContent("");
+                    }}>Close</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              <ClipboardList className="h-4 w-4 text-muted-foreground" />
+            </div>
           </CardHeader>
           <CardContent className="flex flex-col justify-between h-full">
             <div className="space-y-3">
@@ -169,9 +274,13 @@ const Dashboard = () => {
                   Daily Critical Path:
                 </h3>
                 <ul className="list-disc list-inside text-xs text-muted-foreground ml-4">
-                  {criticalPathTasks.map((task, index) => (
-                    <li key={index}>{task}</li>
-                  ))}
+                  {criticalTasks.length === 0 ? (
+                    <li>No critical tasks defined. Click 'Manage Tasks' to add some!</li>
+                  ) : (
+                    criticalTasks.map((task) => (
+                      <li key={task.id}>{task.content}</li>
+                    ))
+                  )}
                 </ul>
               </div>
             </div>

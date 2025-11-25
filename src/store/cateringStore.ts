@@ -208,6 +208,12 @@ export interface Note {
   timestamp: string; // ISO string
 }
 
+// NEW: Define the schema for a Critical Task
+export interface CriticalTask {
+  id: string;
+  content: string;
+}
+
 interface CateringState {
   inventory: InventoryItem[];
   recipes: Recipe[];
@@ -217,6 +223,7 @@ interface CateringState {
   estimates: Estimate[]; // Estimates state
   menus: Menu[]; // NEW: Menus state
   notes: Note[]; // NEW: Notes state
+  criticalTasks: CriticalTask[]; // NEW: Critical Tasks state
 
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void;
   updateInventoryItem: (item: InventoryItem) => void;
@@ -256,6 +263,11 @@ interface CateringState {
   // NEW: Note actions
   addNote: (content: string) => void;
   deleteNote: (id: string) => void;
+
+  // NEW: Critical Task actions
+  addCriticalTask: (content: string) => void;
+  updateCriticalTask: (id: string, content: string) => void;
+  deleteCriticalTask: (id: string) => void;
 }
 
 const initialInventory: InventoryItem[] = [
@@ -309,7 +321,7 @@ const initialInventory: InventoryItem[] = [
 
   // Food Ingredients - Seafood
   { id: "3", name: "Salmon Fillets (raw, per lb)", category: "Food Ingredient", currentStock: 20, unit: "lb", lowStockThreshold: 4, costPerUnit: 12.00, markupPercentage: 0.25 },
-  { id: "133", name: "Haddock (6oz fillet)", category: "Food Ingredient", currentStock: 30, unit: "6oz fillet", lowStockThreshold: 6, costPerUnit: (10.00 / 16) * 6, markupPercentage: 0.20 }, // Assuming raw haddock at $10.00/lb
+  { id: "133", name: "Haddock (6oz fillet)", category: "Food Ingredient", currentStock: 30, unit: "6oz fillet", lowStockThreshold: 6, costPerUnit: (10.00 / 16) * 6, markupPerUnit: 0.20 }, // Assuming raw haddock at $10.00/lb
   { id: "134", name: "Haddock (8oz fillet)", category: "Food Ingredient", currentStock: 25, unit: "8oz fillet", lowStockThreshold: 5, costPerUnit: (10.00 / 16) * 8, markupPercentage: 0.20 },
   { id: "135", name: "Haddock (10oz fillet)", category: "Food Ingredient", currentStock: 20, unit: "10oz fillet", lowStockThreshold: 4, costPerUnit: (10.00 / 16) * 10, markupPercentage: 0.20 },
   { id: "41", name: "Shrimp (Peeled & Deveined, raw, per lb)", category: "Food Ingredient", currentStock: 10, unit: "lb", lowStockThreshold: 2, costPerUnit: 15.00, markupPercentage: 0.25 },
@@ -1382,6 +1394,15 @@ const initialNotes: Note[] = [
   { id: "note2", content: "Order more salmon for next week's events.", timestamp: new Date(Date.now() - 3600000).toISOString() }, // 1 hour ago
 ];
 
+const initialCriticalTasks: CriticalTask[] = [
+  { id: "task1", content: "Review new leads and assign follow-ups." },
+  { id: "task2", content: "Check inventory levels for upcoming events." },
+  { id: "task3", content: "Update recipe costs based on recent supplier invoices." },
+  { id: "task4", content: "Engage with clients who received proposals last week." },
+  { id: "task5", content: "Plan social media content for the next 3 days." },
+  { id: "task6", content: "Review staff schedule for next week's events." },
+];
+
 const initialClients: Client[] = [
   {
     id: "c1",
@@ -1534,6 +1555,7 @@ export const useCateringStore = create<CateringState>()(
       estimates: [], // Estimates state
       menus: initialMenus, // NEW: Initialize menus with sample data
       notes: initialNotes, // NEW: Initialize notes with sample data
+      criticalTasks: initialCriticalTasks, // NEW: Initialize critical tasks
 
       addInventoryItem: (item) => set((state) => ({
         inventory: [...state.inventory, { ...item, id: crypto.randomUUID() }],
@@ -1814,6 +1836,19 @@ export const useCateringStore = create<CateringState>()(
       })),
       deleteNote: (id) => set((state) => ({
         notes: state.notes.filter((note) => note.id !== id),
+      })),
+
+      // NEW: Critical Task actions
+      addCriticalTask: (content) => set((state) => ({
+        criticalTasks: [...state.criticalTasks, { id: crypto.randomUUID(), content }],
+      })),
+      updateCriticalTask: (id, content) => set((state) => ({
+        criticalTasks: state.criticalTasks.map((task) =>
+          task.id === id ? { ...task, content } : task
+        ),
+      })),
+      deleteCriticalTask: (id) => set((state) => ({
+        criticalTasks: state.criticalTasks.filter((task) => task.id !== id),
       })),
     }),
     {

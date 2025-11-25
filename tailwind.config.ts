@@ -19,8 +19,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)"],
-        serif: ["Playfair Display", "serif"], // Added Playfair Display
+        sans: ["Inter", "sans-serif"], // Changed to Inter
+        serif: ["Playfair Display", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -29,7 +29,7 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))", // Updated to a rose hue
+          DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -66,12 +66,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        pink: "hsl(var(--pink))", // Added pink color
+        pink: "hsl(var(--pink))",
         calendar: {
           quote: "hsl(var(--calendar-quote))",
           proposal: "hsl(var(--calendar-proposal))",
           event: "hsl(var(--calendar-event))",
-          beo: "hsl(var(--calendar-beo))", // NEW: BEO color
+          beo: "hsl(var(--calendar-beo))",
         },
       },
       borderRadius: {
