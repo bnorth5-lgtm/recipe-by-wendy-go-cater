@@ -46,9 +46,13 @@
     --sidebar-accent: 217.2 91.2% 95%; /* Lighter blue for hover/active */
     --sidebar-accent-foreground: 217.2 91.2% 59.8%; /* Matching new primary blue */
     --sidebar-border: 214.3 31.8% 91.4%; /* Light gray border */
-    --sidebar-ring: 217.2 91.2% 59.8%; /* Matching new primary blue */
+    --sidebar-ring: 217.2 91.2% 59.8%;
 
     --pink: 330 80% 70%; /* A soft pink */
+
+    --calendar-quote: 40 80% 70%; /* Soft orange/peach */
+    --calendar-proposal: 210 80% 60%; /* Medium blue */
+    --calendar-event: 120 60% 50%; /* Vibrant green */
   }
 
   .dark {
@@ -89,6 +93,10 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     --pink: 330 80% 70%; /* A soft pink */
+
+    --calendar-quote: 40 80% 70%; /* Soft orange/peach */
+    --calendar-proposal: 210 80% 60%; /* Medium blue */
+    --calendar-event: 120 60% 50%; /* Vibrant green */
   }
 }
 

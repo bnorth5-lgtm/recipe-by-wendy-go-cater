@@ -5,7 +5,6 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Link } from "react-router-dom";
 import {
   DollarSign,
-  Calendar,
   ClipboardList,
   FileText,
   Warehouse,
@@ -30,13 +29,14 @@ import { toast } from "sonner";
 import { NotesCard } from "@/components/NotesCard";
 import { DateDisplay } from "@/components/DateDisplay"; // Import the new DateDisplay
 import { TimeDisplay } from "@/components/TimeDisplay"; // Import the new TimeDisplay
-import { format, isFuture, parseISO } from "date-fns"; // Import date-fns for date handling
+import { TwoMonthCalendar } from "@/components/TwoMonthCalendar"; // Import the new calendar component
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
 
   const proposals = useCateringStore((state) => state.proposals);
-  const bookings = useCateringStore((state) => state.bookings); // Get bookings from store
+  const bookings = useCateringStore((state) => state.bookings);
+  const estimates = useCateringStore((state) => state.estimates); // Get estimates from store
   const addClient = useCateringStore((state) => state.addClient);
 
   const [isClientFormDialogOpen, setIsClientFormDialogOpen] = useState(false);
@@ -44,12 +44,6 @@ const Dashboard = () => {
   const newLeadsCount = proposals.filter(p => p.status === "Draft").length;
   const proposalsSentCount = proposals.filter(p => p.status === "Sent").length;
   const confirmedBookingsCount = proposals.filter(p => p.status === "Accepted").length;
-
-  // Get upcoming bookings, sorted by date, limited to 3
-  const upcomingBookings = bookings
-    .filter(b => b.status === "pending" && isFuture(parseISO(b.eventDate)))
-    .sort((a, b) => parseISO(a.eventDate).getTime() - parseISO(b.eventDate).getTime())
-    .slice(0, 3);
 
   const handleAddClientSubmit = (data: ClientFormData) => {
     addClient(data as Omit<Client, 'id'>);
@@ -86,28 +80,10 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Link to="/events/calendar" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Upcoming Events
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-2xl font-bold">{upcomingBookings.length} Upcoming Events</div>
-              {upcomingBookings.length > 0 ? (
-                upcomingBookings.map(booking => (
-                  <p key={booking.id} className="text-xs text-muted-foreground">
-                    {format(parseISO(booking.eventDate), "MMM d")}: {booking.eventName} ({booking.numberOfGuests} Guests)
-                  </p>
-                ))
-              ) : (
-                <p className="text-xs text-muted-foreground">No upcoming events scheduled.</p>
-              )}
-            </CardContent>
-          </Card>
-        </Link>
+        {/* Replaced "Upcoming Events" card with TwoMonthCalendar */}
+        <div className="lg:col-span-2"> {/* Make it span 2 columns on large screens */}
+          <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
+        </div>
 
         <Link to="/events/bookings" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">

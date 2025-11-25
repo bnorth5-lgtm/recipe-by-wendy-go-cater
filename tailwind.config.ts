@@ -67,6 +67,11 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         pink: "hsl(var(--pink))", // Added pink color
+        calendar: {
+          quote: "hsl(var(--calendar-quote))",
+          proposal: "hsl(var(--calendar-proposal))",
+          event: "hsl(var(--calendar-event))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
