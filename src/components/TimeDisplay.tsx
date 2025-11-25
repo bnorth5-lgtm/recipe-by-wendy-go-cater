@@ -19,7 +19,7 @@ export const TimeDisplay: React.FC = () => {
   const formattedTime = format(currentTime, "h:mm:ss a");
 
   return (
-    <div className="text-xl font-mono font-semibold text-gray-800 dark:text-gray-100">
+    <div className="text-lg font-semibold text-gray-800 dark:text-gray-100">
       {formattedTime}
     </div>
   );
