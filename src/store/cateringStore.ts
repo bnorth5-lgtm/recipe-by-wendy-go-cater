@@ -262,6 +262,7 @@ interface CateringState {
 
   // NEW: Note actions
   addNote: (content: string) => void;
+  updateNote: (id: string, content: string) => void; // NEW: Update note action
   deleteNote: (id: string) => void;
 
   // NEW: Critical Task actions
@@ -1885,6 +1886,11 @@ export const useCateringStore = create<CateringState>()(
       // NEW: Note actions
       addNote: (content) => set((state) => ({
         notes: [...state.notes, { id: crypto.randomUUID(), content, timestamp: new Date().toISOString() }],
+      })),
+      updateNote: (id, content) => set((state) => ({
+        notes: state.notes.map((note) =>
+          note.id === id ? { ...note, content, timestamp: new Date().toISOString() } : note
+        ),
       })),
       deleteNote: (id) => set((state) => ({
         notes: state.notes.filter((note) => note.id !== id),
