@@ -32,6 +32,7 @@ import { BookingForm } from "@/components/BookingForm";
 import * as z from "zod";
 import { bookingFormSchema } from "@/components/BookingForm";
 import { toast } from "sonner"; // Import toast for notifications
+import { cn } from "@/lib/utils"; // Import cn for conditional classNames
 
 type BookingFormData = z.infer<typeof bookingFormSchema>;
 
@@ -49,7 +50,7 @@ const Calendar = () => {
     hasEvent: bookedDates,
   };
   const modifiersClassNames = {
-    hasEvent: "bg-primary text-primary-foreground rounded-full",
+    hasEvent: "bg-destructive text-destructive-foreground rounded-full", // Highlight event dates in red
   };
 
   // Filter events for the selected date
@@ -139,7 +140,14 @@ const Calendar = () => {
               <ScrollArea className="h-[300px] pr-4">
                 <div className="space-y-4">
                   {eventsOnSelectedDate.map((booking) => (
-                    <div key={booking.id} className="border p-3 rounded-md bg-secondary/20 flex justify-between items-center">
+                    <div
+                      key={booking.id}
+                      className={cn(
+                        "border p-3 rounded-md bg-secondary/20 flex justify-between items-center cursor-pointer hover:bg-secondary/30 transition-colors",
+                        booking.status === "cancelled" && "opacity-70" // Dim cancelled events
+                      )}
+                      onClick={() => booking.status !== "cancelled" && handleEditBooking(booking)} // Hotlink to edit dialog
+                    >
                       <div>
                         <h3 className="font-semibold text-lg">{booking.eventName}</h3>
                         <p className="text-sm text-muted-foreground">Client: {booking.clientName}</p>
@@ -159,7 +167,7 @@ const Calendar = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleEditBooking(booking)}
+                          onClick={(e) => { e.stopPropagation(); handleEditBooking(booking); }} // Prevent parent div click
                           disabled={booking.status === "cancelled"} // Disable edit if cancelled
                         >
                           <Edit className="h-4 w-4" />
@@ -170,7 +178,7 @@ const Calendar = () => {
                               <Button
                                 variant="destructive"
                                 size="icon"
-                                onClick={() => handleCancelBooking(booking)}
+                                onClick={(e) => { e.stopPropagation(); handleCancelBooking(booking); }} // Prevent parent div click
                               >
                                 <XCircle className="h-4 w-4" />
                               </Button>

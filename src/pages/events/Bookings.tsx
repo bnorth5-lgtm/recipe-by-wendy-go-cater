@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CheckCircle, Loader2, Trash2 } from "lucide-react";
+import { CheckCircle, Loader2, Trash2, XCircle } from "lucide-react"; // XCircle added here
 import { toast } from "sonner";
 import { useCateringStore, EventBooking } from "@/store/cateringStore";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import { BookingForm } from "@/components/BookingForm";
 import { format } from "date-fns"; // Import format from date-fns
 import * as z from "zod"; // Import Zod
 import { bookingFormSchema } from "@/components/BookingForm"; // Import the schema
+import { cn } from "@/lib/utils"; // Import cn for conditional classNames
 
 type BookingFormData = z.infer<typeof bookingFormSchema>; // Infer type from schema
 
@@ -100,7 +101,14 @@ const Bookings = () => {
                   </TableHeader>
                   <TableBody>
                     {bookings.map((booking) => (
-                      <TableRow key={booking.id}>
+                      <TableRow
+                        key={booking.id}
+                        className={cn(
+                          booking.status === "pending" && "border-l-4 border-destructive", // Red border for pending
+                          booking.status === "completed" && "border-l-4 border-green-500", // Green border for completed
+                          booking.status === "cancelled" && "border-l-4 border-gray-400 opacity-70" // Gray border for cancelled
+                        )}
+                      >
                         <TableCell className="font-medium">{booking.eventName}</TableCell>
                         <TableCell>{booking.clientName}</TableCell>
                         <TableCell>{booking.eventDate}</TableCell>
@@ -121,6 +129,10 @@ const Bookings = () => {
                           {booking.status === "completed" ? (
                             <Badge className="bg-green-500 hover:bg-green-500 text-white flex items-center justify-center gap-1">
                               <CheckCircle className="h-3 w-3" /> Completed
+                            </Badge>
+                          ) : booking.status === "cancelled" ? (
+                            <Badge variant="destructive" className="flex items-center justify-center gap-1">
+                              <XCircle className="h-3 w-3" /> Cancelled
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="flex items-center justify-center gap-1">

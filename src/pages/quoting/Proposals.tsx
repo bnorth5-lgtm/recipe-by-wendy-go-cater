@@ -567,7 +567,7 @@ const Proposals = () => {
                     {proposals.map((proposal) => {
                       const client = clients.find(c => c.id === proposal.clientId);
                       return (
-                        <TableRow key={proposal.id}>
+                        <TableRow key={proposal.id} className="border-l-4 border-primary"> {/* Blue border for proposals */}
                           <TableCell className="font-medium">{proposal.eventName}</TableCell>
                           <TableCell>{client ? client.name : "Unknown Client"}</TableCell>
                           <TableCell>{format(new Date(proposal.eventDate), "PPP")}</TableCell>
