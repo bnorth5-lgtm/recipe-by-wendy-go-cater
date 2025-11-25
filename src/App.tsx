@@ -35,6 +35,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/notes/:noteId" element={<Dashboard />} /> {/* NEW: Route for individual notes */}
 
             {/* Menu & Recipes Routes (now direct) */}
             {/* Removed /menu top-level route */}

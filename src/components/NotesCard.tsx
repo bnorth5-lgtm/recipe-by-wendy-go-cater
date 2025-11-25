@@ -5,18 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PlusCircle, Trash2, NotebookText, Mic, StopCircle, Edit } from "lucide-react"; // Added Edit icon
+import { PlusCircle, Trash2, NotebookText, Mic, StopCircle } from "lucide-react"; // Removed Edit icon
 import { useCateringStore, Note } from "@/store/cateringStore";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"; // Import Dialog components
+import { Link } from "react-router-dom"; // Import Link
 
 // Extend Window interface for WebkitSpeechRecognition and SpeechRecognition
 declare global {
@@ -29,16 +22,11 @@ declare global {
 export const NotesCard: React.FC = () => {
   const notes = useCateringStore((state) => state.notes);
   const addNote = useCateringStore((state) => state.addNote);
-  const updateNote = useCateringStore((state) => state.updateNote); // NEW: Get updateNote action
   const deleteNote = useCateringStore((state) => state.deleteNote);
 
   const [newNoteContent, setNewNoteContent] = useState("");
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null); // Use useRef to persist the recognition object
-
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false); // NEW: State for edit dialog
-  const [editingNote, setEditingNote] = useState<Note | null>(null); // NEW: State for the note being edited
-  const [editedNoteContent, setEditedNoteContent] = useState(""); // NEW: State for content in edit dialog
 
   useEffect(() => {
     // Check for browser compatibility
@@ -132,26 +120,6 @@ export const NotesCard: React.FC = () => {
     }
   };
 
-  // NEW: Handle opening the edit dialog
-  const handleEditClick = (note: Note) => {
-    setEditingNote(note);
-    setEditedNoteContent(note.content);
-    setIsEditDialogOpen(true);
-  };
-
-  // NEW: Handle saving changes from the edit dialog
-  const handleSaveEditedNote = () => {
-    if (editingNote && editedNoteContent.trim()) {
-      updateNote(editingNote.id, editedNoteContent.trim());
-      toast.success("Note updated!");
-      setIsEditDialogOpen(false);
-      setEditingNote(null);
-      setEditedNoteContent("");
-    } else {
-      toast.error("Note content cannot be empty.");
-    }
-  };
-
   return (
     <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -194,28 +162,24 @@ export const NotesCard: React.FC = () => {
           </div>
         </div>
 
-        <ScrollArea className="h-[200px] flex-1 pr-4"> {/* Added h-[200px] for fixed height */}
+        <ScrollArea className="h-[200px] flex-1 pr-4">
           {notes.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-4">No notes yet. Add one above!</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-1"> {/* Made notes tighter */}
               {notes.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((note) => (
-                <div
-                  key={note.id}
-                  className="flex items-start justify-between p-2 border rounded-md bg-secondary/20 cursor-pointer hover:bg-secondary/30 transition-colors"
-                  onClick={() => handleEditClick(note)} // NEW: Make note clickable to open edit dialog
-                >
-                  <div>
+                <div key={note.id} className="flex items-start justify-between p-1 border rounded-md bg-secondary/20 hover:bg-secondary/30 transition-colors"> {/* Reduced padding */}
+                  <Link to={`/dashboard/notes/${note.id}`} className="flex-1 block p-2 -m-2"> {/* Hotlink */}
                     <p className="text-sm font-medium">{note.content}</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {format(new Date(note.timestamp), "MMM d, yyyy HH:mm")}
                     </p>
-                  </div>
+                  </Link>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-destructive hover:bg-destructive/10"
-                    onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }} // Prevent dialog from opening on delete click
+                    className="h-7 w-7 text-destructive hover:bg-destructive/10 shrink-0"
+                    onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -225,31 +189,6 @@ export const NotesCard: React.FC = () => {
           )}
         </ScrollArea>
       </CardContent>
-
-      {/* NEW: Edit Note Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Note</DialogTitle>
-            <DialogDescription>
-              Make changes to your note here. Click save when you're done.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <Textarea
-              id="editNoteContent"
-              value={editedNoteContent}
-              onChange={(e) => setEditedNoteContent(e.target.value)}
-              rows={6}
-              className="w-full"
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveEditedNote}>Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 };

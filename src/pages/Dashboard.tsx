@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Link } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom"; // Added useParams and useNavigate
 import {
   DollarSign,
   ClipboardList,
@@ -14,24 +14,24 @@ import {
   UserPlus,
   AlertCircle,
   CalendarCheck,
-  Settings, // Added for the manage tasks button
-  Edit, // Added for editing tasks
-  Trash2, // Added for deleting tasks
-  PlusCircle, // Added for adding tasks
+  Settings,
+  Edit,
+  Trash2,
+  PlusCircle,
 } from "lucide-react";
-import { useCateringStore, Client, CriticalTask } from "@/store/cateringStore";
+import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore"; // Added Note import
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter, // Added for dialog buttons
-  DialogTrigger, // <--- ADDED THIS IMPORT
+  DialogFooter,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ClientForm, ClientFormData } from "@/components/ClientForm";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect
 import { toast } from "sonner";
 import { NotesCard } from "@/components/NotesCard";
 import { DateDisplay } from "@/components/DateDisplay";
@@ -39,26 +39,67 @@ import { TimeDisplay } from "@/components/TimeDisplay";
 import { TwoMonthCalendar } from "@/components/TwoMonthCalendar";
 import { OverdueSidebar } from "@/components/OverdueSidebar";
 import { format, isPast, differenceInDays, parseISO, isFuture } from "date-fns";
-import { Input } from "@/components/ui/input"; // Added for task input
-import { Label } from "@/components/ui/label"; // Added for task label
-import { ScrollArea } from "@/components/ui/scroll-area"; // Added for scrollable task list
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea"; // Added Textarea for note editing
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
+
+  const { noteId } = useParams<{ noteId?: string }>(); // Get noteId from URL
+  const navigate = useNavigate(); // For programmatic navigation
 
   const proposals = useCateringStore((state) => state.proposals);
   const bookings = useCateringStore((state) => state.bookings);
   const estimates = useCateringStore((state) => state.estimates);
   const addClient = useCateringStore((state) => state.addClient);
-  const criticalTasks = useCateringStore((state) => state.criticalTasks); // Get critical tasks
+  const criticalTasks = useCateringStore((state) => state.criticalTasks);
   const addCriticalTask = useCateringStore((state) => state.addCriticalTask);
   const updateCriticalTask = useCateringStore((state) => state.updateCriticalTask);
   const deleteCriticalTask = useCateringStore((state) => state.deleteCriticalTask);
+  const notes = useCateringStore((state) => state.notes); // Get notes
+  const updateNote = useCateringStore((state) => state.updateNote); // Get updateNote action
 
   const [isClientFormDialogOpen, setIsClientFormDialogOpen] = useState(false);
   const [isManageTasksDialogOpen, setIsManageTasksDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<CriticalTask | null>(null);
   const [newTaskContent, setNewTaskContent] = useState("");
+
+  const [isEditNoteDialogOpen, setIsEditNoteDialogOpen] = useState(false); // State for note edit dialog
+  const [editingNote, setEditingNote] = useState<Note | null>(null); // State for the note being edited
+  const [editedNoteContent, setEditedNoteContent] = useState(""); // State for content in edit dialog
+
+  // Effect to open note edit dialog if noteId is in URL
+  useEffect(() => {
+    if (noteId) {
+      const noteToEdit = notes.find(n => n.id === noteId);
+      if (noteToEdit) {
+        setEditingNote(noteToEdit);
+        setEditedNoteContent(noteToEdit.content);
+        setIsEditNoteDialogOpen(true);
+      } else {
+        toast.error("Note not found.");
+        navigate("/dashboard"); // Redirect if note not found
+      }
+    } else {
+      setIsEditNoteDialogOpen(false); // Close dialog if noteId is cleared from URL
+      setEditingNote(null);
+      setEditedNoteContent("");
+    }
+  }, [noteId, notes, navigate]);
+
+  // Handle saving changes from the edit note dialog
+  const handleSaveEditedNote = () => {
+    if (editingNote && editedNoteContent.trim()) {
+      updateNote(editingNote.id, editedNoteContent.trim());
+      toast.success("Note updated!");
+      setIsEditNoteDialogOpen(false);
+      navigate("/dashboard"); // Navigate back to clean URL
+    } else {
+      toast.error("Note content cannot be empty.");
+    }
+  };
 
   // Updated proposal counts for clarity
   const draftProposalsCount = proposals.filter(p => p.status === "Draft").length;
@@ -293,7 +334,7 @@ const Dashboard = () => {
         </div>
 
         {/* Row 2: Calendar and Overdue Sidebar */}
-        <div className="lg:col-span-2"> {/* Changed from lg:col-span-3 to lg:col-span-2 */}
+        <div className="lg:col-span-2">
           <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
         </div>
         <div>
@@ -450,6 +491,36 @@ const Dashboard = () => {
         <MadeWithDyad />
         <TimeDisplay />
       </div>
+
+      {/* NEW: Edit Note Dialog (managed by Dashboard) */}
+      <Dialog open={isEditNoteDialogOpen} onOpenChange={(open) => {
+        setIsEditNoteDialogOpen(open);
+        if (!open) {
+          navigate("/dashboard"); // Clear noteId from URL when dialog closes
+        }
+      }}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Note</DialogTitle>
+            <DialogDescription>
+              Make changes to your note here. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Textarea
+              id="editNoteContent"
+              value={editedNoteContent}
+              onChange={(e) => setEditedNoteContent(e.target.value)}
+              rows={6}
+              className="w-full"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditNoteDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveEditedNote}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
