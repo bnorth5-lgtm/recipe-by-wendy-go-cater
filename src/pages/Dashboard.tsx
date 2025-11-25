@@ -51,11 +51,10 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 relative bg-cover bg-center min-h-screen flex flex-col"
+      className="space-y-6 p-6 relative bg-cover bg-center bg-fixed min-h-screen flex flex-col"
       style={{ backgroundImage: `url('https://images.unsplash.com/photo-1512621776951-a579fd9f8ed8?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')` }}
     >
-      {/* Overlay for better contrast, if needed, but cards have solid backgrounds */}
-      <div className="absolute inset-0 bg-black opacity-10"></div>
+      {/* Removed the black overlay for better visibility of the background image */}
       <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3 flex-1">
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
