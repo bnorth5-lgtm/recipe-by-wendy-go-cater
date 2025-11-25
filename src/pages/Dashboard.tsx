@@ -13,6 +13,7 @@ import {
   Utensils,
   CalendarPlus,
   UserPlus,
+  NotebookText, // Import NotebookText icon
 } from "lucide-react"; // Explicitly importing icons
 import { useCateringStore, Client } from "@/store/cateringStore";
 import {
@@ -27,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { ClientForm, ClientFormData } from "@/components/ClientForm";
 import { useState } from "react";
 import { toast } from "sonner";
+import { NotesCard } from "@/components/NotesCard"; // Import the new NotesCard
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
@@ -232,6 +234,9 @@ const Dashboard = () => {
             </Dialog>
           </CardContent>
         </Card>
+
+        {/* NEW: Notes Card */}
+        <NotesCard />
       </div>
       <MadeWithDyad />
     </div>

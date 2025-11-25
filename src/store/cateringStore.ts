@@ -199,6 +199,13 @@ export interface Menu {
   updatedAt: string;
 }
 
+// NEW: Define the schema for a Note
+export interface Note {
+  id: string;
+  content: string;
+  timestamp: string; // ISO string
+}
+
 interface CateringState {
   inventory: InventoryItem[];
   recipes: Recipe[];
@@ -207,6 +214,7 @@ interface CateringState {
   proposals: Proposal[]; // New: Proposals state
   estimates: Estimate[]; // Estimates state
   menus: Menu[]; // NEW: Menus state
+  notes: Note[]; // NEW: Notes state
 
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void;
   updateInventoryItem: (item: InventoryItem) => void;
@@ -242,6 +250,10 @@ interface CateringState {
   addMenu: (menu: Omit<Menu, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateMenu: (menu: Menu) => void;
   deleteMenu: (id: string) => void;
+
+  // NEW: Note actions
+  addNote: (content: string) => void;
+  deleteNote: (id: string) => void;
 }
 
 const initialInventory: InventoryItem[] = [
@@ -571,7 +583,7 @@ const initialRecipes: Recipe[] = [
       { name: "Cremini Mushrooms", quantity: 0.75, unit: "lb" },
       { name: "Garlic", quantity: 3, unit: "head" },
       { name: "Marsala Wine (cooking)", quantity: 0.25, unit: "quart" },
-      { name: "Chicken Broth", quantity: 0.25, unit: "quart" },
+      { name: "Chicken Broth", quantity: 0.25, unit: "quart" }, // Using chicken broth as a substitute for beef broth
       { name: "Fresh Parsley", quantity: 0.2, unit: "bunch" },
       { name: "Salt", quantity: 1, unit: "tbsp" },
       { name: "Black Pepper", quantity: 1, unit: "tsp" },
@@ -1363,6 +1375,11 @@ const initialMenus: Menu[] = [
   },
 ];
 
+const initialNotes: Note[] = [
+  { id: "note1", content: "Follow up with 'Acme Corp' regarding proposal #123.", timestamp: new Date().toISOString() },
+  { id: "note2", content: "Order more salmon for next week's events.", timestamp: new Date(Date.now() - 3600000).toISOString() }, // 1 hour ago
+];
+
 
 export const useCateringStore = create<CateringState>()(
   persist(
@@ -1388,6 +1405,7 @@ export const useCateringStore = create<CateringState>()(
       proposals: [], // Initialize proposals
       estimates: [], // Estimates state
       menus: initialMenus, // NEW: Initialize menus with sample data
+      notes: initialNotes, // NEW: Initialize notes with sample data
 
       addInventoryItem: (item) => set((state) => ({
         inventory: [...state.inventory, { ...item, id: crypto.randomUUID() }],
@@ -1635,6 +1653,14 @@ export const useCateringStore = create<CateringState>()(
       })),
       deleteMenu: (id) => set((state) => ({
         menus: state.menus.filter((menu) => menu.id !== id),
+      })),
+
+      // NEW: Note actions
+      addNote: (content) => set((state) => ({
+        notes: [...state.notes, { id: crypto.randomUUID(), content, timestamp: new Date().toISOString() }],
+      })),
+      deleteNote: (id) => set((state) => ({
+        notes: state.notes.filter((note) => note.id !== id),
       })),
     }),
     {
