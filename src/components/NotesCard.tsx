@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input"; // Keep Input for other potential uses, but we'll use Textarea for new note content
+import { Textarea } from "@/components/ui/textarea"; // Import Textarea
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlusCircle, Trash2, NotebookText } from "lucide-react";
@@ -41,19 +42,22 @@ export const NotesCard: React.FC = () => {
         <NotebookText className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent className="flex flex-col flex-1">
-        <div className="flex space-x-2 mb-4">
-          <Input
+        <div className="flex flex-col space-y-2 mb-4"> {/* Changed to flex-col and space-y */}
+          <Textarea
             placeholder="Jot down a quick note..."
             value={newNoteContent}
             onChange={(e) => setNewNoteContent(e.target.value)}
             onKeyPress={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" && !e.shiftKey) { // Allow Shift+Enter for new line
+                e.preventDefault(); // Prevent default behavior (e.g., new line)
                 handleAddNote();
               }
             }}
+            rows={4} // Make it larger
+            className="w-full"
           />
-          <Button size="icon" onClick={handleAddNote}>
-            <PlusCircle className="h-4 w-4" />
+          <Button onClick={handleAddNote} className="w-full"> {/* Make button full width */}
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Note
           </Button>
         </div>
 

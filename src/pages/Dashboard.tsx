@@ -236,7 +236,10 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <NotesCard />
+        {/* NotesCard now spans 2 columns on large screens */}
+        <div className="lg:col-span-2">
+          <NotesCard />
+        </div>
       </div>
       {/* Footer for Date, MadeWithDyad, and Time */}
       <div className="relative z-10 flex justify-between items-center mt-8 p-4 bg-card/90 rounded-lg shadow-md">
