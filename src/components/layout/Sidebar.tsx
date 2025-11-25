@@ -3,7 +3,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-// import { ScrollArea } from "@/components/ui/scroll-area"; // Temporarily removed
+import { ScrollArea } from "@/components/ui/scroll-area"; // Re-imported ScrollArea
 import React from "react";
 import {
   LayoutDashboard,
@@ -87,14 +87,14 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="flex flex-col h-screen w-64 bg-red-500 text-sidebar-foreground border-4 border-green-500"> {/* Keep bg-red-500 here, added border */}
+    <aside className="flex flex-col h-screen w-64 bg-red-500 text-sidebar-foreground border-4 border-green-500"> {/* Keep bg-red-500 and green border */}
       <div className="relative h-32 w-full overflow-hidden border-b border-primary-foreground/20 flex flex-col items-center justify-center px-4 bg-primary text-white"> {/* Header is blue */}
         <ChefHat className="h-8 w-8 text-white mb-2" />
         <h1 className="text-xl font-serif font-semibold text-white">
           Catering by Cronkhite
         </h1>
       </div>
-      <div className="flex-1 py-4 bg-yellow-300"> {/* Replaced ScrollArea with div, added bg-yellow-300 */}
+      <ScrollArea className="flex-1 py-4 bg-yellow-300"> {/* Re-added ScrollArea with bg-yellow-300 */}
         <nav className="grid items-start px-4 text-sm font-medium">
           {navItems.map((item) => {
             const isActiveParent = location.pathname.startsWith(item.href);
@@ -153,7 +153,7 @@ export const Sidebar = () => {
             );
           })}
         </nav>
-      </div>
+      </ScrollArea>
     </aside>
   );
 };
