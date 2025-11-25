@@ -53,6 +53,7 @@
     --calendar-quote: 40 80% 70%; /* Soft orange/peach */
     --calendar-proposal: 210 80% 60%; /* Medium blue */
     --calendar-event: 120 60% 50%; /* Vibrant green */
+    --calendar-beo: 270 60% 60%; /* Purple for BEOs */
   }
 
   .dark {
@@ -97,6 +98,7 @@
     --calendar-quote: 40 80% 70%; /* Soft orange/peach */
     --calendar-proposal: 210 80% 60%; /* Medium blue */
     --calendar-event: 120 60% 50%; /* Vibrant green */
+    --calendar-beo: 270 60% 60%; /* Purple for BEOs */
   }
 }
 

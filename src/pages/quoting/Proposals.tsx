@@ -55,6 +55,7 @@ import { useCateringStore, Client, Recipe, InventoryItem, Proposal, ProposalItem
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { ProposalDocument } from "@/components/ProposalDocument"; // Import the new component
+import { useParams } from "react-router-dom"; // Import useParams
 
 // Define the schema for a proposal item within the form
 const proposalItemSchema = z.object({
@@ -86,6 +87,7 @@ const proposalFormSchema = z.object({
 type ProposalFormData = z.infer<typeof proposalFormSchema>;
 
 const Proposals = () => {
+  const { proposalId } = useParams<{ proposalId?: string }>(); // Get ID from URL
   const clients = useCateringStore((state) => state.clients);
   const recipes = useCateringStore((state) => state.recipes);
   const inventory = useCateringStore((state) => state.inventory); // Use unified inventory
@@ -120,6 +122,19 @@ const Proposals = () => {
     control: form.control,
     name: "items",
   });
+
+  // Effect to open view dialog if proposalId is in URL
+  useEffect(() => {
+    if (proposalId) {
+      const proposalToView = proposals.find(p => p.id === proposalId);
+      if (proposalToView) {
+        setViewingProposal(proposalToView);
+        setIsViewDialogOpen(true);
+      } else {
+        toast.error("Proposal not found.");
+      }
+    }
+  }, [proposalId, proposals]);
 
   // Watch for changes in items, labor, equipment, other costs, and tax rate to calculate totals
   const watchedItems = form.watch("items");

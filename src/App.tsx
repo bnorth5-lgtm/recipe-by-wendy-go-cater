@@ -43,17 +43,21 @@ const App = () => {
             <Route path="/menu/recipes" element={<Recipes />} />
             <Route path="/menu/menus" element={<Menus />} />
 
-            {/* Quoting & Proposals Routes */}
+            {/* Quoting & Proposals Routes with optional ID for drill-down */}
             <Route path="/quoting" element={<Navigate to="/quoting/clients" replace />} />
             <Route path="/quoting/clients" element={<Clients />} />
             <Route path="/quoting/proposals" element={<Proposals />} />
+            <Route path="/quoting/proposals/:proposalId" element={<Proposals />} /> {/* Added optional ID */}
             <Route path="/quoting/estimates" element={<Estimates />} />
+            <Route path="/quoting/estimates/:estimateId" element={<Estimates />} /> {/* Added optional ID */}
 
-            {/* Events & Planning Routes */}
+            {/* Events & Planning Routes with optional ID for drill-down */}
             <Route path="/events" element={<Navigate to="/events/calendar" replace />} />
             <Route path="/events/calendar" element={<Calendar />} />
+            <Route path="/events/calendar/:bookingId" element={<Calendar />} /> {/* Added optional ID */}
             <Route path="/events/bookings" element={<Bookings />} />
             <Route path="/events/beos" element={<BEOs />} />
+            <Route path="/events/beos/:bookingId" element={<BEOs />} /> {/* Added optional ID */}
 
             {/* Settings Routes */}
             <Route path="/settings" element={<Navigate to="/settings/general" replace />} />

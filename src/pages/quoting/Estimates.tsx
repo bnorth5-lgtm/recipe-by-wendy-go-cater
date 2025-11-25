@@ -45,6 +45,7 @@ import { PlusCircle, Edit, Trash2, Utensils, Wine, Package } from "lucide-react"
 import { toast } from "sonner";
 import { useCateringStore, Estimate, ProposalItem, Recipe, InventoryItem } from "@/store/cateringStore";
 import { format } from "date-fns";
+import { useParams } from "react-router-dom"; // Import useParams
 
 // Define the schema for an estimated item (recipe or inventory item)
 const estimatedItemSchema = z.object({
@@ -70,6 +71,7 @@ const estimateFormSchema = z.object({
 type EstimateFormData = z.infer<typeof estimateFormSchema>;
 
 const Estimates = () => {
+  const { estimateId } = useParams<{ estimateId?: string }>(); // Get ID from URL
   const recipes = useCateringStore((state) => state.recipes);
   const inventory = useCateringStore((state) => state.inventory); // Use unified inventory
   const estimates = useCateringStore((state) => state.estimates);
@@ -97,6 +99,20 @@ const Estimates = () => {
     control: form.control,
     name: "items",
   });
+
+  // Effect to open dialog if estimateId is in URL
+  useEffect(() => {
+    if (estimateId) {
+      const estimateToEdit = estimates.find(e => e.id === estimateId);
+      if (estimateToEdit) {
+        setEditingEstimate(estimateToEdit);
+        form.reset(estimateToEdit);
+        setIsFormDialogOpen(true);
+      } else {
+        toast.error("Estimate not found.");
+      }
+    }
+  }, [estimateId, estimates, form]);
 
   // Watch for changes in items, labor, equipment, other costs, and tax rate to calculate totals
   const watchedItems = form.watch("items");

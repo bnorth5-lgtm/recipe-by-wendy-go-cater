@@ -71,6 +71,7 @@ export default {
           quote: "hsl(var(--calendar-quote))",
           proposal: "hsl(var(--calendar-proposal))",
           event: "hsl(var(--calendar-event))",
+          beo: "hsl(var(--calendar-beo))", // NEW: BEO color
         },
       },
       borderRadius: {

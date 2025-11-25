@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { useCateringStore, EventBooking } from "@/store/cateringStore";
@@ -33,16 +33,31 @@ import * as z from "zod";
 import { bookingFormSchema } from "@/components/BookingForm";
 import { toast } from "sonner"; // Import toast for notifications
 import { cn } from "@/lib/utils"; // Import cn for conditional classNames
+import { useParams } from "react-router-dom"; // Import useParams
 
 type BookingFormData = z.infer<typeof bookingFormSchema>;
 
 const Calendar = () => {
+  const { bookingId } = useParams<{ bookingId?: string }>(); // Get ID from URL
   const bookings = useCateringStore((state) => state.bookings);
   const updateBooking = useCateringStore((state) => state.updateBooking);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [editingBooking, setEditingBooking] = useState<EventBooking | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<EventBooking | null>(null); // State for booking to cancel
+
+  // Effect to open edit dialog if bookingId is in URL
+  useEffect(() => {
+    if (bookingId) {
+      const bookingToEdit = bookings.find(b => b.id === bookingId);
+      if (bookingToEdit) {
+        setEditingBooking(bookingToEdit);
+        setIsEditDialogOpen(true);
+      } else {
+        toast.error("Booking not found.");
+      }
+    }
+  }, [bookingId, bookings]);
 
   // Prepare modifiers for dates with events
   const bookedDates = bookings.map(booking => parseISO(booking.eventDate));

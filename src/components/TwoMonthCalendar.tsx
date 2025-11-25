@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Estimate, Proposal, EventBooking } from "@/store/cateringStore";
-import { FileText, DollarSign, CalendarCheck } from "lucide-react";
+import { FileText, DollarSign, CalendarCheck, Printer } from "lucide-react"; // Added Printer icon for BEO
 
 interface TwoMonthCalendarProps {
   proposals: Proposal[];
@@ -44,17 +44,24 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
   const eventDates = bookings
     .filter(b => b.status === "pending" && isFuture(parseISO(b.eventDate))) // Only pending future events
     .map(b => parseISO(b.eventDate));
+  
+  // BEOs are tied to bookings, so highlight dates with active bookings
+  const beoDates = bookings
+    .filter(b => (b.status === "pending" || b.status === "completed") && isFuture(parseISO(b.eventDate)))
+    .map(b => parseISO(b.eventDate));
 
   const modifiers = {
     quotes: quoteDates,
     proposals: proposalDates,
     events: eventDates,
+    beos: beoDates, // NEW: BEO dates
   };
 
   const modifiersClassNames = {
     quotes: "bg-calendar-quote text-primary-foreground rounded-full",
     proposals: "bg-calendar-proposal text-primary-foreground rounded-full",
     events: "bg-calendar-event text-primary-foreground rounded-full",
+    beos: "bg-calendar-beo text-primary-foreground rounded-full", // NEW: BEO color
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -67,7 +74,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
   const getItemsForSelectedDate = () => {
     if (!selectedDate) return [];
 
-    const items: { type: "quote" | "proposal" | "event"; item: Estimate | Proposal | EventBooking }[] = [];
+    const items: { type: "quote" | "proposal" | "event" | "beo"; item: Estimate | Proposal | EventBooking }[] = [];
 
     estimates.forEach(e => {
       if (isSameDay(parseISO(e.createdAt), selectedDate)) {
@@ -84,12 +91,16 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
     bookings.forEach(b => {
       if (isSameDay(parseISO(b.eventDate), selectedDate)) {
         items.push({ type: "event", item: b });
+        // Add a separate entry for BEO if the event is not cancelled
+        if (b.status !== "cancelled") {
+          items.push({ type: "beo", item: b });
+        }
       }
     });
 
     // Sort items by type for consistent display
     return items.sort((a, b) => {
-      const order = { quote: 1, proposal: 2, event: 3 };
+      const order = { quote: 1, proposal: 2, event: 3, beo: 4 };
       return order[a.type] - order[b.type];
     });
   };
@@ -103,11 +114,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
         <CardDescription className="text-muted-foreground">
           View quotes, proposals, and events. Click a date for details.
         </CardDescription>
-        <div className="flex flex-wrap gap-2 mt-2 text-sm">
-          <Badge className="bg-calendar-quote text-primary-foreground">Quotes</Badge>
-          <Badge className="bg-calendar-proposal text-primary-foreground">Proposals</Badge>
-          <Badge className="bg-calendar-event text-primary-foreground">Events</Badge>
-        </div>
+        {/* Removed the Badge elements as requested */}
       </CardHeader>
       <CardContent className="flex-1 flex justify-center items-center p-0">
         <ShadcnCalendar
@@ -143,28 +150,40 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
                   let link = "";
                   let Icon = FileText;
                   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+                  let badgeText = "";
 
                   if (type === "quote") {
                     const quoteItem = item as Estimate;
                     title = `Estimate: ${quoteItem.eventName}`;
                     description = `Guests: ${quoteItem.numberOfGuests}, Total: $${quoteItem.totalAmount.toFixed(2)}`;
-                    link = `/quoting/estimates`; // Estimates page, user can find it there
+                    link = `/quoting/estimates/${quoteItem.id}`; // Direct link to edit form
                     Icon = DollarSign;
                     badgeVariant = "outline";
+                    badgeText = "Quote";
                   } else if (type === "proposal") {
                     const proposalItem = item as Proposal;
                     title = `Proposal: ${proposalItem.eventName}`;
                     description = `Client: ${proposalItem.clientId}, Status: ${proposalItem.status}, Total: $${proposalItem.totalAmount.toFixed(2)}`;
-                    link = `/quoting/proposals`; // Proposals page
+                    link = `/quoting/proposals/${proposalItem.id}`; // Direct link to view dialog
                     Icon = FileText;
                     badgeVariant = proposalItem.status === "Accepted" ? "default" : proposalItem.status === "Sent" ? "secondary" : "outline";
+                    badgeText = "Proposal";
                   } else if (type === "event") {
                     const eventItem = item as EventBooking;
                     title = `Event: ${eventItem.eventName}`;
                     description = `Client: ${eventItem.clientName}, Guests: ${eventItem.numberOfGuests}, Status: ${eventItem.status}`;
-                    link = `/events/bookings`; // Bookings page
+                    link = `/events/calendar/${eventItem.id}`; // Direct link to edit dialog
                     Icon = CalendarCheck;
                     badgeVariant = eventItem.status === "pending" ? "destructive" : eventItem.status === "completed" ? "default" : "secondary";
+                    badgeText = "Event";
+                  } else if (type === "beo") { // NEW: BEO type
+                    const beoItem = item as EventBooking;
+                    title = `BEO for: ${beoItem.eventName}`;
+                    description = `Client: ${beoItem.clientName}, Status: ${beoItem.status}`;
+                    link = `/events/beos/${beoItem.id}`; // Direct link to BEO view dialog
+                    Icon = Printer; // Use Printer icon for BEO
+                    badgeVariant = "default"; // Use default for BEOs, or a specific BEO color
+                    badgeText = "BEO";
                   }
 
                   return (
@@ -174,7 +193,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
                         <div className="flex-1">
                           <h4 className="font-semibold text-base">{title}</h4>
                           <p className="text-sm text-muted-foreground">{description}</p>
-                          <Badge variant={badgeVariant} className="mt-1 capitalize">{type}</Badge>
+                          <Badge variant={badgeVariant} className="mt-1 capitalize">{badgeText}</Badge>
                         </div>
                       </div>
                     </Link>
