@@ -89,8 +89,8 @@ export const Sidebar = () => {
   return (
     <aside className="flex flex-col h-screen w-64 bg-sidebar-background text-sidebar-foreground">
       <div className="relative h-32 w-full overflow-hidden border-b border-primary-foreground/20 flex flex-col items-center justify-center px-4 bg-primary text-white">
-        <ChefHat className="h-8 w-8 text-white mb-2" />
-        <h1 className="text-xl font-serif font-semibold text-white">
+        <ChefHat className="h-8 w-8 text-pink mb-2" />
+        <h1 className="text-xl font-serif font-semibold text-pink">
           Catering by Cronkhite
         </h1>
       </div>

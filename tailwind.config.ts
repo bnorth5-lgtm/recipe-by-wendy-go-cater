@@ -66,6 +66,7 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        pink: "hsl(var(--pink))", // Added pink color
       },
       borderRadius: {
         lg: "var(--radius)",
