@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { format, isFuture, parseISO } from "date-fns"; // Import date-fns for date handling
+import { format, isFuture, parseISO, addDays, addMonths } from "date-fns"; // Import date-fns for date handling
 
 // Helper to parse quantity strings from initial data for conversion
 const parseQuantityAndUnit = (quantityString: string): { quantity: number; unit: string } => {
@@ -1433,12 +1433,20 @@ const initialClients: Client[] = [
   },
 ];
 
+// Helper to get a future date relative to today
+const getFutureDate = (days: number, months: number = 0) => {
+  let date = new Date();
+  date = addDays(date, days);
+  date = addMonths(date, months);
+  return format(date, "yyyy-MM-dd");
+};
+
 const initialProposals: Proposal[] = [
   {
     id: "p1",
     clientId: "c1",
     eventName: "Acme Corp Annual Gala",
-    eventDate: format(new Date(2024, 7, 20), "yyyy-MM-dd"), // August 20, 2024
+    eventDate: getFutureDate(10), // 10 days from now
     numberOfGuests: 150,
     items: [
       { id: "r3", type: "recipe", name: "Herb-Crusted Roasted Salmon", quantity: 150, unitCost: 15.00, totalCost: 2250.00 },
@@ -1456,14 +1464,14 @@ const initialProposals: Proposal[] = [
     status: "Accepted",
     termsAndConditions: "Standard catering terms apply. 50% deposit required.",
     notes: "Client requested a tasting session in June.",
-    createdAt: new Date(2024, 5, 1).toISOString(),
-    updatedAt: new Date(2024, 5, 15).toISOString(),
+    createdAt: getFutureDate(-30), // Created 30 days ago
+    updatedAt: getFutureDate(-15), // Updated 15 days ago
   },
   {
     id: "p2",
     clientId: "c2",
     eventName: "Global Innovations Product Launch",
-    eventDate: format(new Date(2024, 8, 5), "yyyy-MM-dd"), // September 5, 2024
+    eventDate: getFutureDate(25), // 25 days from now
     numberOfGuests: 50,
     items: [
       { id: "r1", type: "recipe", name: "Classic Beef Stroganoff", quantity: 50, unitCost: 12.00, totalCost: 600.00 },
@@ -1480,14 +1488,14 @@ const initialProposals: Proposal[] = [
     status: "Sent",
     termsAndConditions: "Payment due 7 days prior to event.",
     notes: "Follow up by end of week.",
-    createdAt: new Date(2024, 6, 10).toISOString(),
-    updatedAt: new Date(2024, 6, 10).toISOString(),
+    createdAt: getFutureDate(-10), // Created 10 days ago
+    updatedAt: getFutureDate(-10), // Updated 10 days ago
   },
   {
     id: "p3",
     clientId: "c3",
     eventName: "Community Foundation Charity Gala",
-    eventDate: format(new Date(2024, 9, 10), "yyyy-MM-dd"), // October 10, 2024
+    eventDate: getFutureDate(40), // 40 days from now
     numberOfGuests: 200,
     items: [
       { id: "r6", type: "recipe", name: "Wild Mushroom Risotto", quantity: 200, unitCost: 14.00, totalCost: 2800.00 },
@@ -1504,8 +1512,32 @@ const initialProposals: Proposal[] = [
     status: "Draft",
     termsAndConditions: "Special non-profit discount applied.",
     notes: "Needs approval from board by next month.",
-    createdAt: new Date(2024, 6, 20).toISOString(),
-    updatedAt: new Date(2024, 6, 20).toISOString(),
+    createdAt: getFutureDate(-5), // Created 5 days ago
+    updatedAt: getFutureDate(-5), // Updated 5 days ago
+  },
+  {
+    id: "p4",
+    clientId: "c1",
+    eventName: "Acme Corp Summer Picnic",
+    eventDate: getFutureDate(5, 1), // 1 month and 5 days from now
+    numberOfGuests: 75,
+    items: [
+      { id: "124", type: "inventoryItem", name: "Hamburger Patty", quantity: 75, unitCost: 2.06, totalCost: 154.50 },
+      { id: "b17", type: "inventoryItem", name: "Slider Buns", quantity: 75, unitCost: 0.33, totalCost: 24.75 },
+      { id: "131", type: "recipe", name: "French Fries", quantity: 75, unitCost: 1.50, totalCost: 112.50 },
+      { id: "r9", type: "recipe", name: "Sparkling Raspberry Lemonade", quantity: 75, unitCost: 3.00, totalCost: 225.00 },
+    ],
+    laborCost: 400.00,
+    equipmentCost: 100.00,
+    otherCosts: 20.00,
+    subtotal: 0,
+    taxRate: 0.08,
+    totalAmount: 0,
+    status: "Sent",
+    termsAndConditions: "Casual event, outdoor setup.",
+    notes: "Client wants a quote for a rain contingency plan.",
+    createdAt: getFutureDate(-20),
+    updatedAt: getFutureDate(-18),
   },
 ];
 
@@ -1515,11 +1547,31 @@ const initialBookings: EventBooking[] = [
     id: "b1",
     eventName: "Acme Corp Annual Gala",
     clientName: "Acme Corp",
-    eventDate: format(new Date(2024, 7, 20), "yyyy-MM-dd"), // August 20, 2024
+    eventDate: getFutureDate(10), // Matches p1 eventDate
     numberOfGuests: 150,
     selectedRecipeIds: ["r3", "r24", "r23", "r16"],
     status: "pending", // Default to pending, can be completed later
     proposalId: "p1", // Link to the accepted proposal
+  },
+  {
+    id: "b2",
+    eventName: "Tech Startup Mixer",
+    clientName: "Global Innovations Inc.",
+    eventDate: getFutureDate(20), // 20 days from now
+    numberOfGuests: 80,
+    selectedRecipeIds: ["r10", "r20", "r1", "r2", "r12"],
+    status: "pending",
+    proposalId: "p2", // Linked to p2
+  },
+  {
+    id: "b3",
+    eventName: "Local Charity Dinner",
+    clientName: "Community Outreach Foundation",
+    eventDate: getFutureDate(35), // 35 days from now
+    numberOfGuests: 120,
+    selectedRecipeIds: ["r6", "r25", "r31", "r14"],
+    status: "pending",
+    proposalId: "p3", // Linked to p3
   },
 ];
 

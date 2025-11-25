@@ -26,8 +26,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter, // Added for dialog buttons
+  DialogTrigger, // <--- ADDED THIS IMPORT
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ClientForm, ClientFormData } from "@/components/ClientForm";
@@ -60,9 +60,10 @@ const Dashboard = () => {
   const [editingTask, setEditingTask] = useState<CriticalTask | null>(null);
   const [newTaskContent, setNewTaskContent] = useState("");
 
-  const newLeadsCount = proposals.filter(p => p.status === "Draft").length;
-  const proposalsSentCount = proposals.filter(p => p.status === "Sent").length;
-  const confirmedBookingsCount = proposals.filter(p => p.status === "Accepted").length;
+  // Updated proposal counts for clarity
+  const draftProposalsCount = proposals.filter(p => p.status === "Draft").length;
+  const sentProposalsCount = proposals.filter(p => p.status === "Sent").length;
+  const acceptedProposalsCount = proposals.filter(p => p.status === "Accepted").length;
 
   const handleAddClientSubmit = (data: ClientFormData) => {
     addClient(data as Omit<Client, 'id'>);
@@ -292,7 +293,7 @@ const Dashboard = () => {
         </div>
 
         {/* Row 2: Calendar and Overdue Sidebar */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-2"> {/* Changed from lg:col-span-3 to lg:col-span-2 */}
           <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
         </div>
         <div>
@@ -309,9 +310,13 @@ const Dashboard = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-2xl font-bold">{newLeadsCount} New Leads</div>
+              <div className="space-y-1">
+                <div className="text-2xl font-bold">{draftProposalsCount} Drafts</div>
+                <div className="text-2xl font-bold">{sentProposalsCount} Sent</div>
+                <div className="text-2xl font-bold text-green-500">{acceptedProposalsCount} Accepted</div>
+              </div>
               <p className="text-xs text-muted-foreground">
-                {proposalsSentCount} Proposals Sent, {confirmedBookingsCount} Confirmed Bookings
+                Overview of your current proposal pipeline.
               </p>
             </CardContent>
           </Card>
