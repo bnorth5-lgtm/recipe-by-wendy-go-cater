@@ -30,6 +30,7 @@ import { NotesCard } from "@/components/NotesCard";
 import { DateDisplay } from "@/components/DateDisplay"; // Import the new DateDisplay
 import { TimeDisplay } from "@/components/TimeDisplay"; // Import the new TimeDisplay
 import { TwoMonthCalendar } from "@/components/TwoMonthCalendar"; // Import the new calendar component
+import { OverdueSidebar } from "@/components/OverdueSidebar"; // NEW: Import OverdueSidebar
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
@@ -62,7 +63,7 @@ const Dashboard = () => {
         backgroundAttachment: 'fixed',
       }}
     >
-      <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3 flex-1">
+      <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-4 flex-1"> {/* Adjusted grid columns */}
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -80,9 +81,14 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        {/* Replaced "Upcoming Events" card with TwoMonthCalendar */}
-        <div className="lg:col-span-2"> {/* Make it span 2 columns on large screens */}
+        {/* TwoMonthCalendar now spans 2 columns */}
+        <div className="lg:col-span-2">
           <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
+        </div>
+
+        {/* NEW: Overdue Items Sidebar */}
+        <div>
+          <OverdueSidebar />
         </div>
 
         <Link to="/events/bookings" className="block">

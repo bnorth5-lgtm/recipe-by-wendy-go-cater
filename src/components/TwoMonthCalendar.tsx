@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isFuture, parseISO } from "date-fns";
+import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isFuture, parseISO, isPast, differenceInDays } from "date-fns";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -38,7 +38,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
     .map(e => parseISO(e.createdAt));
 
   const proposalDates = proposals
-    .filter(p => p.status !== "Draft" && p.status !== "Archived" && isFuture(parseISO(p.eventDate))) // Only active future proposals
+    .filter(p => (p.status === "Draft" || p.status === "Sent") && isFuture(parseISO(p.eventDate))) // Only Draft/Sent future proposals
     .map(p => parseISO(p.eventDate));
 
   const eventDates = bookings
@@ -83,7 +83,8 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
     });
 
     proposals.forEach(p => {
-      if (isSameDay(parseISO(p.eventDate), selectedDate)) {
+      // Only show proposals if they are Draft or Sent, and for their eventDate
+      if ((p.status === "Draft" || p.status === "Sent") && isSameDay(parseISO(p.eventDate), selectedDate)) {
         items.push({ type: "proposal", item: p });
       }
     });

@@ -166,6 +166,7 @@ export interface EventBooking {
   numberOfGuests: number;
   selectedRecipeIds: string[]; // IDs of recipes used for this event
   status: "pending" | "completed" | "cancelled";
+  proposalId?: string; // NEW: Link to the originating proposal
 }
 
 // Define the schema for an Estimate
@@ -1280,7 +1281,7 @@ const initialRecipes: Recipe[] = [
     ],
     baseCost: 0,
   },
-  // NEW ALCOHOLIC BEVERAGE RECIPES
+  // NEW ALCOHOLIC BEVERAGES
   {
     id: "r32",
     name: "Espresso Martini",
@@ -1497,6 +1498,7 @@ const initialBookings: EventBooking[] = [
     numberOfGuests: 150,
     selectedRecipeIds: ["r3", "r24", "r23", "r16"],
     status: "pending", // Default to pending, can be completed later
+    proposalId: "p1", // Link to the accepted proposal
   },
 ];
 
@@ -1735,6 +1737,7 @@ export const useCateringStore = create<CateringState>()(
                 .filter(item => item.type === "recipe")
                 .map(item => item.id),
               status: "pending",
+              proposalId: updatedProposal.id, // Link to the originating proposal
             };
             return {
               proposals: newProposals,
