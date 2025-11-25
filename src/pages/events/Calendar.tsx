@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, XCircle } from "lucide-react"; // Import XCircle for cancel icon
+import { Edit, XCircle, CheckCircle, Loader2 } from "lucide-react"; // Import CheckCircle and Loader2
 import {
   Dialog,
   DialogContent,
@@ -27,26 +27,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+} from "@/components/ui/alert-dialog";
 import { BookingForm } from "@/components/BookingForm";
 import * as z from "zod";
 import { bookingFormSchema } from "@/components/BookingForm";
-import { toast } from "sonner"; // Import toast for notifications
-import { cn } from "@/lib/utils"; // Import cn for conditional classNames
-import { useParams } from "react-router-dom"; // Import useParams
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { useParams } from "react-router-dom";
 
 type BookingFormData = z.infer<typeof bookingFormSchema>;
 
 const Calendar = () => {
-  const { bookingId } = useParams<{ bookingId?: string }>(); // Get ID from URL
+  const { bookingId } = useParams<{ bookingId?: string }>();
   const bookings = useCateringStore((state) => state.bookings);
   const updateBooking = useCateringStore((state) => state.updateBooking);
+  const completeBooking = useCateringStore((state) => state.completeBooking); // Import completeBooking
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [editingBooking, setEditingBooking] = useState<EventBooking | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [bookingToCancel, setBookingToCancel] = useState<EventBooking | null>(null); // State for booking to cancel
+  const [bookingToCancel, setBookingToCancel] = useState<EventBooking | null>(null);
 
-  // Effect to open edit dialog if bookingId is in URL
   useEffect(() => {
     if (bookingId) {
       const bookingToEdit = bookings.find(b => b.id === bookingId);
@@ -56,6 +56,9 @@ const Calendar = () => {
       } else {
         toast.error("Booking not found.");
       }
+    } else {
+      setIsEditDialogOpen(false);
+      setEditingBooking(null);
     }
   }, [bookingId, bookings]);
 
@@ -65,7 +68,7 @@ const Calendar = () => {
     hasEvent: bookedDates,
   };
   const modifiersClassNames = {
-    hasEvent: "bg-destructive text-destructive-foreground rounded-full", // Highlight event dates in red
+    hasEvent: "bg-destructive text-destructive-foreground rounded-full",
   };
 
   // Filter events for the selected date
@@ -81,7 +84,7 @@ const Calendar = () => {
   const handleUpdateBookingSubmit = (data: BookingFormData) => {
     if (editingBooking) {
       updateBooking({
-        ...editingBooking, // Keep existing ID and status
+        ...editingBooking,
         eventName: data.eventName,
         clientName: data.clientName,
         eventDate: format(data.eventDate, "yyyy-MM-dd"),
@@ -102,7 +105,17 @@ const Calendar = () => {
     if (bookingToCancel) {
       updateBooking({ ...bookingToCancel, status: "cancelled" });
       toast.info(`Event "${bookingToCancel.eventName}" has been cancelled.`);
-      setBookingToCancel(null); // Clear the booking to cancel
+      setBookingToCancel(null);
+    }
+  };
+
+  // NEW: Handle completing an event directly from the calendar
+  const handleCompleteEvent = (event: EventBooking) => {
+    const success = completeBooking(event.id);
+    if (success) {
+      toast.success(`Event "${event.eventName}" completed and inventory deducted!`);
+    } else {
+      toast.error(`Failed to complete event "${event.eventName}". Check inventory levels for associated recipes.`);
     }
   };
 
@@ -159,9 +172,9 @@ const Calendar = () => {
                       key={booking.id}
                       className={cn(
                         "border p-3 rounded-md bg-secondary/20 flex justify-between items-center cursor-pointer hover:bg-secondary/30 transition-colors",
-                        booking.status === "cancelled" && "opacity-70" // Dim cancelled events
+                        booking.status === "cancelled" && "opacity-70"
                       )}
-                      onClick={() => booking.status !== "cancelled" && handleEditBooking(booking)} // Hotlink to edit dialog
+                      onClick={() => booking.status !== "cancelled" && handleEditBooking(booking)}
                     >
                       <div>
                         <h3 className="font-semibold text-lg">{booking.eventName}</h3>
@@ -179,11 +192,21 @@ const Calendar = () => {
                         </Badge>
                       </div>
                       <div className="flex items-center space-x-2">
+                        {booking.status === "pending" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => { e.stopPropagation(); handleCompleteEvent(booking); }}
+                            className="mr-2"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" /> Complete Event
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={(e) => { e.stopPropagation(); handleEditBooking(booking); }} // Prevent parent div click
-                          disabled={booking.status === "cancelled"} // Disable edit if cancelled
+                          onClick={(e) => { e.stopPropagation(); handleEditBooking(booking); }}
+                          disabled={booking.status === "cancelled"}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -193,7 +216,7 @@ const Calendar = () => {
                               <Button
                                 variant="destructive"
                                 size="icon"
-                                onClick={(e) => { e.stopPropagation(); handleCancelBooking(booking); }} // Prevent parent div click
+                                onClick={(e) => { e.stopPropagation(); handleCancelBooking(booking); }}
                               >
                                 <XCircle className="h-4 w-4" />
                               </Button>
