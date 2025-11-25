@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { format, isFuture, parseISO } from "date-fns"; // Import date-fns for date handling
 
 // Helper to parse quantity strings from initial data for conversion
 const parseQuantityAndUnit = (quantityString: string): { quantity: number; unit: string } => {
@@ -1339,7 +1340,7 @@ const initialMenus: Menu[] = [
     appetizerIds: ["r10", "r21", "r22"], // Mini Caprese Skewers, Prosciutto-Wrapped Melon Bites, Spicy Shrimp Skewers
     mainCourseIds: ["r3", "r7", "r5"], // Herb-Crusted Roasted Salmon, Roasted Pork Loin with Apple Chutney, Beef Tenderloin
     dessertIds: ["r13", "r16", "r29"], // Seasonal Fruit Tart, New York Cheesecake, Lemon Raspberry Mousse
-    alcoholicBeverageIds: ["r11", "r19", "r33", "b1", "b2", "b11", "b4", "b3", "b10"], // Classic Margarita, Mojito, Whiskey Sour, Cabernet Sauvignon, Chardonnay, Sparkling Wine (Prosecco), IPA Beer, Pilsner Beer, Local Craft Beer (Assorted)
+    alcoholicBeverageIds: ["r11", "r19", "r33"], // Classic Margarita, Mojito, Whiskey Sour
     nonAlcoholicBeverageIds: ["r9", "r15", "r26"], // Sparkling Raspberry Lemonade, Sparkling Orange Blossom Water, Cucumber Mint Cooler
     sideDishIds: ["r2", "r23", "r25"], // Garden Salad, Garlic Parmesan Roasted Asparagus, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
@@ -1353,7 +1354,7 @@ const initialMenus: Menu[] = [
     appetizerIds: ["r20", "r10"], // Spinach Artichoke Dip, Mini Caprese Skewers
     mainCourseIds: ["r1", "r4", "r6"], // Classic Beef Stroganoff, Chicken Marsala, Wild Mushroom Risotto
     dessertIds: ["r12", "r17", "r30"], // Chocolate Lava Cake, Tiramisu, Mini Cheesecakes
-    alcoholicBeverageIds: ["b3", "b10"], // Pilsner Beer, Local Craft Beer
+    alcoholicBeverageIds: ["r18", "r32"], // Old Fashioned, Espresso Martini
     nonAlcoholicBeverageIds: ["r9", "r14", "r28"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Iced Coffee Bar
     sideDishIds: ["r2", "r24", "r25"], // Garden Salad, Creamy Mashed Potatoes, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
@@ -1367,7 +1368,7 @@ const initialMenus: Menu[] = [
     appetizerIds: ["r10", "r20"], // Mini Caprese Skewers, Spinach Artichoke Dip
     mainCourseIds: ["r6"], // Wild Mushroom Risotto
     dessertIds: ["r13", "r31"], // Seasonal Fruit Tart, Apple Crumble
-    alcoholicBeverageIds: ["r18", "b11"], // Old Fashioned, Sparkling Wine
+    alcoholicBeverageIds: ["r18", "r33"], // Old Fashioned, Whiskey Sour
     nonAlcoholicBeverageIds: ["r9", "r14", "r27"], // Sparkling Raspberry Lemonade, Fresh Mint Iced Tea, Spiced Apple Cider
     sideDishIds: ["r2", "r25"], // Garden Salad, Quinoa Salad with Roasted Vegetables
     createdAt: new Date().toISOString(),
@@ -1378,6 +1379,125 @@ const initialMenus: Menu[] = [
 const initialNotes: Note[] = [
   { id: "note1", content: "Follow up with 'Acme Corp' regarding proposal #123.", timestamp: new Date().toISOString() },
   { id: "note2", content: "Order more salmon for next week's events.", timestamp: new Date(Date.now() - 3600000).toISOString() }, // 1 hour ago
+];
+
+const initialClients: Client[] = [
+  {
+    id: "c1",
+    name: "Acme Corp",
+    contactPerson: "Jane Doe",
+    email: "jane.doe@acmecorp.com",
+    phone: "555-111-2222",
+    address: "123 Corporate Blvd, Suite 100, Metropolis",
+    notes: "Prefers vegetarian options, always on time.",
+  },
+  {
+    id: "c2",
+    name: "Global Innovations Inc.",
+    contactPerson: "John Smith",
+    email: "john.smith@globalinnovations.com",
+    phone: "555-333-4444",
+    address: "456 Tech Park, Silicon Valley",
+    notes: "Large events, requires detailed invoices.",
+  },
+  {
+    id: "c3",
+    name: "Community Outreach Foundation",
+    contactPerson: "Sarah Lee",
+    email: "sarah.lee@communityfoundation.org",
+    phone: "555-555-6666",
+    address: "789 Charity Lane, Downtown",
+    notes: "Non-profit rates, often requests buffet style.",
+  },
+];
+
+const initialProposals: Proposal[] = [
+  {
+    id: "p1",
+    clientId: "c1",
+    eventName: "Acme Corp Annual Gala",
+    eventDate: format(new Date(2024, 7, 20), "yyyy-MM-dd"), // August 20, 2024
+    numberOfGuests: 150,
+    items: [
+      { id: "r3", type: "recipe", name: "Herb-Crusted Roasted Salmon", quantity: 150, unitCost: 15.00, totalCost: 2250.00 },
+      { id: "r24", type: "recipe", name: "Creamy Mashed Potatoes", quantity: 150, unitCost: 3.00, totalCost: 450.00 },
+      { id: "r23", type: "recipe", name: "Garlic Parmesan Roasted Asparagus", quantity: 150, unitCost: 3.50, totalCost: 525.00 },
+      { id: "r16", type: "recipe", name: "New York Cheesecake", quantity: 150, unitCost: 6.00, totalCost: 900.00 },
+      { id: "inv_cabernetsauvignon_bottle", type: "inventoryItem", name: "Cabernet Sauvignon", quantity: 10, unitCost: 18.75, totalCost: 187.50 },
+    ],
+    laborCost: 1200.00,
+    equipmentCost: 500.00,
+    otherCosts: 100.00,
+    subtotal: 0, // Will be calculated
+    taxRate: 0.08,
+    totalAmount: 0, // Will be calculated
+    status: "Accepted",
+    termsAndConditions: "Standard catering terms apply. 50% deposit required.",
+    notes: "Client requested a tasting session in June.",
+    createdAt: new Date(2024, 5, 1).toISOString(),
+    updatedAt: new Date(2024, 5, 15).toISOString(),
+  },
+  {
+    id: "p2",
+    clientId: "c2",
+    eventName: "Global Innovations Product Launch",
+    eventDate: format(new Date(2024, 8, 5), "yyyy-MM-dd"), // September 5, 2024
+    numberOfGuests: 50,
+    items: [
+      { id: "r1", type: "recipe", name: "Classic Beef Stroganoff", quantity: 50, unitCost: 12.00, totalCost: 600.00 },
+      { id: "r2", type: "recipe", name: "Garden Salad with Vinaigrette", quantity: 50, unitCost: 4.00, totalCost: 200.00 },
+      { id: "r12", type: "recipe", name: "Chocolate Lava Cake", quantity: 50, unitCost: 7.00, totalCost: 350.00 },
+      { id: "r9", type: "recipe", name: "Sparkling Raspberry Lemonade", quantity: 50, unitCost: 3.00, totalCost: 150.00 },
+    ],
+    laborCost: 600.00,
+    equipmentCost: 200.00,
+    otherCosts: 50.00,
+    subtotal: 0, // Will be calculated
+    taxRate: 0.08,
+    totalAmount: 0, // Will be calculated
+    status: "Sent",
+    termsAndConditions: "Payment due 7 days prior to event.",
+    notes: "Follow up by end of week.",
+    createdAt: new Date(2024, 6, 10).toISOString(),
+    updatedAt: new Date(2024, 6, 10).toISOString(),
+  },
+  {
+    id: "p3",
+    clientId: "c3",
+    eventName: "Community Foundation Charity Gala",
+    eventDate: format(new Date(2024, 9, 10), "yyyy-MM-dd"), // October 10, 2024
+    numberOfGuests: 200,
+    items: [
+      { id: "r6", type: "recipe", name: "Wild Mushroom Risotto", quantity: 200, unitCost: 14.00, totalCost: 2800.00 },
+      { id: "r25", type: "recipe", name: "Quinoa Salad with Roasted Vegetables", quantity: 200, unitCost: 5.00, totalCost: 1000.00 },
+      { id: "r31", type: "recipe", name: "Apple Crumble with Vanilla Ice Cream", quantity: 200, unitCost: 6.50, totalCost: 1300.00 },
+      { id: "r14", type: "recipe", name: "Fresh Mint Iced Tea", quantity: 200, unitCost: 2.50, totalCost: 500.00 },
+    ],
+    laborCost: 1500.00,
+    equipmentCost: 700.00,
+    otherCosts: 150.00,
+    subtotal: 0, // Will be calculated
+    taxRate: 0.08,
+    totalAmount: 0, // Will be calculated
+    status: "Draft",
+    termsAndConditions: "Special non-profit discount applied.",
+    notes: "Needs approval from board by next month.",
+    createdAt: new Date(2024, 6, 20).toISOString(),
+    updatedAt: new Date(2024, 6, 20).toISOString(),
+  },
+];
+
+const initialBookings: EventBooking[] = [
+  // Booking for p1 (Acme Corp Annual Gala) - already accepted
+  {
+    id: "b1",
+    eventName: "Acme Corp Annual Gala",
+    clientName: "Acme Corp",
+    eventDate: format(new Date(2024, 7, 20), "yyyy-MM-dd"), // August 20, 2024
+    numberOfGuests: 150,
+    selectedRecipeIds: ["r3", "r24", "r23", "r16"],
+    status: "pending", // Default to pending, can be completed later
+  },
 ];
 
 
@@ -1400,9 +1520,15 @@ export const useCateringStore = create<CateringState>()(
         }
         return { ...recipe, baseCost: calculatedCost };
       }),
-      bookings: [],
-      clients: [], // Initialize clients
-      proposals: [], // Initialize proposals
+      bookings: initialBookings,
+      clients: initialClients, // Initialize clients
+      proposals: initialProposals.map(proposal => {
+        // Calculate initial subtotal and totalAmount for existing proposals
+        const itemsCost = proposal.items.reduce((sum, item) => sum + item.totalCost, 0);
+        const subtotal = itemsCost + proposal.laborCost + proposal.equipmentCost + proposal.otherCosts;
+        const totalAmount = subtotal * (1 + proposal.taxRate);
+        return { ...proposal, subtotal, totalAmount };
+      }),
       estimates: [], // Estimates state
       menus: initialMenus, // NEW: Initialize menus with sample data
       notes: initialNotes, // NEW: Initialize notes with sample data
@@ -1591,11 +1717,35 @@ export const useCateringStore = create<CateringState>()(
         const subtotal = itemsCost + updatedProposal.laborCost + updatedProposal.equipmentCost + updatedProposal.otherCosts;
         const totalAmount = subtotal * (1 + updatedProposal.taxRate);
 
-        return {
-          proposals: state.proposals.map((p) =>
-            p.id === updatedProposal.id ? { ...updatedProposal, subtotal, totalAmount, updatedAt: new Date().toISOString() } : p
-          ),
-        };
+        const newProposals = state.proposals.map((p) =>
+          p.id === updatedProposal.id ? { ...updatedProposal, subtotal, totalAmount, updatedAt: new Date().toISOString() } : p
+        );
+
+        // If proposal status changes to "Accepted", create a new booking
+        if (updatedProposal.status === "Accepted" && state.proposals.find(p => p.id === updatedProposal.id)?.status !== "Accepted") {
+          const client = state.clients.find(c => c.id === updatedProposal.clientId);
+          if (client) {
+            const newBooking: EventBooking = {
+              id: crypto.randomUUID(),
+              eventName: updatedProposal.eventName,
+              clientName: client.name,
+              eventDate: updatedProposal.eventDate,
+              numberOfGuests: updatedProposal.numberOfGuests,
+              selectedRecipeIds: updatedProposal.items
+                .filter(item => item.type === "recipe")
+                .map(item => item.id),
+              status: "pending",
+            };
+            return {
+              proposals: newProposals,
+              bookings: [...state.bookings, newBooking],
+            };
+          } else {
+            console.error(`Client with ID ${updatedProposal.clientId} not found for accepted proposal ${updatedProposal.id}. Booking not created.`);
+          }
+        }
+
+        return { proposals: newProposals };
       }),
       deleteProposal: (id) => set((state) => ({
         proposals: state.proposals.filter((proposal) => proposal.id !== id),

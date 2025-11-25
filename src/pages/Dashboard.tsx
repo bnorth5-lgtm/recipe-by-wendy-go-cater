@@ -30,11 +30,13 @@ import { toast } from "sonner";
 import { NotesCard } from "@/components/NotesCard";
 import { DateDisplay } from "@/components/DateDisplay"; // Import the new DateDisplay
 import { TimeDisplay } from "@/components/TimeDisplay"; // Import the new TimeDisplay
+import { format, isFuture, parseISO } from "date-fns"; // Import date-fns for date handling
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
 
   const proposals = useCateringStore((state) => state.proposals);
+  const bookings = useCateringStore((state) => state.bookings); // Get bookings from store
   const addClient = useCateringStore((state) => state.addClient);
 
   const [isClientFormDialogOpen, setIsClientFormDialogOpen] = useState(false);
@@ -42,6 +44,12 @@ const Dashboard = () => {
   const newLeadsCount = proposals.filter(p => p.status === "Draft").length;
   const proposalsSentCount = proposals.filter(p => p.status === "Sent").length;
   const confirmedBookingsCount = proposals.filter(p => p.status === "Accepted").length;
+
+  // Get upcoming bookings, sorted by date, limited to 3
+  const upcomingBookings = bookings
+    .filter(b => b.status === "pending" && isFuture(parseISO(b.eventDate)))
+    .sort((a, b) => parseISO(a.eventDate).getTime() - parseISO(b.eventDate).getTime())
+    .slice(0, 3);
 
   const handleAddClientSubmit = (data: ClientFormData) => {
     addClient(data as Omit<Client, 'id'>);
@@ -87,13 +95,16 @@ const Dashboard = () => {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-2xl font-bold">Next 3 Events</div>
-              <p className="text-xs text-muted-foreground">
-                July 20: Sarah & John Wedding (150 Guests)
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Aug 5: Corporate Lunch (50 Guests)
-              </p>
+              <div className="text-2xl font-bold">{upcomingBookings.length} Upcoming Events</div>
+              {upcomingBookings.length > 0 ? (
+                upcomingBookings.map(booking => (
+                  <p key={booking.id} className="text-xs text-muted-foreground">
+                    {format(parseISO(booking.eventDate), "MMM d")}: {booking.eventName} ({booking.numberOfGuests} Guests)
+                  </p>
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground">No upcoming events scheduled.</p>
+              )}
             </CardContent>
           </Card>
         </Link>
