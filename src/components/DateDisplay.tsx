@@ -19,7 +19,7 @@ export const DateDisplay: React.FC = () => {
   const formattedDate = format(currentDate, "EEEE, MMM d, yyyy");
 
   return (
-    <div className="text-base font-medium text-gray-600 dark:text-gray-300">
+    <div className="text-lg font-semibold text-gray-800 dark:text-gray-100">
       {formattedDate}
     </div>
   );
