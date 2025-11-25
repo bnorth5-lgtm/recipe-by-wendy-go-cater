@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, XCircle, CheckCircle, Loader2 } from "lucide-react"; // Import CheckCircle and Loader2
+import { Edit, XCircle, CheckCircle, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -41,7 +41,7 @@ const Calendar = () => {
   const { bookingId } = useParams<{ bookingId?: string }>();
   const bookings = useCateringStore((state) => state.bookings);
   const updateBooking = useCateringStore((state) => state.updateBooking);
-  const completeBooking = useCateringStore((state) => state.completeBooking); // Import completeBooking
+  const completeBooking = useCateringStore((state) => state.completeBooking);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [editingBooking, setEditingBooking] = useState<EventBooking | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -62,7 +62,6 @@ const Calendar = () => {
     }
   }, [bookingId, bookings]);
 
-  // Prepare modifiers for dates with events
   const bookedDates = bookings.map(booking => parseISO(booking.eventDate));
   const modifiers = {
     hasEvent: bookedDates,
@@ -71,7 +70,6 @@ const Calendar = () => {
     hasEvent: "bg-destructive text-destructive-foreground rounded-full",
   };
 
-  // Filter events for the selected date
   const eventsOnSelectedDate = selectedDate
     ? bookings.filter(booking => isSameDay(parseISO(booking.eventDate), selectedDate))
     : [];
@@ -109,7 +107,6 @@ const Calendar = () => {
     }
   };
 
-  // NEW: Handle completing an event directly from the calendar
   const handleCompleteEvent = (event: EventBooking) => {
     const success = completeBooking(event.id);
     if (success) {
@@ -120,17 +117,16 @@ const Calendar = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
-      <div className="text-center mb-6">
-        <h1 className="text-4xl font-bold mb-4">Event Calendar</h1>
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2">
+      <div className="text-center mb-4">
+        <h1 className="text-4xl font-bold mb-2">Event Calendar</h1>
         <p className="text-xl text-muted-foreground">
           View and manage all your upcoming events in a calendar format.
         </p>
       </div>
 
-      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Calendar View */}
-        <Card className="bg-card p-4 rounded-lg shadow-md">
+      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Event Overview</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -149,8 +145,7 @@ const Calendar = () => {
           </CardContent>
         </Card>
 
-        {/* Events List for Selected Date */}
-        <Card className="bg-card p-4 rounded-lg shadow-md">
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               Events on {selectedDate ? format(selectedDate, "PPP") : "No Date Selected"}
@@ -166,12 +161,12 @@ const Calendar = () => {
               </p>
             ) : (
               <ScrollArea className="h-[300px] pr-4">
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {eventsOnSelectedDate.map((booking) => (
                     <div
                       key={booking.id}
                       className={cn(
-                        "border p-3 rounded-md bg-secondary/20 flex justify-between items-center cursor-pointer hover:bg-secondary/30 transition-colors",
+                        "border p-2 rounded-md bg-secondary/20 flex justify-between items-center cursor-pointer hover:bg-secondary/30 transition-colors",
                         booking.status === "cancelled" && "opacity-70"
                       )}
                       onClick={() => booking.status !== "cancelled" && handleEditBooking(booking)}
@@ -181,7 +176,7 @@ const Calendar = () => {
                         <p className="text-sm text-muted-foreground">Client: {booking.clientName}</p>
                         <p className="text-sm text-muted-foreground">Guests: {booking.numberOfGuests}</p>
                         <Badge
-                          className="mt-2"
+                          className="mt-1"
                           variant={
                             booking.status === "completed" ? "default" :
                             booking.status === "cancelled" ? "destructive" :
@@ -246,7 +241,6 @@ const Calendar = () => {
       </div>
       <MadeWithDyad />
 
-      {/* Edit Booking Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>

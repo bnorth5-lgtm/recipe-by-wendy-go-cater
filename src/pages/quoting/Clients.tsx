@@ -68,16 +68,16 @@ const Clients = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
-      <div className="text-center mb-6">
-        <h1 className="text-4xl font-bold mb-4">Client Management</h1>
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2"> {/* Reduced p-4 to p-2 */}
+      <div className="text-center mb-4"> {/* Reduced mb-6 to mb-4 */}
+        <h1 className="text-4xl font-bold mb-2">Client Management</h1> {/* Reduced mb-4 to mb-2 */}
         <p className="text-xl text-muted-foreground">
           Keep track of all your client details and contact information.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl space-y-6">
-        <Card className="bg-card p-4 rounded-lg shadow-md">
+      <div className="w-full max-w-4xl space-y-4"> {/* Reduced space-y-6 to space-y-4 */}
+        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               {editingClient ? "Edit Client" : "Add New Client"}
@@ -94,7 +94,7 @@ const Clients = () => {
               }
             }}>
               <DialogTrigger asChild>
-                <Button className="w-full mb-4">
+                <Button className="w-full mb-3"> {/* Reduced mb-4 to mb-3 */}
                   <PlusCircle className="mr-2 h-4 w-4" /> Add New Client
                 </Button>
               </DialogTrigger>
@@ -116,7 +116,7 @@ const Clients = () => {
         </Card>
 
         {/* Display Existing Clients */}
-        <Card className="bg-card p-4 rounded-lg shadow-md">
+        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Existing Clients</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all your managed clients.</CardDescription>
@@ -129,17 +129,17 @@ const Clients = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Client Name</TableHead>
-                      <TableHead>Contact Person</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="px-3 py-2">Client Name</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2">Contact Person</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2">Email</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2">Phone</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2 text-right">Actions</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {clients.map((client) => (
                       <TableRow key={client.id}>
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
                           <span
                             className="cursor-pointer hover:underline text-primary" // NEW: Make client name clickable
                             onClick={() => handleViewDetails(client)}
@@ -147,10 +147,10 @@ const Clients = () => {
                             {client.name}
                           </span>
                         </TableCell>
-                        <TableCell>{client.contactPerson}</TableCell>
-                        <TableCell>{client.email}</TableCell>
-                        <TableCell>{client.phone}</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="px-3 py-2">{client.contactPerson}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="px-3 py-2">{client.email}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="px-3 py-2">{client.phone}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="text-right px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
                           <Button
                             variant="ghost"
                             size="icon"

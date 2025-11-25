@@ -13,7 +13,7 @@ export const OverdueSidebar: React.FC = () => {
   const estimates = useCateringStore((state) => state.estimates);
   const proposals = useCateringStore((state) => state.proposals);
 
-  const overdueThresholdDays = 7; // Define what 'overdue' means (e.g., 7 days old)
+  const overdueThresholdDays = 7;
 
   const overdueEstimates = estimates.filter(e => {
     const createdAtDate = parseISO(e.createdAt);
@@ -30,7 +30,7 @@ export const OverdueSidebar: React.FC = () => {
   const hasOverdueItems = overdueEstimates.length > 0 || overdueProposals.length > 0;
 
   return (
-    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col p-4">
+    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col p-3">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-destructive" /> Overdue Items
@@ -42,7 +42,7 @@ export const OverdueSidebar: React.FC = () => {
       <CardContent className="flex flex-col flex-1">
         {hasOverdueItems ? (
           <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-3">
+            <div className="space-y-2">
               {overdueEstimates.map((estimate) => (
                 <Link to={`/quoting/estimates/${estimate.id}`} key={estimate.id} className="block">
                   <div className="flex items-start space-x-3 p-2 border rounded-md bg-destructive/10 hover:bg-destructive/20 transition-colors cursor-pointer">
@@ -70,7 +70,7 @@ export const OverdueSidebar: React.FC = () => {
             </div>
           </ScrollArea>
         ) : (
-          <p className="text-xs text-muted-foreground text-center py-4">No overdue items!</p>
+          <p className="text-xs text-muted-foreground text-center py-2">No overdue items!</p>
         )}
       </CardContent>
     </Card>

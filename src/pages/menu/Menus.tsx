@@ -60,7 +60,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({ options, selectedValues, onCh
   };
 
   return (
-    <Select onValueChange={handleSelect} value=""> {/* Value is empty to allow re-selection */}
+    <Select onValueChange={handleSelect} value="">
       <SelectTrigger className="w-full">
         <SelectValue placeholder={selectedValues.length > 0 ? `${selectedValues.length} items selected` : placeholder} />
       </SelectTrigger>
@@ -105,7 +105,7 @@ const menuFormSchema = z.object({
   (data.sideDishIds && data.sideDishIds.length > 0),
   {
     message: "At least one item must be selected for the menu across all categories.",
-    path: ["appetizerIds"], // Attach error to one of the fields
+    path: ["appetizerIds"],
   }
 );
 
@@ -134,9 +134,9 @@ const Menus = () => {
 
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [importJson, setImportJson] = useState(""); // State for the JSON input
+  const [importJson, setImportJson] = useState("");
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
-  const [selectedMenuId, setSelectedMenuId] = useState<string | undefined>(undefined); // New state for dropdown selection
+  const [selectedMenuId, setSelectedMenuId] = useState<string | undefined>(undefined);
 
   const form = useForm<MenuFormData>({
     resolver: zodResolver(menuFormSchema),
@@ -153,10 +153,8 @@ const Menus = () => {
     },
   });
 
-  // Watch the category field to adjust UI dynamically
   const watchedCategory = form.watch("category");
 
-  // Filter recipes by category for multi-select options
   const getRecipeOptions = (category: Recipe["category"]) => 
     recipes.filter(r => r.category === category).map(recipe => ({
       label: recipe.name,
@@ -164,7 +162,6 @@ const Menus = () => {
     }));
 
   const onSubmit = (data: MenuFormData) => {
-    // Ensure arrays are not undefined before passing to store
     const menuData = {
       ...data,
       appetizerIds: data.appetizerIds || [],
@@ -189,7 +186,7 @@ const Menus = () => {
 
   const handleEdit = (menu: Menu) => {
     setEditingMenu(menu);
-    form.reset(menu); // Populate form with menu data
+    form.reset(menu);
     setIsFormDialogOpen(true);
   };
 
@@ -197,7 +194,7 @@ const Menus = () => {
     deleteMenu(id);
     toast.info("Menu deleted.");
     if (selectedMenuId === id) {
-      setSelectedMenuId(undefined); // Clear selected menu if deleted
+      setSelectedMenuId(undefined);
     }
   };
 
@@ -217,8 +214,8 @@ const Menus = () => {
       });
       toast.success("Menu details pre-filled from import!");
       setIsImportDialogOpen(false);
-      setImportJson(""); // Clear the textarea
-      setIsFormDialogOpen(true); // Open the form dialog after pre-filling
+      setImportJson("");
+      setIsFormDialogOpen(true);
     } catch (error) {
       toast.error("Failed to parse JSON. Please ensure it's valid JSON format.");
       console.error("JSON parsing error:", error);
@@ -228,8 +225,8 @@ const Menus = () => {
   const renderRecipeList = (ids: string[] | undefined, title: string, Icon: React.ElementType, isPlated: boolean) => {
     if (!ids || ids.length === 0) {
       return (
-        <div className="mt-4">
-          <h4 className="font-medium mb-2 flex items-center gap-2">
+        <div className="mt-3">
+          <h4 className="font-medium mb-1 flex items-center gap-2">
             <Icon className="h-4 w-4 text-muted-foreground" /> {title}:
           </h4>
           <p className="text-muted-foreground text-sm ml-6">No {title.toLowerCase()} selected for this menu.</p>
@@ -237,11 +234,11 @@ const Menus = () => {
       );
     }
     return (
-      <div className="mt-4">
-        <h4 className="font-medium mb-2 flex items-center gap-2">
+      <div className="mt-3">
+        <h4 className="font-medium mb-1 flex items-center gap-2">
           <Icon className="h-4 w-4 text-muted-foreground" /> {title} {isPlated ? "(Choices)" : "(Offerings)"}:
         </h4>
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {ids.map(recipeId => {
             const recipe = recipes.find(r => r.id === recipeId);
             return recipe ? (
@@ -265,7 +262,6 @@ const Menus = () => {
   const isSelectedMenuPlated = selectedMenu?.category === "Plated";
   const isSelectedMenuBuffet = selectedMenu?.category === "Buffet";
 
-  // Function to get all unique missing ingredients for a given menu
   const getMissingIngredientsForMenu = (menu: Menu) => {
     const allRecipeIds = [
       ...(menu.appetizerIds || []),
@@ -296,16 +292,16 @@ const Menus = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
-      <div className="text-center mb-6">
-        <h1 className="text-4xl font-bold mb-4">Menu Planning</h1>
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2">
+      <div className="text-center mb-4">
+        <h1 className="text-4xl font-bold mb-2">Menu Planning</h1>
         <p className="text-xl text-muted-foreground">
           Organize your recipes into pre-planned menus for various events.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl space-y-6">
-        <Card className="bg-card p-4 rounded-lg shadow-md">
+      <div className="w-full max-w-4xl space-y-4">
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               {editingMenu ? "Edit Menu" : "Create New Menu"}
@@ -315,10 +311,10 @@ const Menus = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            <div className="flex flex-col sm:flex-row gap-3 mb-3">
               <Dialog open={isFormDialogOpen} onOpenChange={(open) => {
                 setIsFormDialogOpen(open);
-                if (!open) { // If dialog is closing
+                if (!open) {
                   form.reset();
                   setEditingMenu(null);
                 }
@@ -336,7 +332,7 @@ const Menus = () => {
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3 py-3">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 py-2">
                       <FormField
                         control={form.control}
                         name="name"
@@ -389,18 +385,17 @@ const Menus = () => {
                         )}
                       />
 
-                      {/* Categorized Recipe Selection - Conditional based on Menu Type */}
-                      <h3 className="text-lg font-medium mt-4">
+                      <h3 className="text-lg font-medium mt-3">
                         Select Recipes by Category {watchedCategory === "Plated" && "(Choose 1-2 per category)"}
                         {watchedCategory === "Buffet" && "(Select multiple offerings per category)"}
                       </h3>
                       {watchedCategory === "Plated" && (
-                        <p className="text-sm text-muted-foreground -mt-2 mb-4">
+                        <p className="text-sm text-muted-foreground -mt-1 mb-3">
                           For a plated menu, select the specific dishes offered for each course.
                         </p>
                       )}
                       {watchedCategory === "Buffet" && (
-                        <p className="text-sm text-muted-foreground -mt-2 mb-4">
+                        <p className="text-sm text-muted-foreground -mt-1 mb-3">
                           For a buffet menu, select all items that will be available in each category.
                         </p>
                       )}
@@ -539,7 +534,7 @@ const Menus = () => {
                       </span>
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-3 py-3">
+                  <div className="grid gap-2 py-2">
                     <Label htmlFor="menuJson" className="text-left">
                       Menu JSON
                     </Label>
@@ -560,8 +555,7 @@ const Menus = () => {
           </CardContent>
         </Card>
 
-        {/* Display Existing Menus with Dropdown and Detail View */}
-        <Card className="bg-card p-4 rounded-lg shadow-md">
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">View Existing Menus</CardTitle>
             <CardDescription className="text-muted-foreground">Select a menu to view its full details.</CardDescription>
@@ -572,7 +566,7 @@ const Menus = () => {
             ) : (
               <>
                 <Select onValueChange={setSelectedMenuId} value={selectedMenuId}>
-                  <SelectTrigger className="w-full mb-4">
+                  <SelectTrigger className="w-full mb-3">
                     <SelectValue placeholder="Select a menu to view" />
                   </SelectTrigger>
                   <SelectContent>
@@ -585,12 +579,12 @@ const Menus = () => {
                 </Select>
 
                 {selectedMenu ? (
-                  <div className="border p-3 rounded-md bg-background mt-4">
-                    <div className="flex justify-between items-center mb-4">
+                  <div className="border p-2 rounded-md bg-background mt-3">
+                    <div className="flex justify-between items-center mb-3">
                       <div>
                         <h3 className="text-xl font-semibold">{selectedMenu.name}</h3>
                         <p className="text-sm text-muted-foreground">{selectedMenu.description}</p>
-                        <Badge variant="secondary" className="mt-2">{selectedMenu.category}</Badge>
+                        <Badge variant="secondary" className="mt-1">{selectedMenu.category}</Badge>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button
@@ -609,12 +603,12 @@ const Menus = () => {
                         </Button>
                       </div>
                     </div>
-                    <div className="border-t pt-4">
+                    <div className="border-t pt-3">
                       {isSelectedMenuPlated && (
-                        <p className="text-md font-semibold text-primary mb-4">This is a Plated Menu. Guests will choose from the following options:</p>
+                        <p className="text-md font-semibold text-primary mb-3">This is a Plated Menu. Guests will choose from the following options:</p>
                       )}
                       {isSelectedMenuBuffet && (
-                        <p className="text-md font-semibold text-primary mb-4">This is a Buffet Menu. The following items will be available:</p>
+                        <p className="text-md font-semibold text-primary mb-3">This is a Buffet Menu. The following items will be available:</p>
                       )}
                       {renderRecipeList(selectedMenu.appetizerIds, "Appetizers", Salad, isSelectedMenuPlated)}
                       {renderRecipeList(selectedMenu.mainCourseIds, "Main Courses", Utensils, isSelectedMenuPlated)}
@@ -623,10 +617,9 @@ const Menus = () => {
                       {renderRecipeList(selectedMenu.nonAlcoholicBeverageIds, "Non-Alcoholic Beverages", Coffee, isSelectedMenuPlated)}
                       {renderRecipeList(selectedMenu.alcoholicBeverageIds, "Alcoholic Beverages", Wine, isSelectedMenuPlated)}
 
-                      <Separator className="my-6" />
+                      <Separator className="my-4" />
 
-                      {/* Missing Ingredients Section */}
-                      <h4 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
                         <AlertCircle className="h-5 w-5 text-destructive" /> Missing Ingredients for this Menu:
                       </h4>
                       {getMissingIngredientsForMenu(selectedMenu).length > 0 ? (
@@ -641,7 +634,7 @@ const Menus = () => {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-center mt-4">Select a menu from the dropdown to see its details.</p>
+                  <p className="text-muted-foreground text-center mt-3">Select a menu from the dropdown to see its details.</p>
                 )}
               </>
             )}

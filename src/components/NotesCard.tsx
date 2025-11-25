@@ -5,17 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PlusCircle, Trash2, NotebookText, Mic, StopCircle } from "lucide-react"; // Removed Edit icon
+import { PlusCircle, Trash2, NotebookText, Mic, StopCircle } from "lucide-react";
 import { useCateringStore, Note } from "@/store/cateringStore";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Link } from "react-router-dom"; // Import Link
+import { Link } from "react-router-dom";
 
 // Extend Window interface for WebkitSpeechRecognition and SpeechRecognition
 declare global {
   interface Window {
     webkitSpeechRecognition: any;
-    SpeechRecognition: any; // Added this line
+    SpeechRecognition: any;
   }
 }
 
@@ -26,10 +26,9 @@ export const NotesCard: React.FC = () => {
 
   const [newNoteContent, setNewNoteContent] = useState("");
   const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef<any>(null); // Use useRef to persist the recognition object
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    // Check for browser compatibility
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       console.warn("Web Speech API not supported in this browser.");
@@ -38,8 +37,8 @@ export const NotesCard: React.FC = () => {
     }
 
     recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.continuous = true; // Keep listening
-    recognitionRef.current.interimResults = true; // Get interim results
+    recognitionRef.current.continuous = true;
+    recognitionRef.current.interimResults = true;
 
     recognitionRef.current.onresult = (event: any) => {
       let interimTranscript = "";
@@ -54,7 +53,6 @@ export const NotesCard: React.FC = () => {
         }
       }
 
-      // Append final transcript to the note content
       if (finalTranscript) {
         setNewNoteContent((prev) => prev + finalTranscript);
       }
@@ -121,7 +119,7 @@ export const NotesCard: React.FC = () => {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col p-4">
+    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col p-3">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">
           Take Notes
@@ -129,7 +127,7 @@ export const NotesCard: React.FC = () => {
         <NotebookText className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent className="flex flex-col flex-1">
-        <div className="flex flex-col space-y-2 mb-4">
+        <div className="flex flex-col space-y-1 mb-3">
           <Textarea
             placeholder="Jot down a quick note..."
             value={newNoteContent}
@@ -164,12 +162,12 @@ export const NotesCard: React.FC = () => {
 
         <ScrollArea className="h-[200px] flex-1 pr-4">
           {notes.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-4">No notes yet. Add one above!</p>
+            <p className="text-xs text-muted-foreground text-center py-2">No notes yet. Add one above!</p>
           ) : (
-            <div className="space-y-1"> {/* Made notes tighter */}
+            <div className="space-y-1">
               {notes.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((note) => (
-                <div key={note.id} className="flex items-start justify-between p-1 border rounded-md bg-secondary/20 hover:bg-secondary/30 transition-colors"> {/* Reduced padding */}
-                  <Link to={`/dashboard/notes/${note.id}`} className="flex-1 block p-2 -m-2"> {/* Hotlink */}
+                <div key={note.id} className="flex items-start justify-between p-1 border rounded-md bg-secondary/20 hover:bg-secondary/30 transition-colors">
+                  <Link to={`/dashboard/notes/${note.id}`} className="flex-1 block p-2 -m-2">
                     <p className="text-sm font-medium">{note.content}</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {format(new Date(note.timestamp), "MMM d, yyyy HH:mm")}

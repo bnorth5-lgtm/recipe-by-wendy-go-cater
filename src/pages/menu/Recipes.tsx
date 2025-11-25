@@ -40,7 +40,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, Recipe, RecipeIngredient, RecipeInstruction } from "@/store/cateringStore";
-import { Badge } from "@/components/ui/badge"; // Import Badge for visual cues
+import { Badge } from "@/components/ui/badge";
 
 // Define the main schema for a recipe
 const recipeFormSchema = z.object({
@@ -85,7 +85,7 @@ const Recipes = () => {
   const inventory = useCateringStore((state) => state.inventory);
 
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [importJson, setImportJson] = useState(""); // State for the JSON input
+  const [importJson, setImportJson] = useState("");
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeFormSchema),
@@ -167,7 +167,7 @@ const Recipes = () => {
       });
       toast.success("Recipe details pre-filled from import!");
       setIsImportDialogOpen(false);
-      setImportJson(""); // Clear the textarea
+      setImportJson("");
     } catch (error) {
       toast.error("Failed to parse JSON. Please ensure it's valid JSON format.");
       console.error("JSON parsing error:", error);
@@ -177,16 +177,16 @@ const Recipes = () => {
   const availableUnits = Array.from(new Set(inventory.map(item => item.unit)));
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
-      <div className="text-center mb-6">
-        <h1 className="text-4xl font-bold mb-4">Recipe Management</h1>
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2">
+      <div className="text-center mb-4">
+        <h1 className="text-4xl font-bold mb-2">Recipe Management</h1>
         <p className="text-xl text-muted-foreground">
           Create and manage your recipes, including ingredients and instructions.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl space-y-6">
-        <Card className="bg-card p-4 rounded-lg shadow-md">
+      <div className="w-full max-w-4xl space-y-4">
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Add New Recipe</CardTitle>
             <CardDescription className="text-muted-foreground">Fill in the details to create a new recipe.</CardDescription>
@@ -194,7 +194,7 @@ const Recipes = () => {
           <CardContent>
             <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="w-full mb-4">
+                <Button variant="outline" className="w-full mb-3">
                   <LinkIcon className="mr-2 h-4 w-4" /> Simulate Recipe Import
                 </Button>
               </DialogTrigger>
@@ -209,7 +209,7 @@ const Recipes = () => {
                     </span>
                   </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-3 py-3">
+                <div className="grid gap-2 py-2">
                   <Label htmlFor="recipeJson" className="text-left">
                     Recipe JSON
                   </Label>
@@ -228,7 +228,7 @@ const Recipes = () => {
             </Dialog>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
                 <FormField
                   control={form.control}
                   name="name"
@@ -255,7 +255,7 @@ const Recipes = () => {
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <FormField
                     control={form.control}
                     name="prepTime"
@@ -327,8 +327,8 @@ const Recipes = () => {
 
                 {/* Ingredients Section */}
                 <div>
-                  <h3 className="text-lg font-medium mb-3">Ingredients</h3>
-                  <div className="space-y-3">
+                  <h3 className="text-lg font-medium mb-2">Ingredients</h3>
+                  <div className="space-y-2">
                     {ingredientFields.map((item, index) => (
                       <div key={item.id} className="flex items-end space-x-2">
                         <FormField
@@ -395,7 +395,7 @@ const Recipes = () => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="mt-4"
+                    className="mt-3"
                     onClick={() => appendIngredient({ name: "", quantity: 0.01, unit: "lb" })}
                   >
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Ingredient
@@ -404,8 +404,8 @@ const Recipes = () => {
 
                 {/* Instructions Section */}
                 <div>
-                  <h3 className="text-lg font-medium mb-3">Instructions</h3>
-                  <div className="space-y-3">
+                  <h3 className="text-lg font-medium mb-2">Instructions</h3>
+                  <div className="space-y-2">
                     {instructionFields.map((item, index) => (
                       <div key={item.id} className="flex items-end space-x-2">
                         <FormField
@@ -437,7 +437,7 @@ const Recipes = () => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="mt-4"
+                    className="mt-3"
                     onClick={() => appendInstruction({ step: "" })}
                   >
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Step
@@ -464,8 +464,7 @@ const Recipes = () => {
           </CardContent>
         </Card>
 
-        {/* Display Existing Recipes */}
-        <Card className="bg-card p-4 rounded-lg shadow-md">
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Existing Recipes</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all your managed recipes.</CardDescription>
@@ -474,14 +473,14 @@ const Recipes = () => {
             {recipes.length === 0 ? (
               <p className="text-muted-foreground text-center">No recipes added yet. Start by adding one above!</p>
             ) : (
-              <ScrollArea className="h-[400px] w-full rounded-md border p-4">
-                <div className="space-y-4">
+              <ScrollArea className="h-[400px] w-full rounded-md border p-3">
+                <div className="space-y-3">
                   {recipes.map((recipe) => (
-                    <div key={recipe.id} className="border p-3 rounded-md bg-background flex justify-between items-start">
+                    <div key={recipe.id} className="border p-2 rounded-md bg-background flex justify-between items-start">
                       <div>
                         <h3 className="text-xl font-semibold">{recipe.name}</h3>
                         <p className="text-sm text-muted-foreground">{recipe.description}</p>
-                        <div className="mt-2 text-sm">
+                        <div className="mt-1 text-sm">
                           <p><strong>Category:</strong> {recipe.category}</p>
                           <p><strong>Prep:</strong> {recipe.prepTime} | <strong>Cook:</strong> {recipe.cookTime} | <strong>Servings:</strong> {recipe.servings}</p>
                           <p><strong>Base Cost:</strong> ${recipe.baseCost.toFixed(2)}</p>
@@ -494,7 +493,7 @@ const Recipes = () => {
                             </p>
                           )}
                         </div>
-                        <div className="mt-2">
+                        <div className="mt-1">
                           <h4 className="font-medium">Ingredients:</h4>
                           <ul className="list-disc list-inside text-sm text-muted-foreground">
                             {recipe.ingredients.map((ing, idx) => {
@@ -515,7 +514,7 @@ const Recipes = () => {
                             })}
                           </ul>
                         </div>
-                        <div className="mt-2">
+                        <div className="mt-1">
                           <h4 className="font-medium">Instructions:</h4>
                           <ol className="list-decimal list-inside text-sm text-muted-foreground">
                             {recipe.instructions.map((inst, idx) => (

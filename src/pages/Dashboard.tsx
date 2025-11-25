@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Link, useParams, useNavigate } from "react-router-dom"; // Added useParams and useNavigate
+import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   DollarSign,
   ClipboardList,
@@ -19,7 +19,7 @@ import {
   Trash2,
   PlusCircle,
 } from "lucide-react";
-import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore"; // Added Note import
+import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ClientForm, ClientFormData } from "@/components/ClientForm";
-import { useState, useEffect } from "react"; // Added useEffect
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { NotesCard } from "@/components/NotesCard";
 import { DateDisplay } from "@/components/DateDisplay";
@@ -42,13 +42,13 @@ import { format, isPast, differenceInDays, parseISO, isFuture } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea"; // Added Textarea for note editing
+import { Textarea } from "@/components/ui/textarea";
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
 
-  const { noteId } = useParams<{ noteId?: string }>(); // Get noteId from URL
-  const navigate = useNavigate(); // For programmatic navigation
+  const { noteId } = useParams<{ noteId?: string }>();
+  const navigate = useNavigate();
 
   const proposals = useCateringStore((state) => state.proposals);
   const bookings = useCateringStore((state) => state.bookings);
@@ -58,19 +58,18 @@ const Dashboard = () => {
   const addCriticalTask = useCateringStore((state) => state.addCriticalTask);
   const updateCriticalTask = useCateringStore((state) => state.updateCriticalTask);
   const deleteCriticalTask = useCateringStore((state) => state.deleteCriticalTask);
-  const notes = useCateringStore((state) => state.notes); // Get notes
-  const updateNote = useCateringStore((state) => state.updateNote); // Get updateNote action
+  const notes = useCateringStore((state) => state.notes);
+  const updateNote = useCateringStore((state) => state.updateNote);
 
   const [isClientFormDialogOpen, setIsClientFormDialogOpen] = useState(false);
   const [isManageTasksDialogOpen, setIsManageTasksDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<CriticalTask | null>(null);
   const [newTaskContent, setNewTaskContent] = useState("");
 
-  const [isEditNoteDialogOpen, setIsEditNoteDialogOpen] = useState(false); // State for note edit dialog
-  const [editingNote, setEditingNote] = useState<Note | null>(null); // State for the note being edited
-  const [editedNoteContent, setEditedNoteContent] = useState(""); // State for content in edit dialog
+  const [isEditNoteDialogOpen, setIsEditNoteDialogOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editedNoteContent, setEditedNoteContent] = useState("");
 
-  // Effect to open note edit dialog if noteId is in URL
   useEffect(() => {
     if (noteId) {
       const noteToEdit = notes.find(n => n.id === noteId);
@@ -80,28 +79,26 @@ const Dashboard = () => {
         setIsEditNoteDialogOpen(true);
       } else {
         toast.error("Note not found.");
-        navigate("/dashboard"); // Redirect if note not found
+        navigate("/dashboard");
       }
     } else {
-      setIsEditNoteDialogOpen(false); // Close dialog if noteId is cleared from URL
+      setIsEditNoteDialogOpen(false);
       setEditingNote(null);
       setEditedNoteContent("");
     }
   }, [noteId, notes, navigate]);
 
-  // Handle saving changes from the edit note dialog
   const handleSaveEditedNote = () => {
     if (editingNote && editedNoteContent.trim()) {
       updateNote(editingNote.id, editedNoteContent.trim());
       toast.success("Note updated!");
       setIsEditNoteDialogOpen(false);
-      navigate("/dashboard"); // Navigate back to clean URL
+      navigate("/dashboard");
     } else {
       toast.error("Note content cannot be empty.");
     }
   };
 
-  // Updated proposal counts for clarity
   const draftProposalsCount = proposals.filter(p => p.status === "Draft").length;
   const sentProposalsCount = proposals.filter(p => p.status === "Sent").length;
   const acceptedProposalsCount = proposals.filter(p => p.status === "Accepted").length;
@@ -112,7 +109,6 @@ const Dashboard = () => {
     setIsClientFormDialogOpen(false);
   };
 
-  // --- Dynamic "Today's Tasks" Logic ---
   const overdueThresholdDays = 7;
   const upcomingEventsThresholdDays = 7;
 
@@ -134,7 +130,6 @@ const Dashboard = () => {
     return b.status === "pending" && isFuture(eventDate) && differenceInDays(eventDate, today) <= upcomingEventsThresholdDays;
   }).sort((a, b) => parseISO(a.eventDate).getTime() - parseISO(b.eventDate).getTime());
 
-  // --- Critical Task Management Handlers ---
   const handleAddTask = () => {
     if (newTaskContent.trim()) {
       addCriticalTask(newTaskContent.trim());
@@ -168,7 +163,7 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-4 p-4 relative min-h-screen flex flex-col"
+      className="space-y-3 p-2 relative min-h-screen flex flex-col"
       style={{
         backgroundImage: `url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
         backgroundSize: 'cover',
@@ -177,9 +172,8 @@ const Dashboard = () => {
         backgroundAttachment: 'fixed',
       }}
     >
-      <div className="relative z-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4 flex-1">
-        {/* Row 1: Today's Action Items and Take Notes */}
-        <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
+      <div className="relative z-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4 flex-1">
+        <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Today's Action Items
@@ -198,7 +192,7 @@ const Dashboard = () => {
                       Add, edit, or remove tasks from your daily critical path.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-3 py-3">
+                  <div className="grid gap-2 py-2">
                     <div className="flex items-center space-x-2">
                       <Input
                         id="newTask"
@@ -221,12 +215,12 @@ const Dashboard = () => {
                       </Button>
                     </div>
                     <ScrollArea className="h-[200px] pr-4">
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         {criticalTasks.length === 0 ? (
-                          <p className="text-muted-foreground text-sm text-center py-4">No critical tasks added yet.</p>
+                          <p className="text-muted-foreground text-sm text-center py-2">No critical tasks added yet.</p>
                         ) : (
                           criticalTasks.map((task) => (
-                            <div key={task.id} className="flex items-center justify-between p-2 border rounded-md bg-secondary/20">
+                            <div key={task.id} className="flex items-center justify-between p-1 border rounded-md bg-secondary/20">
                               <span className="text-sm">{task.content}</span>
                               <div className="flex gap-1">
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditTask(task)}>
@@ -255,7 +249,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent className="flex flex-col justify-between h-full">
-            <div className="space-y-3">
+            <div className="space-y-2">
               {/* Overdue Proposals */}
               {overdueProposals.length > 0 && (
                 <div className="space-y-1">
@@ -343,7 +337,7 @@ const Dashboard = () => {
 
         {/* Remaining hotlinks */}
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Quote Pipeline
@@ -364,7 +358,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Proposal
@@ -381,7 +375,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/inventory" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
@@ -398,7 +392,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/menus" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Menu
@@ -415,7 +409,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/recipes" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Recipes
@@ -432,7 +426,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Event
@@ -448,7 +442,7 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
+        <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client
@@ -486,7 +480,7 @@ const Dashboard = () => {
         </Card>
       </div>
       {/* Footer for Date, MadeWithDyad, and Time */}
-      <div className="relative z-10 flex justify-between items-center mt-8 p-4 bg-card/90 rounded-lg shadow-md">
+      <div className="relative z-10 flex justify-between items-center mt-6 p-3 bg-card/90 rounded-lg shadow-md">
         <DateDisplay />
         <MadeWithDyad />
         <TimeDisplay />
@@ -496,7 +490,7 @@ const Dashboard = () => {
       <Dialog open={isEditNoteDialogOpen} onOpenChange={(open) => {
         setIsEditNoteDialogOpen(open);
         if (!open) {
-          navigate("/dashboard"); // Clear noteId from URL when dialog closes
+          navigate("/dashboard");
         }
       }}>
         <DialogContent className="sm:max-w-[425px]">
@@ -506,7 +500,7 @@ const Dashboard = () => {
               Make changes to your note here. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-3 py-3">
             <Textarea
               id="editNoteContent"
               value={editedNoteContent}

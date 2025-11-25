@@ -4,9 +4,9 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 
 const GeneralSettings = () => {
   return (
-    <div className="min-h-full flex flex-col items-center justify-center bg-background text-foreground p-4">
-      <div className="text-center mb-6">
-        <h1 className="text-4xl font-bold mb-4">General Settings</h1>
+    <div className="min-h-full flex flex-col items-center justify-center bg-background text-foreground p-2"> {/* Reduced p-4 to p-2 */}
+      <div className="text-center mb-4"> {/* Reduced mb-6 to mb-4 */}
+        <h1 className="text-4xl font-bold mb-2">General Settings</h1> {/* Reduced mb-4 to mb-2 */}
         <p className="text-xl text-muted-foreground">
           Configure general application settings.
         </p>

@@ -50,16 +50,16 @@ const BEOs = () => {
   }, [bookingId, bookings]);
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
-      <div className="text-center mb-6">
-        <h1 className="text-4xl font-bold mb-4">Banquet Event Orders (BEOs)</h1>
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2"> {/* Reduced p-4 to p-2 */}
+      <div className="text-center mb-4"> {/* Reduced mb-6 to mb-4 */}
+        <h1 className="text-4xl font-bold mb-2">Banquet Event Orders (BEOs)</h1> {/* Reduced mb-4 to mb-2 */}
         <p className="text-xl text-muted-foreground">
           Create and manage detailed Banquet Event Orders for your staff.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl space-y-6">
-        <Card className="bg-card p-4 rounded-lg shadow-md">
+      <div className="w-full max-w-4xl space-y-4"> {/* Reduced space-y-6 to space-y-4 */}
+        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Generate BEO</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -68,7 +68,7 @@ const BEOs = () => {
           </CardHeader>
           <CardContent>
             <Select onValueChange={setSelectedBookingId} value={selectedBookingId}>
-              <SelectTrigger className="w-full mb-4">
+              <SelectTrigger className="w-full mb-3"> {/* Reduced mb-4 to mb-3 */}
                 <SelectValue placeholder="Select a booking to generate BEO" />
               </SelectTrigger>
               <SelectContent>
@@ -92,12 +92,12 @@ const BEOs = () => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[900px] max-h-[95vh] overflow-y-auto p-0">
-                  <DialogHeader className="p-4 pb-0">
+                  <DialogHeader className="p-3 pb-1"> {/* Reduced p-4 pb-0 to p-3 pb-1 */}
                     <DialogTitle>Banquet Event Order</DialogTitle>
                     <DialogDescription>Detailed plan for {selectedBooking.eventName}</DialogDescription>
                   </DialogHeader>
                   <BEO booking={selectedBooking} recipes={recipes} inventory={inventory} />
-                  <DialogFooter className="p-4 pt-0">
+                  <DialogFooter className="p-3 pt-1"> {/* Reduced p-4 pt-0 to p-3 pt-1 */}
                     <Button onClick={() => window.print()} className="mr-2">
                       <Printer className="mr-2 h-4 w-4" /> Print BEO
                     </Button>

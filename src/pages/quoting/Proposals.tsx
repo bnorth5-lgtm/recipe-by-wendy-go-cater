@@ -257,17 +257,17 @@ const Proposals = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
-      <div className="text-center mb-6">
-        <h1 className="text-4xl font-bold mb-4">Quoting & Proposal Generator</h1>
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2"> {/* Reduced p-4 to p-2 */}
+      <div className="text-center mb-4"> {/* Reduced mb-6 to mb-4 */}
+        <h1 className="text-4xl font-bold mb-2">Quoting & Proposal Generator</h1> {/* Reduced mb-4 to mb-2 */}
         <p className="text-xl text-muted-foreground">
           Manage client details, select menus, estimate labor and equipment, and generate proposals here.
         </p>
       </div>
 
-      <div className="w-full max-w-5xl space-y-6">
+      <div className="w-full max-w-5xl space-y-4"> {/* Reduced space-y-6 to space-y-4 */}
         {/* Add/Edit Proposal Form */}
-        <Card className="bg-card p-4 rounded-lg shadow-md">
+        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               {editingProposal ? "Edit Proposal" : "Create New Proposal"}
@@ -279,7 +279,7 @@ const Proposals = () => {
           <CardContent>
             <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full mb-4">
+                <Button className="w-full mb-3"> {/* Reduced mb-4 to mb-3 */}
                   <PlusCircle className="mr-2 h-4 w-4" /> Create New Proposal
                 </Button>
               </DialogTrigger>
@@ -291,9 +291,9 @@ const Proposals = () => {
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3 py-3"> {/* Reduced gap-4 to gap-3, py-4 to py-3 */}
                     {/* Client & Event Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3"> {/* Reduced gap-4 to gap-3 */}
                       <FormField
                         control={form.control}
                         name="clientId"
@@ -333,7 +333,7 @@ const Proposals = () => {
                         )}
                       />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3"> {/* Reduced gap-4 to gap-3 */}
                       <FormField
                         control={form.control}
                         name="eventDate"
@@ -390,8 +390,8 @@ const Proposals = () => {
 
                     {/* Items (Recipes & Inventory Items) */}
                     <div>
-                      <h3 className="text-lg font-medium mb-3">Items Included</h3>
-                      <div className="flex gap-2 mb-4">
+                      <h3 className="text-lg font-medium mb-2">Items Included</h3> {/* Reduced mb-3 to mb-2 */}
+                      <div className="flex gap-2 mb-3"> {/* Reduced mb-4 to mb-3 */}
                         <Select onValueChange={(value) => handleAddItem("recipe", value)}>
                           <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Add Recipe" />
@@ -423,7 +423,7 @@ const Proposals = () => {
                       {itemFields.length === 0 ? (
                         <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add recipes or inventory items.</p>
                       ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2"> {/* Reduced space-y-3 to space-y-2 */}
                           {itemFields.map((item, index) => {
                             const inventoryItemDetails = item.type === "inventoryItem" ? inventory.find(inv => inv.id === item.id) : undefined;
                             return (
@@ -455,7 +455,7 @@ const Proposals = () => {
                     </div>
 
                     {/* Additional Costs */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3"> {/* Reduced gap-4 to gap-3 */}
                       <FormField
                         control={form.control}
                         name="laborCost"
@@ -513,7 +513,7 @@ const Proposals = () => {
                     />
 
                     {/* Totals Display */}
-                    <div className="text-right space-y-1 mt-4">
+                    <div className="text-right space-y-1 mt-3"> {/* Reduced mt-4 to mt-3 */}
                       <p className="text-lg">Subtotal: <span className="font-bold">${subtotal.toFixed(2)}</span></p>
                       <p className="text-xl font-extrabold text-primary">Total: <span className="font-bold">${totalAmount.toFixed(2)}</span></p>
                     </div>
@@ -557,7 +557,7 @@ const Proposals = () => {
         </Card>
 
         {/* Display Existing Proposals */}
-        <Card className="bg-card p-4 rounded-lg shadow-md">
+        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Existing Proposals</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all your generated proposals.</CardDescription>
@@ -570,13 +570,13 @@ const Proposals = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Event Name</TableHead>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Guests</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead className="text-center">Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="px-3 py-2">Event Name</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2">Client</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2">Date</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2">Guests</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2">Total</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2 text-center">Status</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2 text-right">Actions</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -585,16 +585,16 @@ const Proposals = () => {
                       const associatedBooking = bookings.find(b => b.proposalId === proposal.id); // Find associated booking
                       return (
                         <TableRow key={proposal.id} className="border-l-4 border-primary"> {/* Blue border for proposals */}
-                          <TableCell className="font-medium">
+                          <TableCell className="font-medium px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
                             <Link to={`/quoting/proposals/${proposal.id}`} className="hover:underline text-primary">
                               {proposal.eventName}
                             </Link>
                           </TableCell>
-                          <TableCell>{client ? client.name : "Unknown Client"}</TableCell>
-                          <TableCell>{format(new Date(proposal.eventDate), "PPP")}</TableCell>
-                          <TableCell>{proposal.numberOfGuests}</TableCell>
-                          <TableCell>${proposal.totalAmount.toFixed(2)}</TableCell>
-                          <TableCell className="text-center">
+                          <TableCell className="px-3 py-2">{client ? client.name : "Unknown Client"}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                          <TableCell className="px-3 py-2">{format(new Date(proposal.eventDate), "PPP")}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                          <TableCell className="px-3 py-2">{proposal.numberOfGuests}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                          <TableCell className="px-3 py-2">${proposal.totalAmount.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                          <TableCell className="text-center px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
                             <Badge variant={
                               proposal.status === "Accepted" ? "default" :
                               proposal.status === "Rejected" || proposal.status === "Archived" ? "destructive" :
@@ -603,7 +603,7 @@ const Proposals = () => {
                               {proposal.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right flex justify-end space-x-2">
+                          <TableCell className="text-right flex justify-end space-x-2 px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
                             {proposal.status === "Accepted" && associatedBooking && ( // NEW: View BEO button
                               <Link to={`/events/beos/${associatedBooking.id}`}>
                                 <Button variant="outline" size="icon" className="mr-2" title="View BEO">
@@ -648,7 +648,7 @@ const Proposals = () => {
       {/* Proposal View Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="sm:max-w-[900px] max-h-[95vh] overflow-y-auto p-0">
-          <DialogHeader className="p-6 pb-0">
+          <DialogHeader className="p-4 pb-2"> {/* Reduced p-6 to p-4, pb-0 to pb-2 */}
             <DialogTitle>View Proposal</DialogTitle>
             <DialogDescription>Review the full details of this catering proposal.</DialogDescription>
           </DialogHeader>
@@ -658,9 +658,9 @@ const Proposals = () => {
               client={clients.find(c => c.id === viewingProposal.clientId)!}
             />
           ) : (
-            <div className="p-6 text-center text-muted-foreground">Loading proposal details...</div>
+            <div className="p-4 text-center text-muted-foreground">Loading proposal details...</div> {/* Reduced p-6 to p-4 */}
           )}
-          <DialogFooter className="p-6 pt-0">
+          <DialogFooter className="p-4 pt-2"> {/* Reduced p-6 to p-4, pt-0 to pt-2 */}
             <Button onClick={() => window.print()} className="mr-2">Print Proposal</Button>
             <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>Close</Button>
           </DialogFooter>
