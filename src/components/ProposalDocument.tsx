@@ -17,8 +17,8 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ proposal, cl
   const formattedEventDate = format(new Date(proposal.eventDate), "PPP");
 
   return (
-    <div className="p-8 bg-white text-gray-900 max-w-4xl mx-auto shadow-lg rounded-lg print:shadow-none print:p-0">
-      <div className="flex justify-between items-center border-b pb-4 mb-6">
+    <div className="p-6 bg-white text-gray-900 max-w-4xl mx-auto shadow-lg rounded-lg print:shadow-none print:p-0">
+      <div className="flex justify-between items-center border-b pb-3 mb-4">
         <h1 className="text-3xl font-bold text-primary">Catering Proposal</h1>
         <div className="text-right">
           <p className="text-sm">Proposal ID: <span className="font-semibold">{proposal.id.substring(0, 8)}</span></p>
@@ -28,7 +28,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ proposal, cl
       </div>
 
       {/* Client Information */}
-      <div className="mb-6">
+      <div className="mb-4">
         <h2 className="text-xl font-semibold mb-2 text-primary">Client Information</h2>
         <p><span className="font-medium">Company/Client:</span> {client.name}</p>
         <p><span className="font-medium">Contact Person:</span> {client.contactPerson}</p>
@@ -38,7 +38,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ proposal, cl
       </div>
 
       {/* Event Details */}
-      <div className="mb-6">
+      <div className="mb-4">
         <h2 className="text-xl font-semibold mb-2 text-primary">Event Details</h2>
         <p><span className="font-medium">Event Name:</span> {proposal.eventName}</p>
         <p><span className="font-medium">Event Date:</span> {formattedEventDate}</p>
@@ -46,27 +46,27 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ proposal, cl
       </div>
 
       {/* Itemized Services */}
-      <div className="mb-6">
+      <div className="mb-4">
         <h2 className="text-xl font-semibold mb-2 text-primary">Itemized Services</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                <th scope="col" className="px-6 py-3">Item</th>
-                <th scope="col" className="px-6 py-3">Type</th>
-                <th scope="col" className="px-6 py-3 text-right">Quantity</th>
-                <th scope="col" className="px-6 py-3 text-right">Unit Cost</th>
-                <th scope="col" className="px-6 py-3 text-right">Total</th>
+                <th scope="col" className="px-4 py-2">Item</th>
+                <th scope="col" className="px-4 py-2">Type</th>
+                <th scope="col" className="px-4 py-2 text-right">Quantity</th>
+                <th scope="col" className="px-4 py-2 text-right">Unit Cost</th>
+                <th scope="col" className="px-4 py-2 text-right">Total</th>
               </tr>
             </thead>
             <tbody>
               {proposal.items.map((item) => (
                 <tr key={item.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                  <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{item.name}</td>
-                  <td className="px-6 py-4 capitalize">{item.type}</td>
-                  <td className="px-6 py-4 text-right">{item.quantity}</td>
-                  <td className="px-6 py-4 text-right">${item.unitCost.toFixed(2)}</td>
-                  <td className="px-6 py-4 text-right">${item.totalCost.toFixed(2)}</td>
+                  <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">{item.name}</td>
+                  <td className="px-4 py-2 capitalize">{item.type}</td>
+                  <td className="px-4 py-2 text-right">{item.quantity}</td>
+                  <td className="px-4 py-2 text-right">${item.unitCost.toFixed(2)}</td>
+                  <td className="px-4 py-2 text-right">${item.totalCost.toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
@@ -75,8 +75,8 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ proposal, cl
       </div>
 
       {/* Cost Summary */}
-      <div className="mb-6 flex justify-end">
-        <div className="w-full md:w-1/2 space-y-2 text-right">
+      <div className="mb-4 flex justify-end">
+        <div className="w-full md:w-1/2 space-y-1 text-right">
           <p className="flex justify-between"><span>Labor Cost:</span> <span className="font-semibold">${proposal.laborCost.toFixed(2)}</span></p>
           <p className="flex justify-between"><span>Equipment Cost:</span> <span className="font-semibold">${proposal.equipmentCost.toFixed(2)}</span></p>
           <p className="flex justify-between"><span>Other Costs:</span> <span className="font-semibold">${proposal.otherCosts.toFixed(2)}</span></p>
@@ -90,9 +90,9 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ proposal, cl
 
       {/* Terms and Notes */}
       {(proposal.termsAndConditions || proposal.notes) && (
-        <div className="border-t pt-4 mt-6">
+        <div className="border-t pt-3 mt-4">
           {proposal.termsAndConditions && (
-            <div className="mb-4">
+            <div className="mb-3">
               <h3 className="text-lg font-semibold mb-2 text-primary">Terms & Conditions</h3>
               <p className="text-sm text-gray-700 whitespace-pre-wrap">{proposal.termsAndConditions}</p>
             </div>
@@ -106,7 +106,7 @@ export const ProposalDocument: React.FC<ProposalDocumentProps> = ({ proposal, cl
         </div>
       )}
 
-      <div className="text-center text-sm text-muted-foreground mt-8 pt-4 border-t">
+      <div className="text-center text-sm text-muted-foreground mt-6 pt-3 border-t">
         Thank you for your business!
       </div>
     </div>

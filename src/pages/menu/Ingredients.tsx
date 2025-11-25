@@ -27,18 +27,18 @@ const Ingredients = () => {
   );
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
-      <div className="text-center mb-8">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
+      <div className="text-center mb-6">
         <h1 className="text-4xl font-bold mb-4">Ingredients Management</h1>
         <p className="text-xl text-muted-foreground">
           Manage your raw ingredients, suppliers, and inventory levels here.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl space-y-8">
+      <div className="w-full max-w-4xl space-y-6">
         {/* Proteins & Meats */}
-        <section className="bg-card p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-4 text-primary">Proteins & Meats</h2>
+        <section className="bg-card p-4 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-3 text-primary">Proteins & Meats</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">Poultry</h3>
@@ -68,8 +68,8 @@ const Ingredients = () => {
         </section>
 
         {/* Grains, Starches, & Flours */}
-        <section className="bg-card p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-4 text-primary">🌾 Grains, Starches, & Flours</h2>
+        <section className="bg-card p-4 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-3 text-primary">🌾 Grains, Starches, & Flours</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">Grains</h3>
@@ -91,8 +91,8 @@ const Ingredients = () => {
         </section>
 
         {/* Dairy & Cheeses */}
-        <section className="bg-card p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-4 text-primary">🧀 Dairy & Cheeses</h2>
+        <section className="bg-card p-4 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-3 text-primary">🧀 Dairy & Cheeses</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">Dairy</h3>
@@ -114,8 +114,8 @@ const Ingredients = () => {
         </section>
 
         {/* Fresh Produce (Fruits & Vegetables) */}
-        <section className="bg-card p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-4 text-primary">🥦 Fresh Produce (Fruits & Vegetables)</h2>
+        <section className="bg-card p-4 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-3 text-primary">🥦 Fresh Produce (Fruits & Vegetables)</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">Vegetables</h3>
@@ -139,8 +139,8 @@ const Ingredients = () => {
         </section>
 
         {/* Pantry Staples & Spices */}
-        <section className="bg-card p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-semibold mb-4 text-primary">🥫 Pantry Staples & Spices</h2>
+        <section className="bg-card p-4 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-3 text-primary">🥫 Pantry Staples & Spices</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-2">Oils, Fats, & Liquids</h3>

@@ -50,16 +50,16 @@ const BEOs = () => {
   }, [bookingId, bookings]);
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
-      <div className="text-center mb-8">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
+      <div className="text-center mb-6">
         <h1 className="text-4xl font-bold mb-4">Banquet Event Orders (BEOs)</h1>
         <p className="text-xl text-muted-foreground">
           Create and manage detailed Banquet Event Orders for your staff.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl space-y-8">
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+      <div className="w-full max-w-4xl space-y-6">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Generate BEO</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -92,12 +92,12 @@ const BEOs = () => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[900px] max-h-[95vh] overflow-y-auto p-0">
-                  <DialogHeader className="p-6 pb-0">
+                  <DialogHeader className="p-4 pb-0">
                     <DialogTitle>Banquet Event Order</DialogTitle>
                     <DialogDescription>Detailed plan for {selectedBooking.eventName}</DialogDescription>
                   </DialogHeader>
                   <BEO booking={selectedBooking} recipes={recipes} inventory={inventory} />
-                  <DialogFooter className="p-6 pt-0">
+                  <DialogFooter className="p-4 pt-0">
                     <Button onClick={() => window.print()} className="mr-2">
                       <Printer className="mr-2 h-4 w-4" /> Print BEO
                     </Button>

@@ -115,16 +115,16 @@ const Inventory = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
-      <div className="text-center mb-8">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
+      <div className="text-center mb-6">
         <h1 className="text-4xl font-bold mb-4">Inventory Management</h1>
         <p className="text-xl text-muted-foreground">
           Track all your items, from ingredients and beverages to furniture and tableware.
         </p>
       </div>
 
-      <div className="w-full space-y-8">
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+      <div className="w-full space-y-6">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               {editingItem ? "Edit Inventory Item" : "Add New Inventory Item"}
@@ -136,7 +136,7 @@ const Inventory = () => {
           <CardContent>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full mb-6">
+                <Button className="w-full mb-4">
                   <PlusCircle className="mr-2 h-4 w-4" /> Add New Item
                 </Button>
               </DialogTrigger>
@@ -148,7 +148,7 @@ const Inventory = () => {
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3 py-3">
                     <FormField
                       control={form.control}
                       name="name"
@@ -292,7 +292,7 @@ const Inventory = () => {
         </Card>
 
         {/* Display Existing Inventory */}
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Current Inventory</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all items in your inventory.</CardDescription>

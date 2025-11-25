@@ -120,8 +120,8 @@ const Calendar = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
-      <div className="text-center mb-8">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
+      <div className="text-center mb-6">
         <h1 className="text-4xl font-bold mb-4">Event Calendar</h1>
         <p className="text-xl text-muted-foreground">
           View and manage all your upcoming events in a calendar format.
@@ -130,7 +130,7 @@ const Calendar = () => {
 
       <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Calendar View */}
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Event Overview</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -150,7 +150,7 @@ const Calendar = () => {
         </Card>
 
         {/* Events List for Selected Date */}
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               Events on {selectedDate ? format(selectedDate, "PPP") : "No Date Selected"}

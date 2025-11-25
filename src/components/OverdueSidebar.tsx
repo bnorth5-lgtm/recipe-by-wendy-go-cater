@@ -30,7 +30,7 @@ export const OverdueSidebar: React.FC = () => {
   const hasOverdueItems = overdueEstimates.length > 0 || overdueProposals.length > 0;
 
   return (
-    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col">
+    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col p-4">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-destructive" /> Overdue Items

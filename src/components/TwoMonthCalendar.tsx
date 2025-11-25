@@ -112,7 +112,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
   const itemsOnSelectedDate = getItemsForSelectedDate();
 
   return (
-    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col">
+    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col p-4">
       <CardHeader>
         <CardTitle className="text-2xl font-semibold text-primary">Upcoming Timeline</CardTitle>
         <CardDescription className="text-muted-foreground">
@@ -200,7 +200,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
 
                   return (
                     <Link to={link} key={index} onClick={() => setIsDetailsDialogOpen(false)}>
-                      <div className="flex items-start space-x-3 p-3 border rounded-md hover:bg-secondary/20 transition-colors cursor-pointer">
+                      <div className="flex items-start space-x-3 p-2 border rounded-md hover:bg-secondary/20 transition-colors cursor-pointer">
                         <Icon className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
                         <div className="flex-1">
                           <h4 className="font-semibold text-base">{title}</h4>

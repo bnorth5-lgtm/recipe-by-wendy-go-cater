@@ -58,16 +58,16 @@ const Bookings = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
-      <div className="text-center mb-8">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
+      <div className="text-center mb-6">
         <h1 className="text-4xl font-bold mb-4">Event Bookings</h1>
         <p className="text-xl text-muted-foreground">
           Manage all your confirmed event bookings and details.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl space-y-8">
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+      <div className="w-full max-w-4xl space-y-6">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Add New Booking</CardTitle>
             <CardDescription className="text-muted-foreground">Fill in the details to create a new event booking.</CardDescription>
@@ -77,7 +77,7 @@ const Bookings = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Current Bookings</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all your event bookings.</CardDescription>

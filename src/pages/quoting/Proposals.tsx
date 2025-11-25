@@ -257,17 +257,17 @@ const Proposals = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
-      <div className="text-center mb-8">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
+      <div className="text-center mb-6">
         <h1 className="text-4xl font-bold mb-4">Quoting & Proposal Generator</h1>
         <p className="text-xl text-muted-foreground">
           Manage client details, select menus, estimate labor and equipment, and generate proposals here.
         </p>
       </div>
 
-      <div className="w-full max-w-5xl space-y-8">
+      <div className="w-full max-w-5xl space-y-6">
         {/* Add/Edit Proposal Form */}
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               {editingProposal ? "Edit Proposal" : "Create New Proposal"}
@@ -279,7 +279,7 @@ const Proposals = () => {
           <CardContent>
             <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full mb-6">
+                <Button className="w-full mb-4">
                   <PlusCircle className="mr-2 h-4 w-4" /> Create New Proposal
                 </Button>
               </DialogTrigger>
@@ -291,7 +291,7 @@ const Proposals = () => {
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 py-4">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
                     {/* Client & Event Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
@@ -557,7 +557,7 @@ const Proposals = () => {
         </Card>
 
         {/* Display Existing Proposals */}
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Existing Proposals</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all your generated proposals.</CardDescription>

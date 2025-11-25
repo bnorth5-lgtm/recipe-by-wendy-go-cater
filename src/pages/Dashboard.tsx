@@ -168,7 +168,7 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 relative min-h-screen flex flex-col"
+      className="space-y-4 p-4 relative min-h-screen flex flex-col"
       style={{
         backgroundImage: `url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
         backgroundSize: 'cover',
@@ -177,9 +177,9 @@ const Dashboard = () => {
         backgroundAttachment: 'fixed',
       }}
     >
-      <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-4 flex-1">
+      <div className="relative z-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4 flex-1">
         {/* Row 1: Today's Action Items and Take Notes */}
-        <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
+        <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Today's Action Items
@@ -198,7 +198,7 @@ const Dashboard = () => {
                       Add, edit, or remove tasks from your daily critical path.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-4 py-4">
+                  <div className="grid gap-3 py-3">
                     <div className="flex items-center space-x-2">
                       <Input
                         id="newTask"
@@ -343,7 +343,7 @@ const Dashboard = () => {
 
         {/* Remaining hotlinks */}
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Quote Pipeline
@@ -364,7 +364,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Proposal
@@ -381,7 +381,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/inventory" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
@@ -398,7 +398,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/menus" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Menu
@@ -415,7 +415,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/recipes" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Recipes
@@ -432,7 +432,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Event
@@ -448,7 +448,7 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
+        <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-4">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client

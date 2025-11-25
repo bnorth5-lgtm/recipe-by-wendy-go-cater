@@ -23,8 +23,8 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
   };
 
   return (
-    <div className="p-8 bg-white text-gray-900 max-w-4xl mx-auto shadow-lg rounded-lg print:shadow-none print:p-0">
-      <div className="flex justify-between items-center border-b pb-4 mb-6">
+    <div className="p-6 bg-white text-gray-900 max-w-4xl mx-auto shadow-lg rounded-lg print:shadow-none print:p-0">
+      <div className="flex justify-between items-center border-b pb-3 mb-4">
         <h1 className="text-3xl font-bold text-primary">Banquet Event Order (BEO)</h1>
         <div className="text-right">
           <p className="text-sm">BEO ID: <span className="font-semibold">{booking.id.substring(0, 8)}</span></p>
@@ -34,7 +34,7 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
       </div>
 
       {/* Event Details */}
-      <div className="mb-6">
+      <div className="mb-4">
         <h2 className="text-xl font-semibold mb-2 text-primary">Event Details</h2>
         <p><span className="font-medium">Event Name:</span> {booking.eventName}</p>
         <p><span className="font-medium">Client Name:</span> {booking.clientName}</p>
@@ -47,12 +47,12 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
       </div>
 
       {/* Menu Items */}
-      <div className="mb-6">
+      <div className="mb-4">
         <h2 className="text-xl font-semibold mb-2 text-primary">Menu Items</h2>
         {booking.selectedRecipeIds.length === 0 ? (
           <p className="text-muted-foreground">No recipes selected for this event.</p>
         ) : (
-          <ul className="list-disc list-inside space-y-3">
+          <ul className="list-disc list-inside space-y-2">
             {booking.selectedRecipeIds.map((recipeId) => {
               const recipe = getRecipeDetails(recipeId);
               return recipe ? (
@@ -77,7 +77,7 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
       </div>
 
       {/* Staffing & Equipment (Placeholders) */}
-      <div className="mb-6 border-t pt-4">
+      <div className="mb-4 border-t pt-3">
         <h2 className="text-xl font-semibold mb-2 text-primary">Staffing & Equipment</h2>
         <p className="text-muted-foreground">
           <span className="font-medium">Staff Required:</span> Head Chef, 2 Line Cooks, 3 Servers, 1 Bartender
@@ -91,7 +91,7 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
       </div>
 
       {/* Special Notes */}
-      <div className="border-t pt-4 mt-6">
+      <div className="border-t pt-3 mt-4">
         <h2 className="text-xl font-semibold mb-2 text-primary">Special Notes / Requirements</h2>
         <p className="text-sm text-gray-700 whitespace-pre-wrap">
           Client has requested gluten-free options for 10 guests. Ensure all dietary restrictions are clearly marked.
@@ -102,7 +102,7 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
         </p>
       </div>
 
-      <div className="text-center text-sm text-muted-foreground mt-8 pt-4 border-t">
+      <div className="text-center text-sm text-muted-foreground mt-6 pt-3 border-t">
         This BEO is for internal use by catering staff.
       </div>
     </div>

@@ -68,16 +68,16 @@ const Clients = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
-      <div className="text-center mb-8">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
+      <div className="text-center mb-6">
         <h1 className="text-4xl font-bold mb-4">Client Management</h1>
         <p className="text-xl text-muted-foreground">
           Keep track of all your client details and contact information.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl space-y-8">
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+      <div className="w-full max-w-4xl space-y-6">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               {editingClient ? "Edit Client" : "Add New Client"}
@@ -94,7 +94,7 @@ const Clients = () => {
               }
             }}>
               <DialogTrigger asChild>
-                <Button className="w-full mb-6">
+                <Button className="w-full mb-4">
                   <PlusCircle className="mr-2 h-4 w-4" /> Add New Client
                 </Button>
               </DialogTrigger>
@@ -116,7 +116,7 @@ const Clients = () => {
         </Card>
 
         {/* Display Existing Clients */}
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Existing Clients</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all your managed clients.</CardDescription>

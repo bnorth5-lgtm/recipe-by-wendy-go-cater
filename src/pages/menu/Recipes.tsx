@@ -177,16 +177,16 @@ const Recipes = () => {
   const availableUnits = Array.from(new Set(inventory.map(item => item.unit)));
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
-      <div className="text-center mb-8">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
+      <div className="text-center mb-6">
         <h1 className="text-4xl font-bold mb-4">Recipe Management</h1>
         <p className="text-xl text-muted-foreground">
           Create and manage your recipes, including ingredients and instructions.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl space-y-8">
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+      <div className="w-full max-w-4xl space-y-6">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Add New Recipe</CardTitle>
             <CardDescription className="text-muted-foreground">Fill in the details to create a new recipe.</CardDescription>
@@ -194,7 +194,7 @@ const Recipes = () => {
           <CardContent>
             <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="w-full mb-6">
+                <Button variant="outline" className="w-full mb-4">
                   <LinkIcon className="mr-2 h-4 w-4" /> Simulate Recipe Import
                 </Button>
               </DialogTrigger>
@@ -209,7 +209,7 @@ const Recipes = () => {
                     </span>
                   </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
+                <div className="grid gap-3 py-3">
                   <Label htmlFor="recipeJson" className="text-left">
                     Recipe JSON
                   </Label>
@@ -228,7 +228,7 @@ const Recipes = () => {
             </Dialog>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -465,7 +465,7 @@ const Recipes = () => {
         </Card>
 
         {/* Display Existing Recipes */}
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Existing Recipes</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all your managed recipes.</CardDescription>
@@ -477,7 +477,7 @@ const Recipes = () => {
               <ScrollArea className="h-[400px] w-full rounded-md border p-4">
                 <div className="space-y-4">
                   {recipes.map((recipe) => (
-                    <div key={recipe.id} className="border p-4 rounded-md bg-background flex justify-between items-start">
+                    <div key={recipe.id} className="border p-3 rounded-md bg-background flex justify-between items-start">
                       <div>
                         <h3 className="text-xl font-semibold">{recipe.name}</h3>
                         <p className="text-sm text-muted-foreground">{recipe.description}</p>

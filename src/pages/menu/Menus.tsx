@@ -296,16 +296,16 @@ const Menus = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
-      <div className="text-center mb-8">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
+      <div className="text-center mb-6">
         <h1 className="text-4xl font-bold mb-4">Menu Planning</h1>
         <p className="text-xl text-muted-foreground">
           Organize your recipes into pre-planned menus for various events.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl space-y-8">
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+      <div className="w-full max-w-4xl space-y-6">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               {editingMenu ? "Edit Menu" : "Create New Menu"}
@@ -315,7 +315,7 @@ const Menus = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
               <Dialog open={isFormDialogOpen} onOpenChange={(open) => {
                 setIsFormDialogOpen(open);
                 if (!open) { // If dialog is closing
@@ -336,7 +336,7 @@ const Menus = () => {
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3 py-3">
                       <FormField
                         control={form.control}
                         name="name"
@@ -539,7 +539,7 @@ const Menus = () => {
                       </span>
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-4 py-4">
+                  <div className="grid gap-3 py-3">
                     <Label htmlFor="menuJson" className="text-left">
                       Menu JSON
                     </Label>
@@ -561,7 +561,7 @@ const Menus = () => {
         </Card>
 
         {/* Display Existing Menus with Dropdown and Detail View */}
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">View Existing Menus</CardTitle>
             <CardDescription className="text-muted-foreground">Select a menu to view its full details.</CardDescription>
@@ -572,7 +572,7 @@ const Menus = () => {
             ) : (
               <>
                 <Select onValueChange={setSelectedMenuId} value={selectedMenuId}>
-                  <SelectTrigger className="w-full mb-6">
+                  <SelectTrigger className="w-full mb-4">
                     <SelectValue placeholder="Select a menu to view" />
                   </SelectTrigger>
                   <SelectContent>
@@ -585,7 +585,7 @@ const Menus = () => {
                 </Select>
 
                 {selectedMenu ? (
-                  <div className="border p-4 rounded-md bg-background mt-4">
+                  <div className="border p-3 rounded-md bg-background mt-4">
                     <div className="flex justify-between items-center mb-4">
                       <div>
                         <h3 className="text-xl font-semibold">{selectedMenu.name}</h3>

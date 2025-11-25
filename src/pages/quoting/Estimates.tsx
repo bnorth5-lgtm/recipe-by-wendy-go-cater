@@ -220,17 +220,17 @@ const Estimates = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-6">
-      <div className="text-center mb-8">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-4">
+      <div className="text-center mb-6">
         <h1 className="text-4xl font-bold mb-4">Cost Estimates</h1>
         <p className="text-xl text-muted-foreground">
           Quickly calculate and save detailed cost estimates for your events.
         </p>
       </div>
 
-      <div className="w-full max-w-5xl space-y-8">
+      <div className="w-full max-w-5xl space-y-6">
         {/* Add/Edit Estimate Form */}
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               {editingEstimate ? "Edit Estimate" : "Create New Estimate"}
@@ -242,7 +242,7 @@ const Estimates = () => {
           <CardContent>
             <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full mb-6">
+                <Button className="w-full mb-4">
                   <PlusCircle className="mr-2 h-4 w-4" /> Create New Estimate
                 </Button>
               </DialogTrigger>
@@ -254,7 +254,7 @@ const Estimates = () => {
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 py-4">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
                     {/* Event Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
@@ -447,7 +447,7 @@ const Estimates = () => {
         </Card>
 
         {/* Display Existing Estimates */}
-        <Card className="bg-card p-6 rounded-lg shadow-md">
+        <Card className="bg-card p-4 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Saved Estimates</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all your saved cost estimates.</CardDescription>
