@@ -136,7 +136,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
 
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader className="p-4 pb-2">
+          <DialogHeader className="p-3 pb-1">
             <DialogTitle>Details for {selectedDate ? format(selectedDate, "PPP") : ""}</DialogTitle>
             <DialogDescription>
               Click on an item to navigate to its full details.

@@ -4,9 +4,9 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 
 const UsersSettings = () => {
   return (
-    <div className="min-h-full flex flex-col items-center justify-center bg-background text-foreground p-2"> {/* Reduced p-4 to p-2 */}
-      <div className="text-center mb-4"> {/* Reduced mb-6 to mb-4 */}
-        <h1 className="text-4xl font-bold mb-2">User Management</h1> {/* Reduced mb-4 to mb-2 */}
+    <div className="min-h-full flex flex-col items-center justify-center bg-background text-foreground p-3">
+      <div className="text-center mb-4">
+        <h1 className="text-4xl font-bold mb-2">User Management</h1>
         <p className="text-xl text-muted-foreground">
           Manage user accounts and permissions.
         </p>

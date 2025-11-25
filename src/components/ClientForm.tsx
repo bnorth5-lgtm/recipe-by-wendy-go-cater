@@ -53,7 +53,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, o
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3 py-3">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 py-2">
         <FormField
           control={form.control}
           name="name"
@@ -80,7 +80,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, o
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <FormField
             control={form.control}
             name="email"
@@ -135,7 +135,7 @@ export const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, o
           )}
         />
         {!readOnly && (
-          <div className="flex justify-end gap-2 mt-3">
+          <div className="flex justify-end gap-2 mt-2">
             {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
             <Button type="submit">{initialData ? "Save changes" : "Add Client"}</Button>
           </div>

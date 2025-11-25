@@ -48,14 +48,14 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Edit, Trash2, CalendarIcon, Eye, Send, CheckCircle, XCircle, Archive, Utensils, Wine, Package, Printer } from "lucide-react";
+import { PlusCircle, Edit, Trash2, CalendarIcon, Eye, Send, CheckCircle, XCircle, Archive, Utensils, Wine, Package, Printer } from "lucide-react"; // Added Printer icon
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, Client, Recipe, InventoryItem, Proposal, ProposalItem } from "@/store/cateringStore";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { ProposalDocument } from "@/components/ProposalDocument";
-import { useParams, Link } from "react-router-dom";
+import { ProposalDocument } from "@/components/ProposalDocument"; // Import the new component
+import { useParams, Link } from "react-router-dom"; // Import useParams and Link
 
 // Define the schema for a proposal item within the form
 const proposalItemSchema = z.object({
@@ -102,6 +102,29 @@ const Proposals = () => {
   const [editingProposal, setEditingProposal] = useState<Proposal | null>(null);
   const [viewingProposal, setViewingProposal] = useState<Proposal | null>(null);
 
+  const form = useForm<ProposalFormData>({
+    resolver: zodResolver(proposalFormSchema),
+    defaultValues: {
+      clientId: "",
+      eventName: "",
+      eventDate: new Date(),
+      numberOfGuests: 1,
+      items: [],
+      laborCost: 0,
+      equipmentCost: 0,
+      otherCosts: 0,
+      taxRate: 0.08,
+      termsAndConditions: "",
+      notes: "",
+    },
+  });
+
+  const { fields: itemFields, append: appendItem, remove: removeItem, update: updateItem } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
+
+  // Effect to open view dialog if proposalId is in URL
   useEffect(() => {
     if (proposalId) {
       const proposalToView = proposals.find(p => p.id === proposalId);
@@ -142,10 +165,10 @@ const Proposals = () => {
     };
 
     if (editingProposal) {
-      updateProposal({ ...proposalData, id: editingProposal.id } as Proposal);
+      updateProposal({ ...proposalData, id: editingProposal.id } as Proposal); // Explicitly cast data
       toast.success("Proposal updated successfully!");
     } else {
-      addProposal(proposalData as Omit<Proposal, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>);
+      addProposal(proposalData as Omit<Proposal, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>); // Explicitly cast data
       toast.success("Proposal created successfully!");
     }
     form.reset();
@@ -180,7 +203,7 @@ const Proposals = () => {
     }
   };
 
-  const handleAddItem = (type: "recipe" | "inventoryItem", selectedId: string) => {
+  const handleAddItem = (type: "recipe" | "inventoryItem", selectedId: string) => { // Changed type
     if (type === "recipe") {
       const recipe = recipes.find(r => r.id === selectedId);
       if (recipe) {
@@ -189,12 +212,12 @@ const Proposals = () => {
           type: "recipe",
           name: recipe.name,
           quantity: 1,
-          unitCost: recipe.baseCost,
+          unitCost: recipe.baseCost, // Use baseCost from recipe
           totalCost: recipe.baseCost,
         });
         toast.success(`Added recipe: ${recipe.name}`);
       }
-    } else if (type === "inventoryItem") {
+    } else if (type === "inventoryItem") { // Handle generic inventory items
       const invItem = inventory.find(i => i.id === selectedId);
       if (invItem) {
         appendItem({
@@ -202,7 +225,7 @@ const Proposals = () => {
           type: "inventoryItem",
           name: invItem.name,
           quantity: 1,
-          unitCost: invItem.costPerUnit,
+          unitCost: invItem.costPerUnit, // Use costPerUnit from inventory item
           totalCost: invItem.costPerUnit,
         });
         toast.success(`Added inventory item: ${invItem.name}`);
@@ -221,12 +244,12 @@ const Proposals = () => {
     if (type === "inventoryItem") {
       switch (category) {
         case "Beverage": return <Wine className="h-4 w-4 text-muted-foreground" />;
-        case "Furniture": return <Package className="h-4 w-4 text-muted-foreground" />;
-        case "Tableware": return <Package className="h-4 w-4 text-muted-foreground" />;
-        case "Silverware": return <Package className="h-4 w-4 text-muted-foreground" />;
-        case "Glassware": return <Package className="h-4 w-4 text-muted-foreground" />;
-        case "Linens": return <Package className="h-4 w-4 text-muted-foreground" />;
-        case "Serving Equipment": return <Package className="h-4 w-4 text-muted-foreground" />;
+        case "Furniture": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for furniture
+        case "Tableware": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for tableware
+        case "Silverware": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for silverware
+        case "Glassware": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for glassware
+        case "Linens": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for linens
+        case "Serving Equipment": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for serving equipment
         default: return <Package className="h-4 w-4 text-muted-foreground" />;
       }
     }
@@ -234,7 +257,7 @@ const Proposals = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-3">
       <div className="text-center mb-4">
         <h1 className="text-4xl font-bold mb-2">Quoting & Proposal Generator</h1>
         <p className="text-xl text-muted-foreground">
@@ -625,7 +648,7 @@ const Proposals = () => {
       {/* Proposal View Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="sm:max-w-[900px] max-h-[95vh] overflow-y-auto p-0">
-          <DialogHeader className="p-4 pb-2">
+          <DialogHeader className="p-3 pb-1">
             <DialogTitle>View Proposal</DialogTitle>
             <DialogDescription>Review the full details of this catering proposal.</DialogDescription>
           </DialogHeader>
@@ -635,9 +658,9 @@ const Proposals = () => {
               client={clients.find(c => c.id === viewingProposal.clientId)!}
             />
           ) : (
-            <div className="p-4 text-center text-muted-foreground">Loading proposal details...</div>
+            <div className="p-3 text-center text-muted-foreground">Loading proposal details...</div>
           )}
-          <DialogFooter className="p-4 pt-2">
+          <DialogFooter className="p-3 pt-1">
             <Button onClick={() => window.print()} className="mr-2">Print Proposal</Button>
             <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>Close</Button>
           </DialogFooter>

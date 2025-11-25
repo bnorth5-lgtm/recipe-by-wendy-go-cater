@@ -58,16 +58,16 @@ const Bookings = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2"> {/* Reduced p-4 to p-2 */}
-      <div className="text-center mb-4"> {/* Reduced mb-6 to mb-4 */}
-        <h1 className="text-4xl font-bold mb-2">Event Bookings</h1> {/* Reduced mb-4 to mb-2 */}
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-3">
+      <div className="text-center mb-4">
+        <h1 className="text-4xl font-bold mb-2">Event Bookings</h1>
         <p className="text-xl text-muted-foreground">
           Manage all your confirmed event bookings and details.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl space-y-4"> {/* Reduced space-y-6 to space-y-4 */}
-        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
+      <div className="w-full max-w-4xl space-y-4">
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Add New Booking</CardTitle>
             <CardDescription className="text-muted-foreground">Fill in the details to create a new event booking.</CardDescription>
@@ -77,7 +77,7 @@ const Bookings = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Current Bookings</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all your event bookings.</CardDescription>
@@ -90,13 +90,13 @@ const Bookings = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="px-3 py-2">Event Name</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Client</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Date</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Guests</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Recipes</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2 text-center">Status</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2 text-right">Actions</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2">Event Name</TableHead>
+                      <TableHead className="px-3 py-2">Client</TableHead>
+                      <TableHead className="px-3 py-2">Date</TableHead>
+                      <TableHead className="px-3 py-2">Guests</TableHead>
+                      <TableHead className="px-3 py-2">Recipes</TableHead>
+                      <TableHead className="px-3 py-2 text-center">Status</TableHead>
+                      <TableHead className="px-3 py-2 text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -109,11 +109,11 @@ const Bookings = () => {
                           booking.status === "cancelled" && "border-l-4 border-gray-400 opacity-70" // Gray border for cancelled
                         )}
                       >
-                        <TableCell className="font-medium px-3 py-2">{booking.eventName}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2">{booking.clientName}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2">{booking.eventDate}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2">{booking.numberOfGuests}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="font-medium px-3 py-2">{booking.eventName}</TableCell>
+                        <TableCell className="px-3 py-2">{booking.clientName}</TableCell>
+                        <TableCell className="px-3 py-2">{booking.eventDate}</TableCell>
+                        <TableCell className="px-3 py-2">{booking.numberOfGuests}</TableCell>
+                        <TableCell className="px-3 py-2">
                           <div className="flex flex-wrap gap-1">
                             {booking.selectedRecipeIds.map(recipeId => {
                               const recipe = recipes.find(r => r.id === recipeId);
@@ -125,7 +125,7 @@ const Bookings = () => {
                             })}
                           </div>
                         </TableCell>
-                        <TableCell className="text-center px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="text-center px-3 py-2">
                           {booking.status === "completed" ? (
                             <Badge className="bg-green-500 hover:bg-green-500 text-white flex items-center justify-center gap-1">
                               <CheckCircle className="h-3 w-3" /> Completed
@@ -140,7 +140,7 @@ const Bookings = () => {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-right px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="text-right px-3 py-2">
                           {booking.status === "pending" && (
                             <Button
                               variant="outline"

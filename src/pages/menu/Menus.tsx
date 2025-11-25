@@ -296,7 +296,7 @@ const Menus = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2">
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-3">
       <div className="text-center mb-4">
         <h1 className="text-4xl font-bold mb-2">Menu Planning</h1>
         <p className="text-xl text-muted-foreground">

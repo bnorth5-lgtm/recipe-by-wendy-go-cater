@@ -115,16 +115,16 @@ const Inventory = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2"> {/* Reduced p-4 to p-2 */}
-      <div className="text-center mb-4"> {/* Reduced mb-6 to mb-4 */}
-        <h1 className="text-4xl font-bold mb-2">Inventory Management</h1> {/* Reduced mb-4 to mb-2 */}
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-3">
+      <div className="text-center mb-4">
+        <h1 className="text-4xl font-bold mb-2">Inventory Management</h1>
         <p className="text-xl text-muted-foreground">
           Track all your items, from ingredients and beverages to furniture and tableware.
         </p>
       </div>
 
-      <div className="w-full space-y-4"> {/* Reduced space-y-6 to space-y-4 */}
-        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
+      <div className="w-full space-y-4">
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               {editingItem ? "Edit Inventory Item" : "Add New Inventory Item"}
@@ -136,7 +136,7 @@ const Inventory = () => {
           <CardContent>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full mb-3"> {/* Reduced mb-4 to mb-3 */}
+                <Button className="w-full mb-3">
                   <PlusCircle className="mr-2 h-4 w-4" /> Add New Item
                 </Button>
               </DialogTrigger>
@@ -148,7 +148,7 @@ const Inventory = () => {
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 py-2"> {/* Reduced gap-3 to gap-2, py-3 to py-2 */}
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-2 py-2">
                     <FormField
                       control={form.control}
                       name="name"
@@ -292,7 +292,7 @@ const Inventory = () => {
         </Card>
 
         {/* Display Existing Inventory */}
-        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Current Inventory</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all items in your inventory.</CardDescription>
@@ -305,24 +305,24 @@ const Inventory = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="min-w-[120px]">Item Name</TableHead>
-                      <TableHead className="min-w-[80px] text-xs">Category</TableHead>
-                      <TableHead className="min-w-[120px]">Current Stock</TableHead>
-                      <TableHead className="min-w-[120px]">Cost per Unit</TableHead>
-                      <TableHead className="min-w-[120px]">Selling Price</TableHead>
-                      <TableHead className="min-w-[100px]">Low Stock Threshold</TableHead>
-                      <TableHead className="text-center min-w-[100px]">Status</TableHead>
-                      <TableHead className="text-right min-w-[100px]">Actions</TableHead>
+                      <TableHead className="min-w-[120px] px-3 py-2">Item Name</TableHead>
+                      <TableHead className="min-w-[80px] text-xs px-3 py-2">Category</TableHead>
+                      <TableHead className="min-w-[120px] px-3 py-2">Current Stock</TableHead>
+                      <TableHead className="min-w-[120px] px-3 py-2">Cost per Unit</TableHead>
+                      <TableHead className="min-w-[120px] px-3 py-2">Selling Price</TableHead>
+                      <TableHead className="min-w-[100px] px-3 py-2">Low Stock Threshold</TableHead>
+                      <TableHead className="text-center min-w-[100px] px-3 py-2">Status</TableHead>
+                      <TableHead className="text-right min-w-[100px] px-3 py-2">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {inventory.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="font-medium px-3 py-2 min-w-[120px]"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="font-medium px-3 py-2 min-w-[120px]">
                           {item.name}
                         </TableCell>
-                        <TableCell className="px-3 py-2 min-w-[80px] text-xs">{item.category}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2 min-w-[120px]"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="px-3 py-2 min-w-[80px] text-xs">{item.category}</TableCell>
+                        <TableCell className="px-3 py-2 min-w-[120px]">
                           <div className="flex items-center space-x-0.5">
                             <Button
                               variant="outline"
@@ -350,10 +350,10 @@ const Inventory = () => {
                             </Button>
                           </div>
                         </TableCell>
-                        <TableCell className="px-3 py-2 min-w-[120px]">${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2 min-w-[120px]">${(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2 min-w-[100px]">{item.lowStockThreshold}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="text-center px-3 py-2 min-w-[100px]"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="px-3 py-2 min-w-[120px]">${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell>
+                        <TableCell className="px-3 py-2 min-w-[120px]">${(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell>
+                        <TableCell className="px-3 py-2 min-w-[100px]">{item.lowStockThreshold}</TableCell>
+                        <TableCell className="text-center px-3 py-2 min-w-[100px]">
                           {item.currentStock <= item.lowStockThreshold ? (
                             <Badge variant="destructive" className="flex items-center justify-center gap-1">
                               <AlertCircle className="h-3 w-3" /> Low Stock
@@ -362,7 +362,7 @@ const Inventory = () => {
                             <Badge variant="secondary">In Stock</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-right px-3 py-2 min-w-[100px]"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="text-right px-3 py-2 min-w-[100px]">
                           <Button
                             variant="ghost"
                             size="icon"

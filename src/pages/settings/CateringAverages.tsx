@@ -78,24 +78,24 @@ const CateringAverages = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2"> {/* Reduced p-4 to p-2 */}
-      <div className="text-center mb-4"> {/* Reduced mb-6 to mb-4 */}
-        <h1 className="text-4xl font-bold mb-2">Catering Business Averages</h1> {/* Reduced mb-4 to mb-2 */}
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-3">
+      <div className="text-center mb-4">
+        <h1 className="text-4xl font-bold mb-2">Catering Business Averages</h1>
         <p className="text-xl text-muted-foreground">
           Compare your business performance against industry averages and get insights.
         </p>
       </div>
 
-      <div className="w-full max-w-5xl space-y-4"> {/* Reduced space-y-6 to space-y-4 */}
+      <div className="w-full max-w-5xl space-y-4">
         {/* Industry Averages Card */}
-        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Industry Benchmarks (Simulated)</CardTitle>
             <CardDescription className="text-muted-foreground">
               These are general industry averages for a small catering company.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"> {/* Reduced gap-4 to gap-3 */}
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
               <p className="text-sm text-muted-foreground">Avg. Revenue per Event</p>
               <p className="text-lg font-bold">${industryAverages.avgRevenuePerEvent.toLocaleString()}</p>
@@ -120,7 +120,7 @@ const CateringAverages = () => {
         </Card>
 
         {/* Your Business Data Input */}
-        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Your Business Data</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -129,10 +129,10 @@ const CateringAverages = () => {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3"> {/* Reduced space-y-4 to space-y-3 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3"> {/* Reduced gap-4 to gap-3 */}
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Incoming Business */}
-                  <div className="space-y-2"> {/* Reduced space-y-3 to space-y-2 */}
+                  <div className="space-y-2">
                     <h3 className="text-lg font-medium">Incoming Business (Current Month)</h3>
                     <FormField
                       control={form.control}
@@ -176,7 +176,7 @@ const CateringAverages = () => {
                   </div>
 
                   {/* Completed Business */}
-                  <div className="space-y-2"> {/* Reduced space-y-3 to space-y-2 */}
+                  <div className="space-y-2">
                     <h3 className="text-lg font-medium">Completed Business (Current Month)</h3>
                     <FormField
                       control={form.control}
@@ -226,14 +226,14 @@ const CateringAverages = () => {
         </Card>
 
         {/* Performance Comparison */}
-        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Your Performance vs. Industry</CardTitle>
             <CardDescription className="text-muted-foreground">
               How your current metrics stack up against the benchmarks.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"> {/* Reduced gap-4 to gap-3 */}
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
               <p className="text-sm text-muted-foreground">Your Revenue per Event</p>
               <div className="flex items-center gap-2">
@@ -288,14 +288,14 @@ const CateringAverages = () => {
         </Card>
 
         {/* Adjustment Suggestions */}
-        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Suggested Adjustments & Focus Areas</CardTitle>
             <CardDescription className="text-muted-foreground">
               Based on your current performance, here are some areas to consider.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2"> {/* Reduced space-y-3 to space-y-2 */}
+          <CardContent className="space-y-2">
             {!isRevenuePerEventAboveAvg && (
               <div className="flex items-start gap-2 text-destructive">
                 <AlertCircle className="h-5 w-5 mt-1 shrink-0" />
