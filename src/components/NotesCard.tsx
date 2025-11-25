@@ -1,15 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input"; // Keep Input for other potential uses, but we'll use Textarea for new note content
-import { Textarea } from "@/components/ui/textarea"; // Import Textarea
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PlusCircle, Trash2, NotebookText } from "lucide-react";
+import { PlusCircle, Trash2, NotebookText, Mic, StopCircle } from "lucide-react";
 import { useCateringStore, Note } from "@/store/cateringStore";
 import { format } from "date-fns";
 import { toast } from "sonner";
+
+// Extend Window interface for WebkitSpeechRecognition and SpeechRecognition
+declare global {
+  interface Window {
+    webkitSpeechRecognition: any;
+    SpeechRecognition: any; // Added this line
+  }
+}
 
 export const NotesCard: React.FC = () => {
   const notes = useCateringStore((state) => state.notes);
@@ -17,6 +24,64 @@ export const NotesCard: React.FC = () => {
   const deleteNote = useCateringStore((state) => state.deleteNote);
 
   const [newNoteContent, setNewNoteContent] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null); // Use useRef to persist the recognition object
+
+  useEffect(() => {
+    // Check for browser compatibility
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.warn("Web Speech API not supported in this browser.");
+      toast.error("Dictation not supported by your browser.");
+      return;
+    }
+
+    recognitionRef.current = new SpeechRecognition();
+    recognitionRef.current.continuous = true; // Keep listening
+    recognitionRef.current.interimResults = true; // Get interim results
+
+    recognitionRef.current.onresult = (event: any) => {
+      let interimTranscript = "";
+      let finalTranscript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      // Append final transcript to the note content
+      if (finalTranscript) {
+        setNewNoteContent((prev) => prev + finalTranscript);
+      }
+    };
+
+    recognitionRef.current.onend = () => {
+      setIsListening(false);
+      toast.info("Dictation stopped.");
+    };
+
+    recognitionRef.current.onerror = (event: any) => {
+      setIsListening(false);
+      console.error("Speech recognition error:", event.error);
+      if (event.error === "not-allowed") {
+        toast.error("Microphone access denied. Please enable it in your browser settings.");
+      } else if (event.error === "no-speech") {
+        toast.warning("No speech detected. Please try again.");
+      } else {
+        toast.error(`Dictation error: ${event.error}`);
+      }
+    };
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
 
   const handleAddNote = () => {
     if (newNoteContent.trim()) {
@@ -33,6 +98,27 @@ export const NotesCard: React.FC = () => {
     toast.info("Note deleted.");
   };
 
+  const toggleDictation = () => {
+    if (!recognitionRef.current) {
+      toast.error("Dictation not supported by your browser.");
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+        toast.info("Listening for dictation...");
+      } catch (error) {
+        console.error("Error starting speech recognition:", error);
+        toast.error("Could not start dictation. Check microphone permissions.");
+        setIsListening(false);
+      }
+    }
+  };
+
   return (
     <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -42,23 +128,37 @@ export const NotesCard: React.FC = () => {
         <NotebookText className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent className="flex flex-col flex-1">
-        <div className="flex flex-col space-y-2 mb-4"> {/* Changed to flex-col and space-y */}
+        <div className="flex flex-col space-y-2 mb-4">
           <Textarea
             placeholder="Jot down a quick note..."
             value={newNoteContent}
             onChange={(e) => setNewNoteContent(e.target.value)}
             onKeyPress={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) { // Allow Shift+Enter for new line
-                e.preventDefault(); // Prevent default behavior (e.g., new line)
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
                 handleAddNote();
               }
             }}
-            rows={4} // Make it larger
+            rows={4}
             className="w-full"
           />
-          <Button onClick={handleAddNote} className="w-full"> {/* Make button full width */}
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Note
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleAddNote} className="flex-1">
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Note
+            </Button>
+            <Button
+              onClick={toggleDictation}
+              variant={isListening ? "destructive" : "outline"}
+              className="w-auto"
+            >
+              {isListening ? (
+                <StopCircle className="mr-2 h-4 w-4" />
+              ) : (
+                <Mic className="mr-2 h-4 w-4" />
+              )}
+              {isListening ? "Stop Dictation" : "Start Dictation"}
+            </Button>
+          </div>
         </div>
 
         <ScrollArea className="flex-1 pr-4">
