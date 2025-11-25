@@ -98,36 +98,9 @@ const Dashboard = () => {
         backgroundAttachment: 'fixed',
       }}
     >
-      <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-4 flex-1"> {/* Adjusted grid columns */}
-        <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Quote Pipeline
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-2xl font-bold">{newLeadsCount} New Leads</div>
-              <p className="text-xs text-muted-foreground">
-                {proposalsSentCount} Proposals Sent, {confirmedBookingsCount} Confirmed Bookings
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* TwoMonthCalendar now spans 2 columns */}
-        <div className="lg:col-span-2">
-          <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
-        </div>
-
-        {/* NEW: Overdue Items Sidebar */}
-        <div>
-          <OverdueSidebar />
-        </div>
-
-        {/* Dynamic "Action Items" Card */}
-        <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
+      <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-4 flex-1">
+        {/* Row 1: Today's Action Items and Take Notes */}
+        <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Today's Action Items
@@ -204,6 +177,36 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        <div className="lg:col-span-2">
+          <NotesCard />
+        </div>
+
+        {/* Row 2: Calendar and Overdue Sidebar */}
+        <div className="lg:col-span-3">
+          <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
+        </div>
+        <div>
+          <OverdueSidebar />
+        </div>
+
+        {/* Remaining hotlinks */}
+        <Link to="/quoting/proposals" className="block">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Quote Pipeline
+              </CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="flex flex-col justify-between h-full">
+              <div className="text-2xl font-bold">{newLeadsCount} New Leads</div>
+              <p className="text-xs text-muted-foreground">
+                {proposalsSentCount} Proposals Sent, {confirmedBookingsCount} Confirmed Bookings
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
@@ -326,11 +329,6 @@ const Dashboard = () => {
             </Dialog>
           </CardContent>
         </Card>
-
-        {/* NotesCard now spans 2 columns on large screens */}
-        <div className="lg:col-span-2">
-          <NotesCard />
-        </div>
       </div>
       {/* Footer for Date, MadeWithDyad, and Time */}
       <div className="relative z-10 flex justify-between items-center mt-8 p-4 bg-card/90 rounded-lg shadow-md">
