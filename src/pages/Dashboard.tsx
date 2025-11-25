@@ -48,14 +48,14 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 relative bg-cover bg-center min-h-screen" // Changed min-h-full to min-h-screen
+      className="space-y-6 p-6 relative bg-cover bg-center min-h-screen"
       style={{ backgroundImage: `url('https://images.unsplash.com/photo-1512621776951-a579fd9f8ed8?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')` }}
     >
       {/* Overlay for better contrast, if needed, but cards have solid backgrounds */}
-      <div className="absolute inset-0 bg-black opacity-10"></div> 
+      <div className="absolute inset-0 bg-black opacity-10"></div>
       <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]"> {/* Added /90 for transparency */}
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Quote Pipeline
@@ -72,7 +72,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/calendar" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]"> {/* Added /90 for transparency */}
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Upcoming Events
@@ -92,7 +92,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]"> {/* Added /90 for transparency */}
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Action Items
@@ -112,7 +112,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]"> {/* Added /90 for transparency */}
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Proposal
@@ -129,7 +129,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/inventory" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]"> {/* Added /90 for transparency */}
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Manage Inventory
@@ -146,7 +146,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/menus" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]"> {/* Added /90 for transparency */}
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Menu
@@ -163,7 +163,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/menu/recipes" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]"> {/* Added /90 for transparency */}
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Recipes
@@ -180,7 +180,7 @@ const Dashboard = () => {
         </Link>
 
         <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]"> {/* Added /90 for transparency */}
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Build Event
@@ -196,14 +196,14 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]"> {/* Added /90 for transparency */}
+        <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Create New Client
             </CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="flex flex-col justify-between h-full">
+          <CardContent className="flex flex-col"> {/* Removed justify-between and h-full */}
             <div className="text-lg font-bold mb-2">Add a new client to your database</div>
             <p className="text-xs text-muted-foreground mb-4">
               Quickly add contact and company information for a new client.
