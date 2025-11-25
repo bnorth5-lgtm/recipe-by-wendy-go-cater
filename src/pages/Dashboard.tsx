@@ -51,8 +51,14 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 relative bg-cover bg-center bg-fixed min-h-screen flex flex-col"
-      style={{ backgroundImage: `url('https://images.unsplash.com/photo-1504754528070-dd0352cabd4b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')` }}
+      className="space-y-6 p-6 relative min-h-screen flex flex-col"
+      style={{
+        backgroundImage: `url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+      }}
     >
       <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3 flex-1">
         <Link to="/quoting/proposals" className="block">
