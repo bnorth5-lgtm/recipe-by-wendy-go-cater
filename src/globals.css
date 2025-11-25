@@ -108,6 +108,6 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans; /* Apply Inter as default */
+    @apply bg-background text-foreground font-sans font-medium; /* Apply Inter as default, now with medium weight */
   }
 }
