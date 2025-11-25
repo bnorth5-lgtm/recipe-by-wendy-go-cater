@@ -18,7 +18,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 10 60% 70%; /* Soft Coral/Peach */
+    --primary: 10 70% 50%; /* More vibrant and slightly darker coral/peach */
     --primary-foreground: 210 40% 98%; /* White */
 
     --secondary: 20 40% 96.1%; /* Lighter, warmer secondary */
@@ -35,7 +35,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 10 60% 70%; /* Matching new primary */
+    --ring: 10 70% 50%; /* Matching new primary */
 
     --radius: 0.5rem;
 
@@ -43,7 +43,7 @@
     --sidebar-foreground: 222.2 47.4% 11.2%; /* Dark text */
     --sidebar-primary: 10 60% 70%; /* Matching new primary */
     --sidebar-primary-foreground: 210 40% 98%; /* White text for primary elements */
-    --sidebar-accent: 10 60% 95%; /* Lighter primary for hover/active */
+    --sidebar-accent: 10 60% 85%; /* Slightly darker for better presence */
     --sidebar-accent-foreground: 10 60% 70%; /* Matching new primary */
     --sidebar-border: 214.3 31.8% 91.4%; /* Light gray border */
     --sidebar-ring: 10 60% 70%;
