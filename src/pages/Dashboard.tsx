@@ -12,6 +12,8 @@ import {
   Utensils,
   CalendarPlus,
   UserPlus,
+  AlertCircle, // Added for overdue items
+  CalendarCheck, // Added for upcoming events
 } from "lucide-react"; // Explicitly importing icons
 import { useCateringStore, Client } from "@/store/cateringStore";
 import {
@@ -31,6 +33,7 @@ import { DateDisplay } from "@/components/DateDisplay"; // Import the new DateDi
 import { TimeDisplay } from "@/components/TimeDisplay"; // Import the new TimeDisplay
 import { TwoMonthCalendar } from "@/components/TwoMonthCalendar"; // Import the new calendar component
 import { OverdueSidebar } from "@/components/OverdueSidebar"; // NEW: Import OverdueSidebar
+import { format, isPast, differenceInDays, parseISO, isFuture } from "date-fns"; // Import date-fns for logic
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
@@ -51,6 +54,38 @@ const Dashboard = () => {
     toast.success("New client added successfully!");
     setIsClientFormDialogOpen(false);
   };
+
+  // --- Dynamic "Today's Tasks" Logic ---
+  const overdueThresholdDays = 7; // Define what 'overdue' means (e.g., 7 days old)
+  const upcomingEventsThresholdDays = 7; // Define 'upcoming' (e.g., next 7 days)
+
+  const overdueProposals = proposals.filter(p => {
+    const createdAtDate = parseISO(p.createdAt);
+    return (p.status === "Draft" || p.status === "Sent") &&
+           isPast(createdAtDate) &&
+           differenceInDays(new Date(), createdAtDate) >= overdueThresholdDays;
+  });
+
+  const overdueEstimates = estimates.filter(e => {
+    const createdAtDate = parseISO(e.createdAt);
+    return isPast(createdAtDate) && differenceInDays(new Date(), createdAtDate) >= overdueThresholdDays;
+  });
+
+  const upcomingEvents = bookings.filter(b => {
+    const eventDate = parseISO(b.eventDate);
+    const today = new Date();
+    return b.status === "pending" && isFuture(eventDate) && differenceInDays(eventDate, today) <= upcomingEventsThresholdDays;
+  }).sort((a, b) => parseISO(a.eventDate).getTime() - parseISO(b.eventDate).getTime()); // Sort by date
+
+  const criticalPathTasks = [
+    "Review new leads and assign follow-ups.",
+    "Check inventory levels for upcoming events.",
+    "Update recipe costs based on recent supplier invoices.",
+    "Engage with clients who received proposals last week.",
+    "Plan social media content for the next 3 days.",
+    "Review staff schedule for next week's events.",
+  ];
+  // --- End Dynamic "Today's Tasks" Logic ---
 
   return (
     <div
@@ -91,25 +126,84 @@ const Dashboard = () => {
           <OverdueSidebar />
         </div>
 
-        <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Action Items
-              </CardTitle>
-              <ClipboardList className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-2xl font-bold">Today's Tasks</div>
-              <p className="text-xs text-muted-foreground">
-                Prep chicken for Sarah & John Wedding
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Call rental company for Aug 5 event
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+        {/* Dynamic "Action Items" Card */}
+        <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Today's Action Items
+            </CardTitle>
+            <ClipboardList className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="flex flex-col justify-between h-full">
+            <div className="space-y-3">
+              {/* Overdue Proposals */}
+              {overdueProposals.length > 0 && (
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" /> Overdue Proposals:
+                  </h3>
+                  <ul className="list-disc list-inside text-xs text-destructive ml-4">
+                    {overdueProposals.map(p => (
+                      <li key={p.id}>
+                        <Link to={`/quoting/proposals/${p.id}`} className="hover:underline">
+                          {p.eventName} ({format(parseISO(p.createdAt), "MMM d")})
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Overdue Estimates */}
+              {overdueEstimates.length > 0 && (
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" /> Overdue Estimates:
+                  </h3>
+                  <ul className="list-disc list-inside text-xs text-destructive ml-4">
+                    {overdueEstimates.map(e => (
+                      <li key={e.id}>
+                        <Link to={`/quoting/estimates/${e.id}`} className="hover:underline">
+                          {e.eventName} ({format(parseISO(e.createdAt), "MMM d")})
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Upcoming Events */}
+              {upcomingEvents.length > 0 && (
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-primary flex items-center gap-1">
+                    <CalendarCheck className="h-4 w-4" /> Upcoming Events (Next {upcomingEventsThresholdDays} Days):
+                  </h3>
+                  <ul className="list-disc list-inside text-xs text-muted-foreground ml-4">
+                    {upcomingEvents.map(b => (
+                      <li key={b.id}>
+                        <Link to={`/events/calendar/${b.id}`} className="hover:underline">
+                          {b.eventName} on {format(parseISO(b.eventDate), "MMM d")}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Critical Path Tasks */}
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold text-foreground">
+                  Daily Critical Path:
+                </h3>
+                <ul className="list-disc list-inside text-xs text-muted-foreground ml-4">
+                  {criticalPathTasks.map((task, index) => (
+                    <li key={index}>{task}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
