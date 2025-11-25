@@ -72,6 +72,7 @@ export default {
           proposal: "hsl(var(--calendar-proposal))",
           event: "hsl(var(--calendar-event))",
           beo: "hsl(var(--calendar-beo))",
+          "completed-event": "hsl(var(--calendar-completed-event))", // NEW
         },
       },
       borderRadius: {

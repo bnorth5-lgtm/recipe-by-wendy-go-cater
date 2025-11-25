@@ -37,31 +37,30 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
     .filter(e => isFuture(parseISO(e.createdAt))) // Only future estimates for highlighting
     .map(e => parseISO(e.createdAt));
 
-  const proposalDates = proposals
+  const pendingProposalDates = proposals
     .filter(p => (p.status === "Draft" || p.status === "Sent") && isFuture(parseISO(p.eventDate))) // Only Draft/Sent future proposals
     .map(p => parseISO(p.eventDate));
 
-  const eventDates = bookings
+  const pendingEventDates = bookings
     .filter(b => b.status === "pending" && isFuture(parseISO(b.eventDate))) // Only pending future events
     .map(b => parseISO(b.eventDate));
   
-  // BEOs are tied to bookings, so highlight dates with active bookings
-  const beoDates = bookings
-    .filter(b => (b.status === "pending" || b.status === "completed") && isFuture(parseISO(b.eventDate)))
+  const completedEventDates = bookings
+    .filter(b => b.status === "completed" && isFuture(parseISO(b.eventDate))) // Only completed future events
     .map(b => parseISO(b.eventDate));
 
   const modifiers = {
     quotes: quoteDates,
-    proposals: proposalDates,
-    events: eventDates,
-    beos: beoDates, // NEW: BEO dates
+    proposals: pendingProposalDates, // Renamed for clarity
+    pendingEvents: pendingEventDates, // NEW
+    completedEvents: completedEventDates, // NEW
   };
 
   const modifiersClassNames = {
     quotes: "bg-calendar-quote text-primary-foreground rounded-full",
     proposals: "bg-calendar-proposal text-primary-foreground rounded-full",
-    events: "bg-calendar-event text-primary-foreground rounded-full",
-    beos: "bg-calendar-beo text-primary-foreground rounded-full", // NEW: BEO color
+    pendingEvents: "bg-calendar-event text-primary-foreground rounded-full", // NEW
+    completedEvents: "bg-calendar-completed-event text-primary-foreground rounded-full", // NEW
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -74,7 +73,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
   const getItemsForSelectedDate = () => {
     if (!selectedDate) return [];
 
-    const items: { type: "quote" | "proposal" | "event" | "beo"; item: Estimate | Proposal | EventBooking }[] = [];
+    const items: { type: "quote" | "proposal" | "pendingEvent" | "completedEvent" | "beo"; item: Estimate | Proposal | EventBooking }[] = [];
 
     estimates.forEach(e => {
       if (isSameDay(parseISO(e.createdAt), selectedDate)) {
@@ -91,7 +90,11 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
 
     bookings.forEach(b => {
       if (isSameDay(parseISO(b.eventDate), selectedDate)) {
-        items.push({ type: "event", item: b });
+        if (b.status === "pending") {
+          items.push({ type: "pendingEvent", item: b });
+        } else if (b.status === "completed") {
+          items.push({ type: "completedEvent", item: b });
+        }
         // Add a separate entry for BEO if the event is not cancelled
         if (b.status !== "cancelled") {
           items.push({ type: "beo", item: b });
@@ -101,7 +104,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
 
     // Sort items by type for consistent display
     return items.sort((a, b) => {
-      const order = { quote: 1, proposal: 2, event: 3, beo: 4 };
+      const order = { quote: 1, proposal: 2, pendingEvent: 3, completedEvent: 4, beo: 5 };
       return order[a.type] - order[b.type];
     });
   };
@@ -169,15 +172,23 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
                     Icon = FileText;
                     badgeVariant = proposalItem.status === "Accepted" ? "default" : proposalItem.status === "Sent" ? "secondary" : "outline";
                     badgeText = "Proposal";
-                  } else if (type === "event") {
+                  } else if (type === "pendingEvent") {
                     const eventItem = item as EventBooking;
                     title = `Event: ${eventItem.eventName}`;
                     description = `Client: ${eventItem.clientName}, Guests: ${eventItem.numberOfGuests}, Status: ${eventItem.status}`;
                     link = `/events/calendar/${eventItem.id}`; // Direct link to edit dialog
                     Icon = CalendarCheck;
-                    badgeVariant = eventItem.status === "pending" ? "destructive" : eventItem.status === "completed" ? "default" : "secondary";
-                    badgeText = "Event";
-                  } else if (type === "beo") { // NEW: BEO type
+                    badgeVariant = "destructive"; // Pending events are destructive (red)
+                    badgeText = "Pending Event";
+                  } else if (type === "completedEvent") { // NEW
+                    const eventItem = item as EventBooking;
+                    title = `Event: ${eventItem.eventName}`;
+                    description = `Client: ${eventItem.clientName}, Guests: ${eventItem.numberOfGuests}, Status: ${eventItem.status}`;
+                    link = `/events/calendar/${eventItem.id}`; // Direct link to edit dialog
+                    Icon = CalendarCheck;
+                    badgeVariant = "default"; // Completed events are default (green)
+                    badgeText = "Completed Event";
+                  } else if (type === "beo") { // BEO type
                     const beoItem = item as EventBooking;
                     title = `BEO for: ${beoItem.eventName}`;
                     description = `Client: ${beoItem.clientName}, Status: ${beoItem.status}`;
