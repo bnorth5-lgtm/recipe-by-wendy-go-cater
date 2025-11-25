@@ -28,7 +28,8 @@ import { ClientForm, ClientFormData } from "@/components/ClientForm";
 import { useState } from "react";
 import { toast } from "sonner";
 import { NotesCard } from "@/components/NotesCard";
-import { DateTimeDisplay } from "@/components/DateTimeDisplay"; // Import the new DateTimeDisplay
+import { DateDisplay } from "@/components/DateDisplay"; // Import the new DateDisplay
+import { TimeDisplay } from "@/components/TimeDisplay"; // Import the new TimeDisplay
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
@@ -50,12 +51,12 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 relative bg-cover bg-center min-h-screen flex flex-col" // Added flex-col
+      className="space-y-6 p-6 relative bg-cover bg-center min-h-screen flex flex-col"
       style={{ backgroundImage: `url('https://images.unsplash.com/photo-1512621776951-a579fd9f8ed8?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')` }}
     >
       {/* Overlay for better contrast, if needed, but cards have solid backgrounds */}
       <div className="absolute inset-0 bg-black opacity-10"></div>
-      <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3 flex-1"> {/* Added flex-1 */}
+      <div className="relative z-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3 flex-1">
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -237,10 +238,11 @@ const Dashboard = () => {
 
         <NotesCard />
       </div>
-      {/* Footer for MadeWithDyad and DateTimeDisplay */}
+      {/* Footer for Date, MadeWithDyad, and Time */}
       <div className="relative z-10 flex justify-between items-center mt-8 p-4 bg-card/90 rounded-lg shadow-md">
-        <DateTimeDisplay />
+        <DateDisplay />
         <MadeWithDyad />
+        <TimeDisplay />
       </div>
     </div>
   );
