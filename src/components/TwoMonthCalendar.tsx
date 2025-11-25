@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Estimate, Proposal, EventBooking } from "@/store/cateringStore";
-import { FileText, DollarSign, CalendarCheck, Printer } from "lucide-react";
+import { FileText, DollarSign, CalendarCheck, Printer } from "lucide-react"; // Added Printer icon for BEO
 
 interface TwoMonthCalendarProps {
   proposals: Proposal[];
@@ -34,34 +34,33 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
 
   // Prepare modifiers for dates with different types of items
   const quoteDates = estimates
-    .filter(e => isFuture(parseISO(e.createdAt)))
+    .filter(e => isFuture(parseISO(e.createdAt))) // Only future estimates for highlighting
     .map(e => parseISO(e.createdAt));
 
   const pendingProposalDates = proposals
-    .filter(p => (p.status === "Draft" || p.status === "Sent") && isFuture(parseISO(p.eventDate)))
+    .filter(p => (p.status === "Draft" || p.status === "Sent") && isFuture(parseISO(p.eventDate))) // Only Draft/Sent future proposals
     .map(p => parseISO(p.eventDate));
-  
-  const completedEventDates = bookings
-    .filter(b => b.status === "completed" && isFuture(parseISO(b.eventDate)))
-    .map(b => parseISO(b.eventDate));
 
   const pendingEventDates = bookings
-    .filter(b => b.status === "pending" && isFuture(parseISO(b.eventDate)))
+    .filter(b => b.status === "pending" && isFuture(parseISO(b.eventDate))) // Only pending future events
     .map(b => parseISO(b.eventDate));
   
+  const completedEventDates = bookings
+    .filter(b => b.status === "completed" && isFuture(parseISO(b.eventDate))) // Only completed future events
+    .map(b => parseISO(b.eventDate));
 
   const modifiers = {
     quotes: quoteDates,
-    proposals: pendingProposalDates,
-    pendingEvents: pendingEventDates,
-    completedEvents: completedEventDates,
+    proposals: pendingProposalDates, // Renamed for clarity
+    pendingEvents: pendingEventDates, // NEW
+    completedEvents: completedEventDates, // NEW
   };
 
   const modifiersClassNames = {
     quotes: "bg-calendar-quote text-primary-foreground rounded-full",
     proposals: "bg-calendar-proposal text-primary-foreground rounded-full",
-    pendingEvents: "bg-calendar-event text-primary-foreground rounded-full",
-    completedEvents: "bg-calendar-completed-event text-primary-foreground rounded-full",
+    pendingEvents: "bg-calendar-event text-primary-foreground rounded-full", // NEW
+    completedEvents: "bg-calendar-completed-event text-primary-foreground rounded-full", // NEW
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -83,6 +82,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
     });
 
     proposals.forEach(p => {
+      // Only show proposals if they are Draft or Sent, and for their eventDate
       if ((p.status === "Draft" || p.status === "Sent") && isSameDay(parseISO(p.eventDate), selectedDate)) {
         items.push({ type: "proposal", item: p });
       }
@@ -95,12 +95,14 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
         } else if (b.status === "completed") {
           items.push({ type: "completedEvent", item: b });
         }
+        // Add a separate entry for BEO if the event is not cancelled
         if (b.status !== "cancelled") {
           items.push({ type: "beo", item: b });
         }
       }
     });
 
+    // Sort items by type for consistent display
     return items.sort((a, b) => {
       const order = { quote: 1, proposal: 2, pendingEvent: 3, completedEvent: 4, beo: 5 };
       return order[a.type] - order[b.type];
@@ -116,6 +118,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
         <CardDescription className="text-muted-foreground">
           View quotes, proposals, and events. Click a date for details.
         </CardDescription>
+        {/* Removed the Badge elements as requested */}
       </CardHeader>
       <CardContent className="flex-1 flex justify-center items-center p-0">
         <ShadcnCalendar
@@ -157,7 +160,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
                     const quoteItem = item as Estimate;
                     title = `Estimate: ${quoteItem.eventName}`;
                     description = `Guests: ${quoteItem.numberOfGuests}, Total: $${quoteItem.totalAmount.toFixed(2)}`;
-                    link = `/quoting/estimates/${quoteItem.id}`;
+                    link = `/quoting/estimates/${quoteItem.id}`; // Direct link to edit form
                     Icon = DollarSign;
                     badgeVariant = "outline";
                     badgeText = "Quote";
@@ -165,7 +168,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
                     const proposalItem = item as Proposal;
                     title = `Proposal: ${proposalItem.eventName}`;
                     description = `Client: ${proposalItem.clientId}, Status: ${proposalItem.status}, Total: $${proposalItem.totalAmount.toFixed(2)}`;
-                    link = `/quoting/proposals/${proposalItem.id}`;
+                    link = `/quoting/proposals/${proposalItem.id}`; // Direct link to view dialog
                     Icon = FileText;
                     badgeVariant = proposalItem.status === "Accepted" ? "default" : proposalItem.status === "Sent" ? "secondary" : "outline";
                     badgeText = "Proposal";
@@ -173,25 +176,25 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
                     const eventItem = item as EventBooking;
                     title = `Event: ${eventItem.eventName}`;
                     description = `Client: ${eventItem.clientName}, Guests: ${eventItem.numberOfGuests}, Status: ${eventItem.status}`;
-                    link = `/events/calendar/${eventItem.id}`;
+                    link = `/events/calendar/${eventItem.id}`; // Direct link to edit dialog
                     Icon = CalendarCheck;
-                    badgeVariant = "destructive";
+                    badgeVariant = "destructive"; // Pending events are destructive (red)
                     badgeText = "Pending Event";
-                  } else if (type === "completedEvent") {
+                  } else if (type === "completedEvent") { // NEW
                     const eventItem = item as EventBooking;
                     title = `Event: ${eventItem.eventName}`;
                     description = `Client: ${eventItem.clientName}, Guests: ${eventItem.numberOfGuests}, Status: ${eventItem.status}`;
-                    link = `/events/calendar/${eventItem.id}`;
+                    link = `/events/calendar/${eventItem.id}`; // Direct link to edit dialog
                     Icon = CalendarCheck;
-                    badgeVariant = "default";
+                    badgeVariant = "default"; // Completed events are default (green)
                     badgeText = "Completed Event";
-                  } else if (type === "beo") {
+                  } else if (type === "beo") { // BEO type
                     const beoItem = item as EventBooking;
                     title = `BEO for: ${beoItem.eventName}`;
                     description = `Client: ${beoItem.clientName}, Status: ${beoItem.status}`;
-                    link = `/events/beos/${beoItem.id}`;
-                    Icon = Printer;
-                    badgeVariant = "default";
+                    link = `/events/beos/${beoItem.id}`; // Direct link to BEO view dialog
+                    Icon = Printer; // Use Printer icon for BEO
+                    badgeVariant = "default"; // Use default for BEOs, or a specific BEO color
                     badgeText = "BEO";
                   }
 

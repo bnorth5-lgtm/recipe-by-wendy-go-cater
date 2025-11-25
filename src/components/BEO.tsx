@@ -54,7 +54,7 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
         ) : (
           <ul className="list-disc list-inside space-y-1"> {/* Reduced space-y-2 to space-y-1 */}
             {booking.selectedRecipeIds.map((recipeId) => {
-              const recipe = recipes.find(r => r.id === recipeId);
+              const recipe = getRecipeDetails(recipeId);
               return recipe ? (
                 <li key={recipe.id} className="font-medium text-gray-800">
                   {recipe.name} ({recipe.category})

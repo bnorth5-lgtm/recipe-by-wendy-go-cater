@@ -60,7 +60,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({ options, selectedValues, onCh
   };
 
   return (
-    <Select onValueChange={handleSelect} value="">
+    <Select onValueChange={handleSelect} value=""> {/* Value is empty to allow re-selection */}
       <SelectTrigger className="w-full">
         <SelectValue placeholder={selectedValues.length > 0 ? `${selectedValues.length} items selected` : placeholder} />
       </SelectTrigger>
@@ -105,7 +105,7 @@ const menuFormSchema = z.object({
   (data.sideDishIds && data.sideDishIds.length > 0),
   {
     message: "At least one item must be selected for the menu across all categories.",
-    path: ["appetizerIds"],
+    path: ["appetizerIds"], // Attach error to one of the fields
   }
 );
 
@@ -134,9 +134,9 @@ const Menus = () => {
 
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [importJson, setImportJson] = useState("");
+  const [importJson, setImportJson] = useState(""); // State for the JSON input
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
-  const [selectedMenuId, setSelectedMenuId] = useState<string | undefined>(undefined);
+  const [selectedMenuId, setSelectedMenuId] = useState<string | undefined>(undefined); // New state for dropdown selection
 
   const form = useForm<MenuFormData>({
     resolver: zodResolver(menuFormSchema),
@@ -153,8 +153,10 @@ const Menus = () => {
     },
   });
 
+  // Watch the category field to adjust UI dynamically
   const watchedCategory = form.watch("category");
 
+  // Filter recipes by category for multi-select options
   const getRecipeOptions = (category: Recipe["category"]) => 
     recipes.filter(r => r.category === category).map(recipe => ({
       label: recipe.name,
@@ -162,6 +164,7 @@ const Menus = () => {
     }));
 
   const onSubmit = (data: MenuFormData) => {
+    // Ensure arrays are not undefined before passing to store
     const menuData = {
       ...data,
       appetizerIds: data.appetizerIds || [],
@@ -186,7 +189,7 @@ const Menus = () => {
 
   const handleEdit = (menu: Menu) => {
     setEditingMenu(menu);
-    form.reset(menu);
+    form.reset(menu); // Populate form with menu data
     setIsFormDialogOpen(true);
   };
 
@@ -194,7 +197,7 @@ const Menus = () => {
     deleteMenu(id);
     toast.info("Menu deleted.");
     if (selectedMenuId === id) {
-      setSelectedMenuId(undefined);
+      setSelectedMenuId(undefined); // Clear selected menu if deleted
     }
   };
 
@@ -214,8 +217,8 @@ const Menus = () => {
       });
       toast.success("Menu details pre-filled from import!");
       setIsImportDialogOpen(false);
-      setImportJson("");
-      setIsFormDialogOpen(true);
+      setImportJson(""); // Clear the textarea
+      setIsFormDialogOpen(true); // Open the form dialog after pre-filling
     } catch (error) {
       toast.error("Failed to parse JSON. Please ensure it's valid JSON format.");
       console.error("JSON parsing error:", error);
@@ -262,6 +265,7 @@ const Menus = () => {
   const isSelectedMenuPlated = selectedMenu?.category === "Plated";
   const isSelectedMenuBuffet = selectedMenu?.category === "Buffet";
 
+  // Function to get all unique missing ingredients for a given menu
   const getMissingIngredientsForMenu = (menu: Menu) => {
     const allRecipeIds = [
       ...(menu.appetizerIds || []),
@@ -314,7 +318,7 @@ const Menus = () => {
             <div className="flex flex-col sm:flex-row gap-3 mb-3">
               <Dialog open={isFormDialogOpen} onOpenChange={(open) => {
                 setIsFormDialogOpen(open);
-                if (!open) {
+                if (!open) { // If dialog is closing
                   form.reset();
                   setEditingMenu(null);
                 }
@@ -385,6 +389,7 @@ const Menus = () => {
                         )}
                       />
 
+                      {/* Categorized Recipe Selection - Conditional based on Menu Type */}
                       <h3 className="text-lg font-medium mt-3">
                         Select Recipes by Category {watchedCategory === "Plated" && "(Choose 1-2 per category)"}
                         {watchedCategory === "Buffet" && "(Select multiple offerings per category)"}
@@ -555,6 +560,7 @@ const Menus = () => {
           </CardContent>
         </Card>
 
+        {/* Display Existing Menus with Dropdown and Detail View */}
         <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">View Existing Menus</CardTitle>
@@ -619,6 +625,7 @@ const Menus = () => {
 
                       <Separator className="my-4" />
 
+                      {/* Missing Ingredients Section */}
                       <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
                         <AlertCircle className="h-5 w-5 text-destructive" /> Missing Ingredients for this Menu:
                       </h4>

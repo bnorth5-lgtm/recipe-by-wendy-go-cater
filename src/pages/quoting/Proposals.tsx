@@ -48,14 +48,14 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Edit, Trash2, CalendarIcon, Eye, Send, CheckCircle, XCircle, Archive, Utensils, Wine, Package, Printer } from "lucide-react"; // Added Printer icon
+import { PlusCircle, Edit, Trash2, CalendarIcon, Eye, Send, CheckCircle, XCircle, Archive, Utensils, Wine, Package, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, Client, Recipe, InventoryItem, Proposal, ProposalItem } from "@/store/cateringStore";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { ProposalDocument } from "@/components/ProposalDocument"; // Import the new component
-import { useParams, Link } from "react-router-dom"; // Import useParams and Link
+import { ProposalDocument } from "@/components/ProposalDocument";
+import { useParams, Link } from "react-router-dom";
 
 // Define the schema for a proposal item within the form
 const proposalItemSchema = z.object({
@@ -102,29 +102,6 @@ const Proposals = () => {
   const [editingProposal, setEditingProposal] = useState<Proposal | null>(null);
   const [viewingProposal, setViewingProposal] = useState<Proposal | null>(null);
 
-  const form = useForm<ProposalFormData>({
-    resolver: zodResolver(proposalFormSchema),
-    defaultValues: {
-      clientId: "",
-      eventName: "",
-      eventDate: new Date(),
-      numberOfGuests: 1,
-      items: [],
-      laborCost: 0,
-      equipmentCost: 0,
-      otherCosts: 0,
-      taxRate: 0.08,
-      termsAndConditions: "",
-      notes: "",
-    },
-  });
-
-  const { fields: itemFields, append: appendItem, remove: removeItem, update: updateItem } = useFieldArray({
-    control: form.control,
-    name: "items",
-  });
-
-  // Effect to open view dialog if proposalId is in URL
   useEffect(() => {
     if (proposalId) {
       const proposalToView = proposals.find(p => p.id === proposalId);
@@ -165,10 +142,10 @@ const Proposals = () => {
     };
 
     if (editingProposal) {
-      updateProposal({ ...proposalData, id: editingProposal.id } as Proposal); // Explicitly cast data
+      updateProposal({ ...proposalData, id: editingProposal.id } as Proposal);
       toast.success("Proposal updated successfully!");
     } else {
-      addProposal(proposalData as Omit<Proposal, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>); // Explicitly cast data
+      addProposal(proposalData as Omit<Proposal, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>);
       toast.success("Proposal created successfully!");
     }
     form.reset();
@@ -203,7 +180,7 @@ const Proposals = () => {
     }
   };
 
-  const handleAddItem = (type: "recipe" | "inventoryItem", selectedId: string) => { // Changed type
+  const handleAddItem = (type: "recipe" | "inventoryItem", selectedId: string) => {
     if (type === "recipe") {
       const recipe = recipes.find(r => r.id === selectedId);
       if (recipe) {
@@ -212,12 +189,12 @@ const Proposals = () => {
           type: "recipe",
           name: recipe.name,
           quantity: 1,
-          unitCost: recipe.baseCost, // Use baseCost from recipe
+          unitCost: recipe.baseCost,
           totalCost: recipe.baseCost,
         });
         toast.success(`Added recipe: ${recipe.name}`);
       }
-    } else if (type === "inventoryItem") { // Handle generic inventory items
+    } else if (type === "inventoryItem") {
       const invItem = inventory.find(i => i.id === selectedId);
       if (invItem) {
         appendItem({
@@ -225,7 +202,7 @@ const Proposals = () => {
           type: "inventoryItem",
           name: invItem.name,
           quantity: 1,
-          unitCost: invItem.costPerUnit, // Use costPerUnit from inventory item
+          unitCost: invItem.costPerUnit,
           totalCost: invItem.costPerUnit,
         });
         toast.success(`Added inventory item: ${invItem.name}`);
@@ -244,12 +221,12 @@ const Proposals = () => {
     if (type === "inventoryItem") {
       switch (category) {
         case "Beverage": return <Wine className="h-4 w-4 text-muted-foreground" />;
-        case "Furniture": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for furniture
-        case "Tableware": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for tableware
-        case "Silverware": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for silverware
-        case "Glassware": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for glassware
-        case "Linens": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for linens
-        case "Serving Equipment": return <Package className="h-4 w-4 text-muted-foreground" />; // Using Package for serving equipment
+        case "Furniture": return <Package className="h-4 w-4 text-muted-foreground" />;
+        case "Tableware": return <Package className="h-4 w-4 text-muted-foreground" />;
+        case "Silverware": return <Package className="h-4 w-4 text-muted-foreground" />;
+        case "Glassware": return <Package className="h-4 w-4 text-muted-foreground" />;
+        case "Linens": return <Package className="h-4 w-4 text-muted-foreground" />;
+        case "Serving Equipment": return <Package className="h-4 w-4 text-muted-foreground" />;
         default: return <Package className="h-4 w-4 text-muted-foreground" />;
       }
     }
@@ -257,17 +234,17 @@ const Proposals = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2"> {/* Reduced p-4 to p-2 */}
-      <div className="text-center mb-4"> {/* Reduced mb-6 to mb-4 */}
-        <h1 className="text-4xl font-bold mb-2">Quoting & Proposal Generator</h1> {/* Reduced mb-4 to mb-2 */}
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2">
+      <div className="text-center mb-4">
+        <h1 className="text-4xl font-bold mb-2">Quoting & Proposal Generator</h1>
         <p className="text-xl text-muted-foreground">
           Manage client details, select menus, estimate labor and equipment, and generate proposals here.
         </p>
       </div>
 
-      <div className="w-full max-w-5xl space-y-4"> {/* Reduced space-y-6 to space-y-4 */}
+      <div className="w-full max-w-5xl space-y-4">
         {/* Add/Edit Proposal Form */}
-        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
               {editingProposal ? "Edit Proposal" : "Create New Proposal"}
@@ -279,7 +256,7 @@ const Proposals = () => {
           <CardContent>
             <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full mb-3"> {/* Reduced mb-4 to mb-3 */}
+                <Button className="w-full mb-3">
                   <PlusCircle className="mr-2 h-4 w-4" /> Create New Proposal
                 </Button>
               </DialogTrigger>
@@ -291,9 +268,9 @@ const Proposals = () => {
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3 py-3"> {/* Reduced gap-4 to gap-3, py-4 to py-3 */}
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3 py-3">
                     {/* Client & Event Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3"> {/* Reduced gap-4 to gap-3 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <FormField
                         control={form.control}
                         name="clientId"
@@ -333,7 +310,7 @@ const Proposals = () => {
                         )}
                       />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3"> {/* Reduced gap-4 to gap-3 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <FormField
                         control={form.control}
                         name="eventDate"
@@ -390,8 +367,8 @@ const Proposals = () => {
 
                     {/* Items (Recipes & Inventory Items) */}
                     <div>
-                      <h3 className="text-lg font-medium mb-2">Items Included</h3> {/* Reduced mb-3 to mb-2 */}
-                      <div className="flex gap-2 mb-3"> {/* Reduced mb-4 to mb-3 */}
+                      <h3 className="text-lg font-medium mb-2">Items Included</h3>
+                      <div className="flex gap-2 mb-3">
                         <Select onValueChange={(value) => handleAddItem("recipe", value)}>
                           <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Add Recipe" />
@@ -423,7 +400,7 @@ const Proposals = () => {
                       {itemFields.length === 0 ? (
                         <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add recipes or inventory items.</p>
                       ) : (
-                        <div className="space-y-2"> {/* Reduced space-y-3 to space-y-2 */}
+                        <div className="space-y-2">
                           {itemFields.map((item, index) => {
                             const inventoryItemDetails = item.type === "inventoryItem" ? inventory.find(inv => inv.id === item.id) : undefined;
                             return (
@@ -455,7 +432,7 @@ const Proposals = () => {
                     </div>
 
                     {/* Additional Costs */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3"> {/* Reduced gap-4 to gap-3 */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <FormField
                         control={form.control}
                         name="laborCost"
@@ -513,7 +490,7 @@ const Proposals = () => {
                     />
 
                     {/* Totals Display */}
-                    <div className="text-right space-y-1 mt-3"> {/* Reduced mt-4 to mt-3 */}
+                    <div className="text-right space-y-1 mt-3">
                       <p className="text-lg">Subtotal: <span className="font-bold">${subtotal.toFixed(2)}</span></p>
                       <p className="text-xl font-extrabold text-primary">Total: <span className="font-bold">${totalAmount.toFixed(2)}</span></p>
                     </div>
@@ -557,7 +534,7 @@ const Proposals = () => {
         </Card>
 
         {/* Display Existing Proposals */}
-        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Existing Proposals</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all your generated proposals.</CardDescription>
@@ -570,31 +547,31 @@ const Proposals = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="px-3 py-2">Event Name</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Client</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Date</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Guests</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Total</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2 text-center">Status</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2 text-right">Actions</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2">Event Name</TableHead>
+                      <TableHead className="px-3 py-2">Client</TableHead>
+                      <TableHead className="px-3 py-2">Date</TableHead>
+                      <TableHead className="px-3 py-2">Guests</TableHead>
+                      <TableHead className="px-3 py-2">Total</TableHead>
+                      <TableHead className="px-3 py-2 text-center">Status</TableHead>
+                      <TableHead className="px-3 py-2 text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {proposals.map((proposal) => {
                       const client = clients.find(c => c.id === proposal.clientId);
-                      const associatedBooking = bookings.find(b => b.proposalId === proposal.id); // Find associated booking
+                      const associatedBooking = bookings.find(b => b.proposalId === proposal.id);
                       return (
-                        <TableRow key={proposal.id} className="border-l-4 border-primary"> {/* Blue border for proposals */}
-                          <TableCell className="font-medium px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableRow key={proposal.id} className="border-l-4 border-primary">
+                          <TableCell className="font-medium px-3 py-2">
                             <Link to={`/quoting/proposals/${proposal.id}`} className="hover:underline text-primary">
                               {proposal.eventName}
                             </Link>
                           </TableCell>
-                          <TableCell className="px-3 py-2">{client ? client.name : "Unknown Client"}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                          <TableCell className="px-3 py-2">{format(new Date(proposal.eventDate), "PPP")}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                          <TableCell className="px-3 py-2">{proposal.numberOfGuests}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                          <TableCell className="px-3 py-2">${proposal.totalAmount.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                          <TableCell className="text-center px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                          <TableCell className="px-3 py-2">{client ? client.name : "Unknown Client"}</TableCell>
+                          <TableCell className="px-3 py-2">{format(new Date(proposal.eventDate), "PPP")}</TableCell>
+                          <TableCell className="px-3 py-2">{proposal.numberOfGuests}</TableCell>
+                          <TableCell className="px-3 py-2">${proposal.totalAmount.toFixed(2)}</TableCell>
+                          <TableCell className="text-center px-3 py-2">
                             <Badge variant={
                               proposal.status === "Accepted" ? "default" :
                               proposal.status === "Rejected" || proposal.status === "Archived" ? "destructive" :
@@ -603,8 +580,8 @@ const Proposals = () => {
                               {proposal.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right flex justify-end space-x-2 px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                            {proposal.status === "Accepted" && associatedBooking && ( // NEW: View BEO button
+                          <TableCell className="text-right flex justify-end space-x-2 px-3 py-2">
+                            {proposal.status === "Accepted" && associatedBooking && (
                               <Link to={`/events/beos/${associatedBooking.id}`}>
                                 <Button variant="outline" size="icon" className="mr-2" title="View BEO">
                                   <Printer className="h-4 w-4" />
@@ -648,7 +625,7 @@ const Proposals = () => {
       {/* Proposal View Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="sm:max-w-[900px] max-h-[95vh] overflow-y-auto p-0">
-          <DialogHeader className="p-4 pb-2"> {/* Reduced p-6 to p-4, pb-0 to pb-2 */}
+          <DialogHeader className="p-4 pb-2">
             <DialogTitle>View Proposal</DialogTitle>
             <DialogDescription>Review the full details of this catering proposal.</DialogDescription>
           </DialogHeader>
@@ -658,9 +635,9 @@ const Proposals = () => {
               client={clients.find(c => c.id === viewingProposal.clientId)!}
             />
           ) : (
-            <div className="p-4 text-center text-muted-foreground">Loading proposal details...</div> {/* Reduced p-6 to p-4 */}
+            <div className="p-4 text-center text-muted-foreground">Loading proposal details...</div>
           )}
-          <DialogFooter className="p-4 pt-2"> {/* Reduced p-6 to p-4, pt-0 to pt-2 */}
+          <DialogFooter className="p-4 pt-2">
             <Button onClick={() => window.print()} className="mr-2">Print Proposal</Button>
             <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>Close</Button>
           </DialogFooter>

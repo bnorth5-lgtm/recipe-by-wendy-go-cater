@@ -13,7 +13,7 @@ export const OverdueSidebar: React.FC = () => {
   const estimates = useCateringStore((state) => state.estimates);
   const proposals = useCateringStore((state) => state.proposals);
 
-  const overdueThresholdDays = 7;
+  const overdueThresholdDays = 7; // Define what 'overdue' means (e.g., 7 days old)
 
   const overdueEstimates = estimates.filter(e => {
     const createdAtDate = parseISO(e.createdAt);
@@ -31,7 +31,7 @@ export const OverdueSidebar: React.FC = () => {
 
   return (
     <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col p-3">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-destructive" /> Overdue Items
         </CardTitle>

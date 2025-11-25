@@ -62,6 +62,7 @@ const Calendar = () => {
     }
   }, [bookingId, bookings]);
 
+  // Prepare modifiers for dates with events
   const bookedDates = bookings.map(booking => parseISO(booking.eventDate));
   const modifiers = {
     hasEvent: bookedDates,
@@ -70,6 +71,7 @@ const Calendar = () => {
     hasEvent: "bg-destructive text-destructive-foreground rounded-full",
   };
 
+  // Filter events for the selected date
   const eventsOnSelectedDate = selectedDate
     ? bookings.filter(booking => isSameDay(parseISO(booking.eventDate), selectedDate))
     : [];
@@ -107,6 +109,7 @@ const Calendar = () => {
     }
   };
 
+  // NEW: Handle completing an event directly from the calendar
   const handleCompleteEvent = (event: EventBooking) => {
     const success = completeBooking(event.id);
     if (success) {
@@ -126,6 +129,7 @@ const Calendar = () => {
       </div>
 
       <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Calendar View */}
         <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Event Overview</CardTitle>
@@ -145,6 +149,7 @@ const Calendar = () => {
           </CardContent>
         </Card>
 
+        {/* Events List for Selected Date */}
         <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
@@ -241,6 +246,7 @@ const Calendar = () => {
       </div>
       <MadeWithDyad />
 
+      {/* Edit Booking Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>

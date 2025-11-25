@@ -40,7 +40,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, Recipe, RecipeIngredient, RecipeInstruction } from "@/store/cateringStore";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge"; // Import Badge for visual cues
 
 // Define the main schema for a recipe
 const recipeFormSchema = z.object({
@@ -85,7 +85,7 @@ const Recipes = () => {
   const inventory = useCateringStore((state) => state.inventory);
 
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [importJson, setImportJson] = useState("");
+  const [importJson, setImportJson] = useState(""); // State for the JSON input
 
   const form = useForm<RecipeFormData>({
     resolver: zodResolver(recipeFormSchema),
@@ -167,7 +167,7 @@ const Recipes = () => {
       });
       toast.success("Recipe details pre-filled from import!");
       setIsImportDialogOpen(false);
-      setImportJson("");
+      setImportJson(""); // Clear the textarea
     } catch (error) {
       toast.error("Failed to parse JSON. Please ensure it's valid JSON format.");
       console.error("JSON parsing error:", error);
@@ -464,6 +464,7 @@ const Recipes = () => {
           </CardContent>
         </Card>
 
+        {/* Display Existing Recipes */}
         <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Existing Recipes</CardTitle>

@@ -119,7 +119,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ initialData, onSubmit,
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3"> {/* Reduced space-y-6 to space-y-3 */}
         <FormField
           control={form.control}
           name="eventName"
@@ -146,7 +146,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ initialData, onSubmit,
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3"> {/* Reduced gap-4 to gap-3 */}
           <FormField
             control={form.control}
             name="eventDate"

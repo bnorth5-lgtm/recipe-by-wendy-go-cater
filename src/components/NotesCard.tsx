@@ -5,17 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PlusCircle, Trash2, NotebookText, Mic, StopCircle } from "lucide-react";
+import { PlusCircle, Trash2, NotebookText, Mic, StopCircle } from "lucide-react"; // Removed Edit icon
 import { useCateringStore, Note } from "@/store/cateringStore";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"; // Import Link
 
 // Extend Window interface for WebkitSpeechRecognition and SpeechRecognition
 declare global {
   interface Window {
     webkitSpeechRecognition: any;
-    SpeechRecognition: any;
+    SpeechRecognition: any; // Added this line
   }
 }
 
@@ -26,9 +26,10 @@ export const NotesCard: React.FC = () => {
 
   const [newNoteContent, setNewNoteContent] = useState("");
   const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<any>(null); // Use useRef to persist the recognition object
 
   useEffect(() => {
+    // Check for browser compatibility
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       console.warn("Web Speech API not supported in this browser.");
@@ -37,8 +38,8 @@ export const NotesCard: React.FC = () => {
     }
 
     recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.continuous = true;
-    recognitionRef.current.interimResults = true;
+    recognitionRef.current.continuous = true; // Keep listening
+    recognitionRef.current.interimResults = true; // Get interim results
 
     recognitionRef.current.onresult = (event: any) => {
       let interimTranscript = "";
@@ -53,6 +54,7 @@ export const NotesCard: React.FC = () => {
         }
       }
 
+      // Append final transcript to the note content
       if (finalTranscript) {
         setNewNoteContent((prev) => prev + finalTranscript);
       }
@@ -120,7 +122,7 @@ export const NotesCard: React.FC = () => {
 
   return (
     <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col p-3">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
         <CardTitle className="text-sm font-medium">
           Take Notes
         </CardTitle>
