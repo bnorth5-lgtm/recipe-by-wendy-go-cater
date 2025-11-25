@@ -87,14 +87,14 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="flex flex-col h-screen w-64 bg-gray-100 text-sidebar-foreground"> {/* Changed bg-sidebar to bg-gray-100 for direct application */}
+    <aside className="flex flex-col h-screen w-64 bg-red-500 text-sidebar-foreground"> {/* Temporarily changed to bg-red-500 for debugging */}
       <div className="relative h-32 w-full overflow-hidden border-b border-primary-foreground/20 flex flex-col items-center justify-center px-4 bg-primary text-white"> {/* Header is blue */}
         <ChefHat className="h-8 w-8 text-white mb-2" />
         <h1 className="text-xl font-serif font-semibold text-white">
           Catering by Cronkhite
         </h1>
       </div>
-      <ScrollArea className="flex-1 py-4 bg-gray-100"> {/* Also changed ScrollArea to bg-gray-100 */}
+      <ScrollArea className="flex-1 py-4 bg-red-500"> {/* Also changed ScrollArea to bg-red-500 */}
         <nav className="grid items-start px-4 text-sm font-medium">
           {navItems.map((item) => {
             const isActiveParent = location.pathname.startsWith(item.href);
