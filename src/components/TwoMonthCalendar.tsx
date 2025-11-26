@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Estimate, Proposal, EventBooking } from "@/store/cateringStore";
-import { FileText, DollarSign, CalendarCheck, Printer } from "lucide-react"; // Added Printer icon for BEO
+import { FileText, DollarSign, CalendarCheck, Printer } from "lucide-react";
 
 interface TwoMonthCalendarProps {
   proposals: Proposal[];
@@ -120,7 +120,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
         </CardDescription>
         {/* Removed the Badge elements as requested */}
       </CardHeader>
-      <CardContent className="flex-1 flex justify-center items-center p-0">
+      <CardContent className="flex-1 flex justify-center items-center p-3"> {/* Changed p-0 to p-3 */}
         <ShadcnCalendar
           mode="single"
           selected={selectedDate}
@@ -130,7 +130,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
           numberOfMonths={2}
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
-          className="rounded-md border w-full"
+          className="rounded-md border" // Removed w-full to allow natural sizing
         />
       </CardContent>
 

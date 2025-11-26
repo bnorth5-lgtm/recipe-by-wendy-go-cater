@@ -39,6 +39,7 @@ import { TimeDisplay } from "@/components/TimeDisplay";
 import { TwoMonthCalendar } from "@/components/TwoMonthCalendar";
 import { OverdueSidebar } from "@/components/OverdueSidebar";
 import { VendorsCard } from "@/components/VendorsCard";
+import { YouTubePlayerCard } from "@/components/YouTubePlayerCard"; // Import the new YouTubePlayerCard
 import { format, isPast, differenceInDays, parseISO, isFuture } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -338,6 +339,9 @@ const Dashboard = () => {
         </div>
         <div>
           <VendorsCard />
+        </div>
+        <div> {/* New column for YouTubePlayerCard */}
+          <YouTubePlayerCard />
         </div>
 
         {/* Row 3: Quick Actions */}
