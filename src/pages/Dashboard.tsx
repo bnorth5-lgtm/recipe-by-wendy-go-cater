@@ -330,23 +330,24 @@ const Dashboard = () => {
           <NotesCard />
         </div>
 
-        {/* Row 2: Planning & External Reference */}
-        <div className="lg:col-span-3"> {/* Calendar now spans 3 columns */}
+        {/* Row 2: Calendar - now full width */}
+        <div className="lg:col-span-4">
           <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
         </div>
-        <div> {/* OverdueSidebar takes 1 column */}
+
+        {/* Row 3: Overdue & YouTube */}
+        <div className="lg:col-span-2">
           <OverdueSidebar />
         </div>
-        {/* New row for Vendors and YouTube */}
-        <div className="lg:col-span-2"> {/* VendorsCard takes 2 columns in this new row */}
-          <VendorsCard />
-        </div>
-        <div className="lg:col-span-2"> {/* YouTubePlayerCard takes 2 columns in this new row */}
+        <div className="lg:col-span-2">
           <YouTubePlayerCard />
         </div>
 
-        {/* Row 3: Quick Actions */}
-        <Link to="/quoting/proposals" className="block">
+        {/* Row 4: Vendors and a Quick Action */}
+        <div className="lg:col-span-2">
+          <VendorsCard />
+        </div>
+        <Link to="/quoting/proposals" className="block lg:col-span-2">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
               <CardTitle className="text-sm font-medium">
@@ -367,6 +368,7 @@ const Dashboard = () => {
           </Card>
         </Link>
 
+        {/* Remaining Quick Actions and Core Management */}
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
@@ -438,7 +440,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Row 4: Core Management */}
+        {/* Row 5: Core Management */}
         <Link to="/menu/inventory" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
