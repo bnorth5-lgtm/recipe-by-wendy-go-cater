@@ -212,6 +212,7 @@ export interface Note {
 export interface CriticalTask {
   id: string;
   content: string;
+  completed: boolean; // NEW: Added completion status
 }
 
 interface CateringState {
@@ -269,6 +270,7 @@ interface CateringState {
   addCriticalTask: (content: string) => void;
   updateCriticalTask: (id: string, content: string) => void;
   deleteCriticalTask: (id: string) => void;
+  toggleCriticalTaskCompletion: (id: string) => void; // NEW: Toggle completion status
 }
 
 const initialInventory: InventoryItem[] = [
@@ -1396,12 +1398,12 @@ const initialNotes: Note[] = [
 ];
 
 const initialCriticalTasks: CriticalTask[] = [
-  { id: "task1", content: "Review new leads and assign follow-ups." },
-  { id: "task2", content: "Check inventory levels for upcoming events." },
-  { id: "task3", content: "Update recipe costs based on recent supplier invoices." },
-  { id: "task4", content: "Engage with clients who received proposals last week." },
-  { id: "task5", content: "Plan social media content for the next 3 days." },
-  { id: "task6", content: "Review staff schedule for next week's events." },
+  { id: "task1", content: "Review new leads and assign follow-ups.", completed: false },
+  { id: "task2", content: "Check inventory levels for upcoming events.", completed: false },
+  { id: "task3", content: "Update recipe costs based on recent supplier invoices.", completed: false },
+  { id: "task4", content: "Engage with clients who received proposals last week.", completed: false },
+  { id: "task5", content: "Plan social media content for the next 3 days.", completed: false },
+  { id: "task6", content: "Review staff schedule for next week's events.", completed: false },
 ];
 
 const initialClients: Client[] = [
@@ -1898,7 +1900,7 @@ export const useCateringStore = create<CateringState>()(
 
       // NEW: Critical Task actions
       addCriticalTask: (content) => set((state) => ({
-        criticalTasks: [...state.criticalTasks, { id: crypto.randomUUID(), content }],
+        criticalTasks: [...state.criticalTasks, { id: crypto.randomUUID(), content, completed: false }],
       })),
       updateCriticalTask: (id, content) => set((state) => ({
         criticalTasks: state.criticalTasks.map((task) =>
@@ -1907,6 +1909,11 @@ export const useCateringStore = create<CateringState>()(
       })),
       deleteCriticalTask: (id) => set((state) => ({
         criticalTasks: state.criticalTasks.filter((task) => task.id !== id),
+      })),
+      toggleCriticalTaskCompletion: (id) => set((state) => ({
+        criticalTasks: state.criticalTasks.map((task) =>
+          task.id === id ? { ...task, completed: !task.completed } : task
+        ),
       })),
     }),
     {

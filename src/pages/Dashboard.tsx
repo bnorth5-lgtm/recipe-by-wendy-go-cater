@@ -39,12 +39,13 @@ import { TimeDisplay } from "@/components/TimeDisplay";
 import { TwoMonthCalendar } from "@/components/TwoMonthCalendar";
 import { OverdueSidebar } from "@/components/OverdueSidebar";
 import { VendorsCard } from "@/components/VendorsCard";
-import { YouTubePlayerCard } from "@/components/YouTubePlayerCard"; // Import the new YouTubePlayerCard
+import { YouTubePlayerCard } from "@/components/YouTubePlayerCard";
 import { format, isPast, differenceInDays, parseISO, isFuture } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
@@ -60,13 +61,14 @@ const Dashboard = () => {
   const addCriticalTask = useCateringStore((state) => state.addCriticalTask);
   const updateCriticalTask = useCateringStore((state) => state.updateCriticalTask);
   const deleteCriticalTask = useCateringStore((state) => state.deleteCriticalTask);
+  const toggleCriticalTaskCompletion = useCateringStore((state) => state.toggleCriticalTaskCompletion);
   const notes = useCateringStore((state) => state.notes);
   const updateNote = useCateringStore((state) => state.updateNote);
 
   const [isClientFormDialogOpen, setIsClientFormDialogOpen] = useState(false);
-  const [isManageTasksDialogOpen, setIsManageTasksDialogOpen] = useState(false);
+  const [isEditTaskDialogOpen, setIsEditTaskDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<CriticalTask | null>(null);
-  const [newTaskContent, setNewTaskContent] = useState("");
+  const [currentTaskContent, setCurrentTaskContent] = useState("");
 
   const [isEditNoteDialogOpen, setIsEditNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
@@ -133,9 +135,9 @@ const Dashboard = () => {
   }).sort((a, b) => parseISO(a.eventDate).getTime() - parseISO(b.eventDate).getTime());
 
   const handleAddTask = () => {
-    if (newTaskContent.trim()) {
-      addCriticalTask(newTaskContent.trim());
-      setNewTaskContent("");
+    if (currentTaskContent.trim()) {
+      addCriticalTask(currentTaskContent.trim());
+      setCurrentTaskContent("");
       toast.success("Task added!");
     } else {
       toast.error("Task content cannot be empty.");
@@ -144,16 +146,18 @@ const Dashboard = () => {
 
   const handleEditTask = (task: CriticalTask) => {
     setEditingTask(task);
-    setNewTaskContent(task.content);
+    setCurrentTaskContent(task.content);
+    setIsEditTaskDialogOpen(true);
   };
 
   const handleUpdateTask = () => {
-    if (editingTask && newTaskContent.trim()) {
-      updateCriticalTask(editingTask.id, newTaskContent.trim());
+    if (editingTask && currentTaskContent.trim()) {
+      updateCriticalTask(editingTask.id, currentTaskContent.trim());
       setEditingTask(null);
-      setNewTaskContent("");
+      setCurrentTaskContent("");
+      setIsEditTaskDialogOpen(false);
       toast.success("Task updated!");
-    } else if (!newTaskContent.trim()) {
+    } else if (!currentTaskContent.trim()) {
       toast.error("Task content cannot be empty.");
     }
   };
@@ -161,6 +165,11 @@ const Dashboard = () => {
   const handleDeleteTask = (id: string) => {
     deleteCriticalTask(id);
     toast.info("Task deleted.");
+  };
+
+  const handleToggleTaskCompletion = (id: string) => {
+    toggleCriticalTaskCompletion(id);
+    toast.info("Task status updated!");
   };
 
   return (
@@ -175,81 +184,13 @@ const Dashboard = () => {
       }}
     >
       <div className="relative z-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4 flex-1">
-        {/* Row 1: Daily Focus */}
+        {/* Row 1: Daily Action Items */}
         <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-sm font-medium">
-              Today's Action Items
+            <CardTitle className="text-2xl font-semibold text-primary">
+              Daily Action Items
             </CardTitle>
-            <div className="flex items-center gap-2">
-              <Dialog open={isManageTasksDialogOpen} onOpenChange={setIsManageTasksDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-7 text-xs">
-                    <Settings className="mr-1 h-3 w-3" /> Manage Tasks
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>Manage Daily Critical Path Tasks</DialogTitle>
-                    <DialogDescription>
-                      Add, edit, or remove tasks from your daily critical path.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-2 py-2">
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        id="newTask"
-                        placeholder="New critical task..."
-                        value={newTaskContent}
-                        onChange={(e) => setNewTaskContent(e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            if (editingTask) {
-                              handleUpdateTask();
-                            } else {
-                              handleAddTask();
-                            }
-                          }
-                        }}
-                      />
-                      <Button onClick={editingTask ? handleUpdateTask : handleAddTask}>
-                        {editingTask ? <Edit className="h-4 w-4" /> : <PlusCircle className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    <ScrollArea className="h-[200px] pr-4">
-                      <div className="space-y-1">
-                        {criticalTasks.length === 0 ? (
-                          <p className="text-muted-foreground text-sm text-center py-2">No critical tasks added yet.</p>
-                        ) : (
-                          criticalTasks.map((task) => (
-                            <div key={task.id} className="flex items-center justify-between p-1 border rounded-md bg-secondary/20">
-                              <span className="text-sm">{task.content}</span>
-                              <div className="flex gap-1">
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditTask(task)}>
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button variant="destructive" size="icon" className="h-7 w-7" onClick={() => handleDeleteTask(task.id)}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => {
-                      setIsManageTasksDialogOpen(false);
-                      setEditingTask(null);
-                      setNewTaskContent("");
-                    }}>Close</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-              <ClipboardList className="h-4 w-4 text-muted-foreground" />
-            </div>
+            <ClipboardList className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="flex flex-col justify-between h-full">
             <div className="space-y-2">
@@ -309,18 +250,51 @@ const Dashboard = () => {
 
               {/* Critical Path Tasks */}
               <div className="space-y-1">
-                <h3 className="text-sm font-semibold text-foreground">
-                  Daily Critical Path:
-                </h3>
-                <ul className="list-disc list-inside text-xs text-muted-foreground ml-4">
-                  {criticalTasks.length === 0 ? (
-                    <li>No critical tasks defined. Click 'Manage Tasks' to add some!</li>
-                  ) : (
-                    criticalTasks.map((task) => (
-                      <li key={task.id}>{task.content}</li>
-                    ))
-                  )}
-                </ul>
+                <ScrollArea className="h-[100px] pr-4"> {/* Adjusted height for scroll */}
+                  <div className="space-y-1">
+                    {criticalTasks.length === 0 ? (
+                      <p className="text-muted-foreground text-sm text-center py-2">No critical tasks defined. Add one below!</p>
+                    ) : (
+                      criticalTasks.map((task) => (
+                        <div key={task.id} className="flex items-center justify-between p-1 border rounded-md bg-secondary/20">
+                          <div className="flex items-center gap-2 flex-1 cursor-pointer" onClick={() => handleEditTask(task)}>
+                            <Checkbox
+                              checked={task.completed}
+                              onCheckedChange={() => handleToggleTaskCompletion(task.id)}
+                              id={`task-${task.id}`}
+                            />
+                            <label
+                              htmlFor={`task-${task.id}`}
+                              className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${task.completed ? "line-through text-muted-foreground" : ""}`}
+                            >
+                              {task.content}
+                            </label>
+                          </div>
+                          <Button variant="destructive" size="icon" className="h-7 w-7 shrink-0" onClick={() => handleDeleteTask(task.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+                <div className="flex items-center space-x-2 mt-3">
+                  <Input
+                    id="newTask"
+                    placeholder="Add new task..."
+                    value={currentTaskContent}
+                    onChange={(e) => setCurrentTaskContent(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddTask();
+                      }
+                    }}
+                  />
+                  <Button onClick={handleAddTask}>
+                    <PlusCircle className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -487,11 +461,10 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </Link>
-
-        {/* Overdue Sidebar moved to the bottom */}
-        <div className="lg:col-span-4">
-          <OverdueSidebar />
-        </div>
+      </div>
+      {/* Overdue Sidebar moved to the bottom */}
+      <div className="relative z-10 lg:col-span-4 mt-3">
+        <OverdueSidebar />
       </div>
       {/* Footer for Date, MadeWithDyad, and Time */}
       <div className="relative z-10 flex justify-between items-center mt-6 p-3 bg-card/90 rounded-lg shadow-md">
@@ -526,6 +499,35 @@ const Dashboard = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditNoteDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSaveEditedNote}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Task Dialog */}
+      <Dialog open={isEditTaskDialogOpen} onOpenChange={setIsEditTaskDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+            <DialogDescription>
+              Update the content of this critical task.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-3">
+            <Input
+              id="editTaskContent"
+              value={currentTaskContent}
+              onChange={(e) => setCurrentTaskContent(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleUpdateTask();
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditTaskDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleUpdateTask}>Save changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
