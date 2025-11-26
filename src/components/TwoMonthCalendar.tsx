@@ -112,7 +112,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
   const itemsOnSelectedDate = getItemsForSelectedDate();
 
   return (
-    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col p-3 overflow-hidden">
+    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[400px] flex flex-col p-3 overflow-hidden">
       <CardHeader>
         <CardTitle className="text-2xl font-semibold text-primary">Upcoming Timeline</CardTitle>
         <CardDescription className="text-muted-foreground">
@@ -120,17 +120,17 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
         </CardDescription>
         {/* Removed the Badge elements as requested */}
       </CardHeader>
-      <CardContent className="flex-1 p-3"> {/* Removed justify-center and items-center */}
+      <CardContent className="flex-1 p-3 overflow-x-auto">
         <ShadcnCalendar
           mode="single"
           selected={selectedDate}
           onSelect={handleDateSelect}
           month={month}
           onMonthChange={setMonth}
-          numberOfMonths={2}
+          numberOfMonths={3}
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
-          className="rounded-md border w-full" // Added w-full
+          className="rounded-md border"
         />
       </CardContent>
 
