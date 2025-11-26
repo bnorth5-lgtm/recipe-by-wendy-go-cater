@@ -331,16 +331,17 @@ const Dashboard = () => {
         </div>
 
         {/* Row 2: Planning & External Reference */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3"> {/* Calendar now spans 3 columns */}
           <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
         </div>
-        <div>
+        <div> {/* OverdueSidebar takes 1 column */}
           <OverdueSidebar />
         </div>
-        <div>
+        {/* New row for Vendors and YouTube */}
+        <div className="lg:col-span-2"> {/* VendorsCard takes 2 columns in this new row */}
           <VendorsCard />
         </div>
-        <div> {/* New column for YouTubePlayerCard */}
+        <div className="lg:col-span-2"> {/* YouTubePlayerCard takes 2 columns in this new row */}
           <YouTubePlayerCard />
         </div>
 

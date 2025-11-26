@@ -120,7 +120,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
         </CardDescription>
         {/* Removed the Badge elements as requested */}
       </CardHeader>
-      <CardContent className="flex-1 flex justify-center items-center p-3"> {/* Changed p-0 to p-3 */}
+      <CardContent className="flex-1 flex p-3"> {/* Removed justify-center and items-center */}
         <ShadcnCalendar
           mode="single"
           selected={selectedDate}
@@ -130,7 +130,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
           numberOfMonths={2}
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
-          className="rounded-md border" // Removed w-full to allow natural sizing
+          className="rounded-md border w-full" // Added w-full
         />
       </CardContent>
 
