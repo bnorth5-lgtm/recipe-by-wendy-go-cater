@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Link, useParams, useNavigate } from "react-router-dom"; // Added useParams and useNavigate
+import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   DollarSign,
   ClipboardList,
@@ -19,7 +19,7 @@ import {
   Trash2,
   PlusCircle,
 } from "lucide-react";
-import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore"; // Added Note import
+import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore";
 import {
   Dialog,
   DialogContent,
@@ -31,25 +31,25 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ClientForm, ClientFormData } from "@/components/ClientForm";
-import { useState, useEffect } from "react"; // Added useEffect
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { NotesCard } from "@/components/NotesCard";
 import { DateDisplay } from "@/components/DateDisplay";
 import { TimeDisplay } from "@/components/TimeDisplay";
 import { TwoMonthCalendar } from "@/components/TwoMonthCalendar";
 import { OverdueSidebar } from "@/components/OverdueSidebar";
-import { VendorsCard } from "@/components/VendorsCard"; // Import the new VendorsCard
+import { VendorsCard } from "@/components/VendorsCard";
 import { format, isPast, differenceInDays, parseISO, isFuture } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea"; // Added Textarea for note editing
+import { Textarea } from "@/components/ui/textarea";
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
 
-  const { noteId } = useParams<{ noteId?: string }>(); // Get noteId from URL
-  const navigate = useNavigate(); // For programmatic navigation
+  const { noteId } = useParams<{ noteId?: string }>();
+  const navigate = useNavigate();
 
   const proposals = useCateringStore((state) => state.proposals);
   const bookings = useCateringStore((state) => state.bookings);
@@ -59,19 +59,18 @@ const Dashboard = () => {
   const addCriticalTask = useCateringStore((state) => state.addCriticalTask);
   const updateCriticalTask = useCateringStore((state) => state.updateCriticalTask);
   const deleteCriticalTask = useCateringStore((state) => state.deleteCriticalTask);
-  const notes = useCateringStore((state) => state.notes); // Get notes
-  const updateNote = useCateringStore((state) => state.updateNote); // Get updateNote action
+  const notes = useCateringStore((state) => state.notes);
+  const updateNote = useCateringStore((state) => state.updateNote);
 
   const [isClientFormDialogOpen, setIsClientFormDialogOpen] = useState(false);
   const [isManageTasksDialogOpen, setIsManageTasksDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<CriticalTask | null>(null);
   const [newTaskContent, setNewTaskContent] = useState("");
 
-  const [isEditNoteDialogOpen, setIsEditNoteDialogOpen] = useState(false); // State for note edit dialog
-  const [editingNote, setEditingNote] = useState<Note | null>(null); // State for the note being edited
-  const [editedNoteContent, setEditedNoteContent] = useState(""); // State for content in edit dialog
+  const [isEditNoteDialogOpen, setIsEditNoteDialogOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editedNoteContent, setEditedNoteContent] = useState("");
 
-  // Effect to open note edit dialog if noteId is in URL
   useEffect(() => {
     if (noteId) {
       const noteToEdit = notes.find(n => n.id === noteId);
@@ -81,28 +80,26 @@ const Dashboard = () => {
         setIsEditNoteDialogOpen(true);
       } else {
         toast.error("Note not found.");
-        navigate("/dashboard"); // Redirect if note not found
+        navigate("/dashboard");
       }
     } else {
-      setIsEditNoteDialogOpen(false); // Close dialog if noteId is cleared from URL
+      setIsEditNoteDialogOpen(false);
       setEditingNote(null);
       setEditedNoteContent("");
     }
   }, [noteId, notes, navigate]);
 
-  // Handle saving changes from the edit note dialog
   const handleSaveEditedNote = () => {
     if (editingNote && editedNoteContent.trim()) {
       updateNote(editingNote.id, editedNoteContent.trim());
       toast.success("Note updated!");
       setIsEditNoteDialogOpen(false);
-      navigate("/dashboard"); // Navigate back to clean URL
+      navigate("/dashboard");
     } else {
       toast.error("Note content cannot be empty.");
     }
   };
 
-  // Updated proposal counts for clarity
   const draftProposalsCount = proposals.filter(p => p.status === "Draft").length;
   const sentProposalsCount = proposals.filter(p => p.status === "Sent").length;
   const acceptedProposalsCount = proposals.filter(p => p.status === "Accepted").length;
@@ -113,7 +110,6 @@ const Dashboard = () => {
     setIsClientFormDialogOpen(false);
   };
 
-  // --- Dynamic "Today's Tasks" Logic ---
   const overdueThresholdDays = 7;
   const upcomingEventsThresholdDays = 7;
 
@@ -135,7 +131,6 @@ const Dashboard = () => {
     return b.status === "pending" && isFuture(eventDate) && differenceInDays(eventDate, today) <= upcomingEventsThresholdDays;
   }).sort((a, b) => parseISO(a.eventDate).getTime() - parseISO(b.eventDate).getTime());
 
-  // --- Critical Task Management Handlers ---
   const handleAddTask = () => {
     if (newTaskContent.trim()) {
       addCriticalTask(newTaskContent.trim());
@@ -179,7 +174,7 @@ const Dashboard = () => {
       }}
     >
       <div className="relative z-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4 flex-1">
-        {/* Row 1: Today's Action Items and Take Notes */}
+        {/* Row 1: Daily Focus */}
         <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-sm font-medium">
@@ -334,18 +329,18 @@ const Dashboard = () => {
           <NotesCard />
         </div>
 
-        {/* Row 2: Calendar and Overdue Sidebar */}
+        {/* Row 2: Planning & External Reference */}
         <div className="lg:col-span-2">
           <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
         </div>
         <div>
           <OverdueSidebar />
         </div>
+        <div>
+          <VendorsCard />
+        </div>
 
-        {/* NEW: Vendors Card */}
-        <VendorsCard />
-
-        {/* Remaining hotlinks */}
+        {/* Row 3: Quick Actions */}
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
@@ -379,57 +374,6 @@ const Dashboard = () => {
               <div className="text-lg font-bold">Create a new client proposal</div>
               <p className="text-xs text-muted-foreground">
                 Generate detailed quotes for upcoming events.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link to="/menu/inventory" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-              <CardTitle className="text-sm font-medium">
-                Manage Inventory
-              </CardTitle>
-              <Warehouse className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-lg font-bold">Add or update stock levels</div>
-              <p className="text-xs text-muted-foreground">
-                Keep track of all your ingredients and equipment.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link to="/menu/menus" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-              <CardTitle className="text-sm font-medium">
-                Build Menu
-              </CardTitle>
-              <MenuSquare className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-lg font-bold">Design new event menus</div>
-              <p className="text-xs text-muted-foreground">
-                Combine recipes into curated offerings for clients.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link to="/menu/recipes" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-              <CardTitle className="text-sm font-medium">
-                Build Recipes
-              </CardTitle>
-              <Utensils className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-lg font-bold">Create or modify recipes</div>
-              <p className="text-xs text-muted-foreground">
-                Manage ingredients and instructions for all your dishes.
               </p>
             </CardContent>
           </Card>
@@ -488,6 +432,58 @@ const Dashboard = () => {
             </Dialog>
           </CardContent>
         </Card>
+
+        {/* Row 4: Core Management */}
+        <Link to="/menu/inventory" className="block">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-sm font-medium">
+                Manage Inventory
+              </CardTitle>
+              <Warehouse className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="flex flex-col justify-between h-full">
+              <div className="text-lg font-bold">Add or update stock levels</div>
+              <p className="text-xs text-muted-foreground">
+                Keep track of all your ingredients and equipment.
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="/menu/recipes" className="block">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-sm font-medium">
+                Build Recipes
+              </CardTitle>
+              <Utensils className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="flex flex-col justify-between h-full">
+              <div className="text-lg font-bold">Create or modify recipes</div>
+              <p className="text-xs text-muted-foreground">
+                Manage ingredients and instructions for all your dishes.
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="/menu/menus" className="block">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-sm font-medium">
+                Build Menu
+              </CardTitle>
+              <MenuSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="flex flex-col justify-between h-full">
+              <div className="text-lg font-bold">Design new event menus</div>
+              <p className="text-xs text-muted-foreground">
+                Combine recipes into curated offerings for clients.
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
       {/* Footer for Date, MadeWithDyad, and Time */}
       <div className="relative z-10 flex justify-between items-center mt-6 p-3 bg-card/90 rounded-lg shadow-md">
@@ -496,11 +492,11 @@ const Dashboard = () => {
         <TimeDisplay />
       </div>
 
-      {/* NEW: Edit Note Dialog (managed by Dashboard) */}
+      {/* Edit Note Dialog (managed by Dashboard) */}
       <Dialog open={isEditNoteDialogOpen} onOpenChange={(open) => {
         setIsEditNoteDialogOpen(open);
         if (!open) {
-          navigate("/dashboard"); // Clear noteId from URL when dialog closes
+          navigate("/dashboard");
         }
       }}>
         <DialogContent className="sm:max-w-[425px]">
