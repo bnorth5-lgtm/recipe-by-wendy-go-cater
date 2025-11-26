@@ -184,7 +184,7 @@ const Dashboard = () => {
       }}
     >
       <div className="relative z-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4 flex-1">
-        {/* Row 1: Daily Action Items */}
+        {/* Row 1: Daily Action Items & Notes */}
         <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[550px] p-3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-2xl font-semibold text-primary">
@@ -309,15 +309,12 @@ const Dashboard = () => {
           <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
         </div>
 
-        {/* Row 3: YouTube & Vendors */}
-        <div className="lg:col-span-2">
-          <YouTubePlayerCard />
-        </div>
-        <div className="lg:col-span-2">
+        {/* NEW Row for full-width VendorsCard */}
+        <div className="lg:col-span-4"> {/* This will make it full width */}
           <VendorsCard />
         </div>
 
-        {/* Row 4: Quick Actions */}
+        {/* Row 3 (formerly Row 4): Quick Actions */}
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
@@ -410,7 +407,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Row 5: Core Management */}
+        {/* Row 4 (formerly Row 5): Core Management */}
         <Link to="/menu/inventory" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
