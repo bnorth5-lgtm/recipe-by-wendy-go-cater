@@ -121,7 +121,7 @@ export const NotesCard: React.FC = () => {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[450px] flex flex-col p-3">
+    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[550px] flex flex-col p-3">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
         <CardTitle className="text-sm font-medium">
           Take Notes
@@ -162,7 +162,7 @@ export const NotesCard: React.FC = () => {
           </div>
         </div>
 
-        <ScrollArea className="h-[350px] flex-1 pr-4">
+        <ScrollArea className="h-[400px] flex-1 pr-4">
           {notes.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-2">No notes yet. Add one above!</p>
           ) : (
