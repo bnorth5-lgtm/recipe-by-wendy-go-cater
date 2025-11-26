@@ -38,6 +38,7 @@ import { DateDisplay } from "@/components/DateDisplay";
 import { TimeDisplay } from "@/components/TimeDisplay";
 import { TwoMonthCalendar } from "@/components/TwoMonthCalendar";
 import { OverdueSidebar } from "@/components/OverdueSidebar";
+import { VendorsCard } from "@/components/VendorsCard"; // Import the new VendorsCard
 import { format, isPast, differenceInDays, parseISO, isFuture } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -340,6 +341,9 @@ const Dashboard = () => {
         <div>
           <OverdueSidebar />
         </div>
+
+        {/* NEW: Vendors Card */}
+        <VendorsCard />
 
         {/* Remaining hotlinks */}
         <Link to="/quoting/proposals" className="block">
