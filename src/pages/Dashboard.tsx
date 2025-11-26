@@ -335,19 +335,16 @@ const Dashboard = () => {
           <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
         </div>
 
-        {/* Row 3: Overdue & YouTube */}
-        <div className="lg:col-span-2">
-          <OverdueSidebar />
-        </div>
+        {/* Row 3: YouTube & Vendors */}
         <div className="lg:col-span-2">
           <YouTubePlayerCard />
         </div>
-
-        {/* Row 4: Vendors and a Quick Action */}
         <div className="lg:col-span-2">
           <VendorsCard />
         </div>
-        <Link to="/quoting/proposals" className="block lg:col-span-2">
+
+        {/* Row 4: Quick Actions */}
+        <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
               <CardTitle className="text-sm font-medium">
@@ -368,7 +365,6 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        {/* Remaining Quick Actions and Core Management */}
         <Link to="/quoting/proposals" className="block">
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
@@ -491,6 +487,11 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </Link>
+
+        {/* Overdue Sidebar moved to the bottom */}
+        <div className="lg:col-span-4">
+          <OverdueSidebar />
+        </div>
       </div>
       {/* Footer for Date, MadeWithDyad, and Time */}
       <div className="relative z-10 flex justify-between items-center mt-6 p-3 bg-card/90 rounded-lg shadow-md">
