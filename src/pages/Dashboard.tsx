@@ -185,7 +185,7 @@ const Dashboard = () => {
     >
       <div className="relative z-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4 flex-1">
         {/* Row 1: Daily Action Items */}
-        <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[360px] p-3">
+        <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[450px] p-3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
             <CardTitle className="text-2xl font-semibold text-primary">
               Daily Action Items
@@ -250,7 +250,7 @@ const Dashboard = () => {
 
               {/* Critical Path Tasks */}
               <div className="space-y-1">
-                <ScrollArea className="h-[200px] pr-4"> {/* Adjusted height for scroll */}
+                <ScrollArea className="h-[350px] pr-4"> {/* Adjusted height for scroll */}
                   <div className="space-y-1">
                     {criticalTasks.length === 0 ? (
                       <p className="text-muted-foreground text-sm text-center py-2">No critical tasks defined. Add one below!</p>
