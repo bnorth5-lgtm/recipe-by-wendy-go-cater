@@ -140,20 +140,20 @@ export const VendorsCard: React.FC = () => {
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-semibold text-sm">{vendor.name}</h4>
             </div>
-            <p className="text-xs text-muted-foreground flex items-center gap-1 ml-0"> {/* Removed ml-6 */}
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
               <MapPin className="h-3 w-3" /> {vendor.address}
             </p>
             {vendor.phone && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1 ml-0"> {/* Removed ml-6 */}
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Phone className="h-3 w-3" /> {vendor.phone}
               </p>
             )}
             {vendor.hours && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1 ml-0"> {/* Removed ml-6 */}
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="h-3 w-3" /> {vendor.hours}
               </p>
             )}
-            <div className="flex gap-2 mt-2 ml-0"> {/* Removed ml-6 */}
+            <div className="flex gap-2 mt-2">
               {vendor.wazeLink && (
                 <a href={vendor.wazeLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline text-xs flex items-center gap-1">
                   <ExternalLink className="h-3 w-3" /> Waze
@@ -176,7 +176,7 @@ export const VendorsCard: React.FC = () => {
   const cateringRentals = placeholderVendors.filter(v => v.category === "Catering Rentals");
 
   return (
-    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] flex flex-col p-3">
+    <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[550px] flex flex-col p-3">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
         <CardTitle className="text-2xl font-semibold text-primary">
           Vendor Directory
