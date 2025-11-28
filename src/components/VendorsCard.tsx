@@ -144,9 +144,9 @@ export const VendorsCard: React.FC = () => {
               <MapPin className="h-3 w-3" /> {vendor.address}
             </p>
             {vendor.phone && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <a href={`tel:${vendor.phone.replace(/\D/g, '')}`} className="text-xs text-muted-foreground flex items-center gap-1 hover:underline">
                 <Phone className="h-3 w-3" /> {vendor.phone}
-              </p>
+              </a>
             )}
             {vendor.hours && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
