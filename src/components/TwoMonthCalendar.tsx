@@ -121,17 +121,40 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
         {/* Removed the Badge elements as requested */}
       </CardHeader>
       <CardContent className="flex-1 p-3 overflow-x-auto">
-        <ShadcnCalendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={handleDateSelect}
-          month={month}
-          onMonthChange={setMonth}
-          numberOfMonths={3}
-          modifiers={modifiers}
-          modifiersClassNames={modifiersClassNames}
-          className="rounded-md border"
-        />
+        <div className="flex flex-col lg:flex-row gap-4">
+          <ShadcnCalendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDateSelect}
+            month={month}
+            onMonthChange={setMonth}
+            numberOfMonths={3}
+            modifiers={modifiers}
+            modifiersClassNames={modifiersClassNames}
+            className="rounded-md border flex-1"
+          />
+          <div className="flex-shrink-0 w-full lg:w-60 p-4 border rounded-md bg-background">
+            <h3 className="text-lg font-semibold mb-3 text-primary">Calendar Key</h3>
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <span className="w-4 h-4 rounded-full bg-calendar-quote mr-2"></span>
+                <span className="text-sm text-muted-foreground">Quotes</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-4 h-4 rounded-full bg-calendar-proposal mr-2"></span>
+                <span className="text-sm text-muted-foreground">Proposals</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-4 h-4 rounded-full bg-calendar-event mr-2"></span>
+                <span className="text-sm text-muted-foreground">Pending Events</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-4 h-4 rounded-full bg-calendar-completed-event mr-2"></span>
+                <span className="text-sm text-muted-foreground">Completed Events</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </CardContent>
 
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
