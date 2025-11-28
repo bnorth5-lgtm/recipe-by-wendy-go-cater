@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { BrandingInjector } from "./components/BrandingInjector"; // Import BrandingInjector
 
 // Import your page components
 import Dashboard from "./pages/Dashboard";
@@ -30,6 +31,7 @@ const App = () => {
 
   return (
     <BrowserRouter>
+      <BrandingInjector /> {/* Add BrandingInjector here */}
       <ErrorBoundary>
         <Layout>
           <Routes>

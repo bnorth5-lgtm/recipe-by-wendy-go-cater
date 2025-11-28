@@ -245,6 +245,13 @@ interface CateringState {
   globalLowStockThreshold: number;
   currencySymbol: string;
 
+  // NEW: Branding Settings
+  logoUrl: string;
+  primaryColor: string; // HSL string, e.g., "10 70% 50%"
+  secondaryColor: string; // HSL string
+  fontFamilyPrimary: string; // CSS font-family string, e.g., "Inter, sans-serif"
+  fontFamilySecondary: string; // CSS font-family string, e.g., "Playfair Display, serif"
+
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void;
   updateInventoryItem: (item: InventoryItem) => void;
   deleteInventoryItem: (id: string) => void;
@@ -303,6 +310,13 @@ interface CateringState {
   setDefaultMarkupPercentage: (percentage: number) => void;
   setGlobalLowStockThreshold: (threshold: number) => void;
   setCurrencySymbol: (symbol: string) => void;
+
+  // NEW: Branding Settings actions
+  setLogoUrl: (url: string) => void;
+  setPrimaryColor: (color: string) => void;
+  setSecondaryColor: (color: string) => void;
+  setFontFamilyPrimary: (font: string) => void;
+  setFontFamilySecondary: (font: string) => void;
 }
 
 const initialInventory: InventoryItem[] = [
@@ -741,7 +755,7 @@ const initialRecipes: Recipe[] = [
     id: "r8",
     name: "Shrimp Scampi with Linguine",
     description: "Garlic butter shrimp served over a bed of al dente linguine pasta.",
-    prepTime: "15 mins",
+    prepTime: "10 mins",
     cookTime: "20 mins",
     servings: "4",
     category: "Main Course",
@@ -1659,6 +1673,13 @@ export const useCateringStore = create<CateringState>()(
       globalLowStockThreshold: 10,
       currencySymbol: "$",
 
+      // NEW: Branding Settings initial values
+      logoUrl: "", // Placeholder for a logo URL
+      primaryColor: "10 70% 50%", // HSL for a coral/peach color
+      secondaryColor: "20 40% 96.1%", // HSL for a light, warm secondary
+      fontFamilyPrimary: "Inter, sans-serif",
+      fontFamilySecondary: "Playfair Display, serif",
+
       addInventoryItem: (item) => set((state) => ({
         inventory: [...state.inventory, { ...item, id: crypto.randomUUID() }],
       })),
@@ -1983,6 +2004,13 @@ export const useCateringStore = create<CateringState>()(
       setDefaultMarkupPercentage: (percentage) => set({ defaultMarkupPercentage: percentage }),
       setGlobalLowStockThreshold: (threshold) => set({ globalLowStockThreshold: threshold }),
       setCurrencySymbol: (symbol) => set({ currencySymbol: symbol }),
+
+      // NEW: Branding Settings actions
+      setLogoUrl: (url) => set({ logoUrl: url }),
+      setPrimaryColor: (color) => set({ primaryColor: color }),
+      setSecondaryColor: (color) => set({ secondaryColor: color }),
+      setFontFamilyPrimary: (font) => set({ fontFamilyPrimary: font }),
+      setFontFamilySecondary: (font) => set({ fontFamilySecondary: font }),
     }),
     {
       name: 'catering-storage', // unique name

@@ -25,6 +25,7 @@ export const Sidebar = () => {
   const location = useLocation();
   const businessName = useCateringStore((state) => state.businessName); // Get business name from store
   const currentUser = useCateringStore((state) => state.currentUser); // Get current user from store
+  const logoUrl = useCateringStore((state) => state.logoUrl); // Get logo URL from store
 
   const navItems = [
     {
@@ -93,7 +94,11 @@ export const Sidebar = () => {
   return (
     <aside className="flex flex-col h-screen w-64 bg-sidebar-background text-sidebar-foreground">
       <div className="relative h-32 w-full overflow-hidden border-b border-primary-foreground/20 flex flex-col items-center justify-center px-4 bg-sidebar-accent text-white">
-        <ChefHat className="h-8 w-8 text-black mb-2" />
+        {logoUrl ? (
+          <img src={logoUrl} alt="Company Logo" className="h-16 w-auto object-contain mb-2" />
+        ) : (
+          <ChefHat className="h-8 w-8 text-black mb-2" />
+        )}
         <h1 className="text-xl font-serif font-semibold text-black">
           {businessName}
         </h1>

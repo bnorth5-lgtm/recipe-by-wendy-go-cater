@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;500;700&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;700&family=Merriweather:wght@300;400;700&family=Lora:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -18,10 +18,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 10 70% 50%; /* More vibrant and slightly darker coral/peach */
+    --primary: var(--brand-primary-color); /* Dynamic Primary Color */
     --primary-foreground: 210 40% 98%; /* White */
 
-    --secondary: 20 40% 96.1%; /* Lighter, warmer secondary */
+    --secondary: var(--brand-secondary-color); /* Dynamic Secondary Color */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 20 40% 96.1%;
@@ -35,18 +35,18 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 10 70% 50%; /* Matching new primary */
+    --ring: var(--brand-primary-color); /* Matching new primary */
 
     --radius: 0.5rem;
 
     --sidebar-background: 20 20% 95%; /* Soft light gray/beige */
     --sidebar-foreground: 222.2 47.4% 11.2%; /* Dark text */
-    --sidebar-primary: 10 60% 70%; /* Matching new primary */
+    --sidebar-primary: var(--brand-primary-color); /* Matching new primary */
     --sidebar-primary-foreground: 210 40% 98%; /* White text for primary elements */
-    --sidebar-accent: 10 60% 85%; /* Slightly darker for better presence */
-    --sidebar-accent-foreground: 10 60% 70%; /* Matching new primary */
+    --sidebar-accent: var(--brand-secondary-color); /* Slightly darker for better presence */
+    --sidebar-accent-foreground: var(--brand-primary-color); /* Matching new primary */
     --sidebar-border: 214.3 31.8% 91.4%; /* Light gray border */
-    --sidebar-ring: 10 60% 70%;
+    --sidebar-ring: var(--brand-primary-color);
 
     --pink: 330 80% 70%; /* A soft pink */
 
@@ -55,6 +55,12 @@
     --calendar-event: 120 60% 50%; /* Vibrant green */
     --calendar-beo: 270 60% 60%; /* Purple for BEOs */
     --calendar-completed-event: 140 60% 40%; /* NEW: Darker green for completed events */
+
+    /* Dynamic Branding Variables */
+    --brand-primary-color: 10 70% 50%; /* Default HSL for primary */
+    --brand-secondary-color: 20 40% 96.1%; /* Default HSL for secondary */
+    --brand-font-primary: "Inter", sans-serif;
+    --brand-font-secondary: "Playfair Display", serif;
   }
 
   .dark {
@@ -67,7 +73,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 10 60% 70%; /* Soft Coral/Peach */
+    --primary: var(--brand-primary-color); /* Dynamic Primary Color */
     --primary-foreground: 222.2 47.4% 11.2%; /* Dark text */
 
     --secondary: 217.2 32.6% 17.5%;
@@ -84,15 +90,15 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 10 60% 70%; /* Matching new primary */
+    --ring: var(--brand-primary-color); /* Matching new primary */
     --sidebar-background: 222.2 84% 4.9%; /* Dark background */
     --sidebar-foreground: 210 40% 98%; /* Light text */
-    --sidebar-primary: 10 60% 70%; /* Matching new primary */
+    --sidebar-primary: var(--brand-primary-color); /* Matching new primary */
     --sidebar-primary-foreground: 210 40% 98%; /* Light text for primary elements */
     --sidebar-accent: 217.2 32.6% 17.5%; /* Darker blue for hover/active */
     --sidebar-accent-foreground: 210 40% 98%; /* Light text */
     --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 10 60% 70%;
+    --sidebar-ring: var(--brand-primary-color);
 
     --pink: 330 80% 70%; /* A soft pink */
 
@@ -101,6 +107,12 @@
     --calendar-event: 120 60% 50%; /* Vibrant green */
     --calendar-beo: 270 60% 60%; /* Purple for BEOs */
     --calendar-completed-event: 140 60% 40%; /* NEW: Darker green for completed events */
+
+    /* Dynamic Branding Variables */
+    --brand-primary-color: 10 60% 70%; /* Default HSL for primary in dark mode */
+    --brand-secondary-color: 217.2 32.6% 17.5%; /* Default HSL for secondary in dark mode */
+    --brand-font-primary: "Inter", sans-serif;
+    --brand-font-secondary: "Playfair Display", serif;
   }
 }
 
@@ -110,6 +122,11 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans font-semibold;
+    @apply bg-background text-foreground;
+    font-family: var(--brand-font-primary); /* Apply primary font globally */
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--brand-font-secondary); /* Apply secondary font to headings */
   }
 }
