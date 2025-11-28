@@ -19,6 +19,7 @@ import * as z from "zod";
 import { TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useCateringStore } from "@/store/cateringStore"; // Import the store
 
 // Define the schema for business data input
 const businessDataSchema = z.object({
@@ -33,6 +34,8 @@ const businessDataSchema = z.object({
 type BusinessFormData = z.infer<typeof businessDataSchema>;
 
 const CateringAverages = () => {
+  const currencySymbol = useCateringStore((state) => state.currencySymbol); // Get currency symbol
+
   // Simulated Industry Averages (hardcoded for demonstration)
   const industryAverages = {
     avgRevenuePerEvent: 2500, // Average revenue per event
@@ -98,7 +101,7 @@ const CateringAverages = () => {
           <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             <div>
               <p className="text-sm text-muted-foreground">Avg. Revenue per Event</p>
-              <p className="text-lg font-bold">${industryAverages.avgRevenuePerEvent.toLocaleString()}</p>
+              <p className="text-lg font-bold">{currencySymbol}{industryAverages.avgRevenuePerEvent.toLocaleString()}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Avg. Events per Month</p>
@@ -237,7 +240,7 @@ const CateringAverages = () => {
             <div>
               <p className="text-sm text-muted-foreground">Your Revenue per Event</p>
               <div className="flex items-center gap-2">
-                <p className="text-lg font-bold">${currentRevenuePerEvent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="text-lg font-bold">{currencySymbol}{currentRevenuePerEvent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 <Badge variant={isRevenuePerEventAboveAvg ? "default" : "destructive"}>
                   {isRevenuePerEventAboveAvg ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
                   {isRevenuePerEventAboveAvg ? "Above Avg" : "Below Avg"}

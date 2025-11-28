@@ -78,6 +78,8 @@ const Estimates = () => {
   const addEstimate = useCateringStore((state) => state.addEstimate);
   const updateEstimate = useCateringStore((state) => state.updateEstimate);
   const deleteEstimate = useCateringStore((state) => state.deleteEstimate);
+  const defaultTaxRate = useCateringStore((state) => state.defaultTaxRate); // Get default tax rate
+  const currencySymbol = useCateringStore((state) => state.currencySymbol); // Get currency symbol
 
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [editingEstimate, setEditingEstimate] = useState<Estimate | null>(null);
@@ -91,7 +93,7 @@ const Estimates = () => {
       laborCost: 0,
       equipmentCost: 0,
       otherCosts: 0,
-      taxRate: 0.08,
+      taxRate: defaultTaxRate, // Use default tax rate
     },
   });
 
@@ -297,7 +299,7 @@ const Estimates = () => {
                             {recipes.length === 0 && <p className="p-2 text-sm text-muted-foreground">No recipes available.</p>}
                             {recipes.map((recipe) => (
                               <SelectItem key={recipe.id} value={recipe.id}>
-                                {recipe.name} (${recipe.baseCost.toFixed(2)}/serving)
+                                {recipe.name} ({currencySymbol}{recipe.baseCost.toFixed(2)}/serving)
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -310,7 +312,7 @@ const Estimates = () => {
                             {inventory.length === 0 && <p className="p-2 text-sm text-muted-foreground">No inventory items available.</p>}
                             {inventory.map((item) => (
                               <SelectItem key={item.id} value={item.id}>
-                                {item.name} ({item.category}) (${item.costPerUnit.toFixed(2)}/{item.unit})
+                                {item.name} ({item.category}) ({currencySymbol}{item.costPerUnit.toFixed(2)}/{item.unit})
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -342,7 +344,7 @@ const Estimates = () => {
                                       {item.name}
                                     </TableCell>
                                     <TableCell className="capitalize px-3 py-2">{item.type === "inventoryItem" ? inventoryItemDetails?.category : item.type}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                                    <TableCell className="text-right px-3 py-2">${item.unitCost.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                                    <TableCell className="text-right px-3 py-2">{currencySymbol}{item.unitCost.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
                                     <TableCell className="text-right px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
                                       <Input
                                         type="number"
@@ -352,7 +354,7 @@ const Estimates = () => {
                                         min="1"
                                       />
                                     </TableCell>
-                                    <TableCell className="font-semibold text-right px-3 py-2">${item.totalCost.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                                    <TableCell className="font-semibold text-right px-3 py-2">{currencySymbol}{item.totalCost.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
                                     <TableCell className="text-right px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
                                       <Button
                                         type="button"
@@ -432,8 +434,8 @@ const Estimates = () => {
 
                     {/* Totals Display */}
                     <div className="text-right space-y-1 mt-3"> {/* Reduced mt-4 to mt-3 */}
-                      <p className="text-lg">Subtotal: <span className="font-bold">${subtotal.toFixed(2)}</span></p>
-                      <p className="text-xl font-extrabold text-primary">Total Estimated Cost: <span className="font-bold">${totalAmount.toFixed(2)}</span></p>
+                      <p className="text-lg">Subtotal: <span className="font-bold">{currencySymbol}{subtotal.toFixed(2)}</span></p>
+                      <p className="text-xl font-extrabold text-primary">Total Estimated Cost: <span className="font-bold">{currencySymbol}{totalAmount.toFixed(2)}</span></p>
                     </div>
 
                     <DialogFooter>
@@ -473,8 +475,8 @@ const Estimates = () => {
                       <TableRow key={estimate.id}>
                         <TableCell className="font-medium px-3 py-2">{estimate.eventName}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
                         <TableCell className="px-3 py-2">{estimate.numberOfGuests}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2">${estimate.subtotal.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2">${estimate.totalAmount.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="px-3 py-2">{currencySymbol}{estimate.subtotal.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="px-3 py-2">{currencySymbol}{estimate.totalAmount.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
                         <TableCell className="px-3 py-2">{format(new Date(estimate.createdAt), "PPP")}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
                         <TableCell className="text-right flex justify-end space-x-2 px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
                           <Button variant="ghost" size="icon" onClick={() => handleEdit(estimate)}>

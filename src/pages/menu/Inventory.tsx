@@ -66,6 +66,9 @@ const Inventory = () => {
   const addInventoryItem = useCateringStore((state) => state.addInventoryItem);
   const updateInventoryItem = useCateringStore((state) => state.updateInventoryItem);
   const deleteInventoryItem = useCateringStore((state) => state.deleteInventoryItem);
+  const defaultMarkupPercentage = useCateringStore((state) => state.defaultMarkupPercentage); // Get default markup
+  const globalLowStockThreshold = useCateringStore((state) => state.globalLowStockThreshold); // Get global low stock threshold
+  const currencySymbol = useCateringStore((state) => state.currencySymbol); // Get currency symbol
 
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -77,9 +80,9 @@ const Inventory = () => {
       category: "Food Ingredient",
       currentStock: 0,
       unit: "lb",
-      lowStockThreshold: 10,
+      lowStockThreshold: globalLowStockThreshold, // Use global low stock threshold
       costPerUnit: 0.00,
-      markupPercentage: 0.20,
+      markupPercentage: defaultMarkupPercentage, // Use default markup percentage
     },
   });
 
@@ -350,8 +353,8 @@ const Inventory = () => {
                             </Button>
                           </div>
                         </TableCell>
-                        <TableCell className="px-3 py-2 min-w-[120px]">${item.costPerUnit.toFixed(2)} / {item.unit}</TableCell>
-                        <TableCell className="px-3 py-2 min-w-[120px]">${(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell>
+                        <TableCell className="px-3 py-2 min-w-[120px]">{currencySymbol}{item.costPerUnit.toFixed(2)} / {item.unit}</TableCell>
+                        <TableCell className="px-3 py-2 min-w-[120px]">{currencySymbol}{(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell>
                         <TableCell className="px-3 py-2 min-w-[100px]">{item.lowStockThreshold}</TableCell>
                         <TableCell className="text-center px-3 py-2 min-w-[100px]">
                           {item.currentStock <= item.lowStockThreshold ? (

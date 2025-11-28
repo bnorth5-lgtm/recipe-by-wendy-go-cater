@@ -226,6 +226,13 @@ interface CateringState {
   notes: Note[]; // NEW: Notes state
   criticalTasks: CriticalTask[]; // NEW: Critical Tasks state
 
+  // NEW: Global Settings
+  businessName: string;
+  defaultTaxRate: number; // e.g., 0.08 for 8%
+  defaultMarkupPercentage: number; // e.g., 0.20 for 20%
+  globalLowStockThreshold: number;
+  currencySymbol: string;
+
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void;
   updateInventoryItem: (item: InventoryItem) => void;
   deleteInventoryItem: (id: string) => void;
@@ -271,6 +278,13 @@ interface CateringState {
   updateCriticalTask: (id: string, content: string) => void;
   deleteCriticalTask: (id: string) => void;
   toggleCriticalTaskCompletion: (id: string) => void; // NEW: Toggle completion status
+
+  // NEW: Global Settings actions
+  setBusinessName: (name: string) => void;
+  setDefaultTaxRate: (rate: number) => void;
+  setDefaultMarkupPercentage: (percentage: number) => void;
+  setGlobalLowStockThreshold: (threshold: number) => void;
+  setCurrencySymbol: (symbol: string) => void;
 }
 
 const initialInventory: InventoryItem[] = [
@@ -1612,6 +1626,13 @@ export const useCateringStore = create<CateringState>()(
       notes: initialNotes, // NEW: Initialize notes with sample data
       criticalTasks: initialCriticalTasks, // NEW: Initialize critical tasks
 
+      // NEW: Global Settings initial values
+      businessName: "Catering by Cronkhite",
+      defaultTaxRate: 0.08,
+      defaultMarkupPercentage: 0.20,
+      globalLowStockThreshold: 10,
+      currencySymbol: "$",
+
       addInventoryItem: (item) => set((state) => ({
         inventory: [...state.inventory, { ...item, id: crypto.randomUUID() }],
       })),
@@ -1915,6 +1936,13 @@ export const useCateringStore = create<CateringState>()(
           task.id === id ? { ...task, completed: !task.completed } : task
         ),
       })),
+
+      // NEW: Global Settings actions
+      setBusinessName: (name) => set({ businessName: name }),
+      setDefaultTaxRate: (rate) => set({ defaultTaxRate: rate }),
+      setDefaultMarkupPercentage: (percentage) => set({ defaultMarkupPercentage: percentage }),
+      setGlobalLowStockThreshold: (threshold) => set({ globalLowStockThreshold: threshold }),
+      setCurrencySymbol: (symbol) => set({ currencySymbol: symbol }),
     }),
     {
       name: 'catering-storage', // unique name

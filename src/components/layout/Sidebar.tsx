@@ -18,9 +18,11 @@ import {
   ChevronRight,
   ChefHat
 } from "lucide-react";
+import { useCateringStore } from "@/store/cateringStore"; // Import the store
 
 export const Sidebar = () => {
   const location = useLocation();
+  const businessName = useCateringStore((state) => state.businessName); // Get business name from store
 
   const navItems = [
     {
@@ -91,7 +93,7 @@ export const Sidebar = () => {
       <div className="relative h-32 w-full overflow-hidden border-b border-primary-foreground/20 flex flex-col items-center justify-center px-4 bg-sidebar-accent text-white">
         <ChefHat className="h-8 w-8 text-black mb-2" />
         <h1 className="text-xl font-serif font-semibold text-black">
-          Catering by Cronkhite
+          {businessName} {/* Use businessName from store */}
         </h1>
       </div>
       <ScrollArea className="flex-1 py-4">
