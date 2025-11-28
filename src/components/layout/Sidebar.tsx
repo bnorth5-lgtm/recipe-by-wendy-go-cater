@@ -10,22 +10,30 @@ import {
   Warehouse,
   Leaf,
   BookText,
-  Menu,
+  Menu, // Keep Menu icon for the sidebar itself if needed, but not for toggle
   DollarSign,
   CalendarCheck,
   Settings,
   ChevronDown,
   ChevronRight,
   ChefHat,
-  User as UserIcon // Import User icon
+  User as UserIcon,
+  X, // Import X icon for close button
 } from "lucide-react";
-import { useCateringStore } from "@/store/cateringStore"; // Import the store
+import { useCateringStore } from "@/store/cateringStore";
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
-export const Sidebar = () => {
+interface SidebarProps {
+  isSidebarOpen: boolean;
+  onClose: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
   const location = useLocation();
-  const businessName = useCateringStore((state) => state.businessName); // Get business name from store
-  const currentUser = useCateringStore((state) => state.currentUser); // Get current user from store
-  const logoUrl = useCateringStore((state) => state.logoUrl); // Get logo URL from store
+  const isMobile = useIsMobile();
+  const businessName = useCateringStore((state) => state.businessName);
+  const currentUser = useCateringStore((state) => state.currentUser);
+  const logoUrl = useCateringStore((state) => state.logoUrl);
 
   const navItems = [
     {
@@ -92,8 +100,28 @@ export const Sidebar = () => {
   ];
 
   return (
-    <aside className="flex flex-col h-screen w-64 bg-sidebar-background text-sidebar-foreground">
+    <aside
+      className={cn(
+        "flex flex-col h-screen w-64 bg-sidebar-background text-sidebar-foreground transition-transform duration-300 ease-in-out",
+        isMobile
+          ? "fixed inset-y-0 left-0 z-50 transform"
+          : "relative",
+        isMobile && !isSidebarOpen && "-translate-x-full", // Hide on mobile when closed
+        isMobile && isSidebarOpen && "translate-x-0", // Show on mobile when open
+        !isMobile && "translate-x-0" // Always show on desktop
+      )}
+    >
       <div className="relative h-32 w-full overflow-hidden border-b border-primary-foreground/20 flex flex-col items-center justify-center px-4 bg-sidebar-accent text-white">
+        {isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 text-black"
+            onClick={onClose}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+        )}
         {logoUrl ? (
           <img src={logoUrl} alt="Company Logo" className="h-16 w-auto object-contain mb-2" />
         ) : (
@@ -116,11 +144,10 @@ export const Sidebar = () => {
             const hasChildren = item.children && item.children.length > 0;
             const Icon = item.icon;
 
-            // Styling for all nav items against the light background
             const baseTextColor = "text-sidebar-foreground";
-            const hoverBg = "hover:bg-sidebar-accent"; // Lighter blue for hover
-            const activeBg = "bg-sidebar-accent"; // Lighter blue for active background
-            const activeTextColor = "text-sidebar-accent-foreground"; // Primary blue for active text
+            const hoverBg = "hover:bg-sidebar-accent";
+            const activeBg = "bg-sidebar-accent";
+            const activeTextColor = "text-sidebar-accent-foreground";
 
             return (
               <React.Fragment key={item.href}>
@@ -133,6 +160,7 @@ export const Sidebar = () => {
                     hoverBg,
                     isActiveParent ? cn(activeBg, activeTextColor) : ""
                   )}
+                  onClick={isMobile ? onClose : undefined} // Close sidebar on mobile when a nav item is clicked
                 >
                   <Link to={item.href}>
                     {Icon && <Icon className="mr-3 h-5 w-5" />}
@@ -155,6 +183,7 @@ export const Sidebar = () => {
                             hoverBg,
                             isChildActive ? cn(activeBg, activeTextColor) : ""
                           )}
+                          onClick={isMobile ? onClose : undefined} // Close sidebar on mobile when a nav item is clicked
                         >
                           <Link to={child.href}>
                             {child.name}
