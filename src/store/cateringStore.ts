@@ -215,6 +215,16 @@ export interface CriticalTask {
   completed: boolean; // NEW: Added completion status
 }
 
+// NEW: User and Role Definitions
+export type UserRole = "Owner" | "Caterer" | "Employee";
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
 interface CateringState {
   inventory: InventoryItem[];
   recipes: Recipe[];
@@ -225,6 +235,8 @@ interface CateringState {
   menus: Menu[]; // NEW: Menus state
   notes: Note[]; // NEW: Notes state
   criticalTasks: CriticalTask[]; // NEW: Critical Tasks state
+  users: User[]; // NEW: Users state
+  currentUser: User | null; // NEW: Current logged-in user
 
   // NEW: Global Settings
   businessName: string;
@@ -278,6 +290,12 @@ interface CateringState {
   updateCriticalTask: (id: string, content: string) => void;
   deleteCriticalTask: (id: string) => void;
   toggleCriticalTaskCompletion: (id: string) => void; // NEW: Toggle completion status
+
+  // NEW: User actions
+  addUser: (user: Omit<User, 'id'>) => void;
+  updateUser: (user: User) => void;
+  deleteUser: (id: string) => void;
+  setCurrentUser: (user: User | null) => void;
 
   // NEW: Global Settings actions
   setBusinessName: (name: string) => void;
@@ -1592,6 +1610,12 @@ const initialBookings: EventBooking[] = [
   },
 ];
 
+const initialUsers: User[] = [
+  { id: "u1", name: "Alice Johnson", email: "alice@example.com", role: "Owner" },
+  { id: "u2", name: "Bob Caterer", email: "bob@example.com", role: "Caterer" },
+  { id: "u3", name: "Charlie Employee", email: "charlie@example.com", role: "Employee" },
+];
+
 
 export const useCateringStore = create<CateringState>()(
   persist(
@@ -1625,6 +1649,8 @@ export const useCateringStore = create<CateringState>()(
       menus: initialMenus, // NEW: Initialize menus with sample data
       notes: initialNotes, // NEW: Initialize notes with sample data
       criticalTasks: initialCriticalTasks, // NEW: Initialize critical tasks
+      users: initialUsers, // NEW: Initialize users
+      currentUser: initialUsers[0], // NEW: Set initial current user (e.g., Owner)
 
       // NEW: Global Settings initial values
       businessName: "Catering by Cronkhite",
@@ -1936,6 +1962,20 @@ export const useCateringStore = create<CateringState>()(
           task.id === id ? { ...task, completed: !task.completed } : task
         ),
       })),
+
+      // NEW: User actions
+      addUser: (user) => set((state) => ({
+        users: [...state.users, { ...user, id: crypto.randomUUID() }],
+      })),
+      updateUser: (updatedUser) => set((state) => ({
+        users: state.users.map((user) =>
+          user.id === updatedUser.id ? updatedUser : user
+        ),
+      })),
+      deleteUser: (id) => set((state) => ({
+        users: state.users.filter((user) => user.id !== id),
+      })),
+      setCurrentUser: (user) => set({ currentUser: user }),
 
       // NEW: Global Settings actions
       setBusinessName: (name) => set({ businessName: name }),

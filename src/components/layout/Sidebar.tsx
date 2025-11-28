@@ -16,13 +16,15 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  ChefHat
+  ChefHat,
+  User as UserIcon // Import User icon
 } from "lucide-react";
 import { useCateringStore } from "@/store/cateringStore"; // Import the store
 
 export const Sidebar = () => {
   const location = useLocation();
   const businessName = useCateringStore((state) => state.businessName); // Get business name from store
+  const currentUser = useCateringStore((state) => state.currentUser); // Get current user from store
 
   const navItems = [
     {
@@ -93,8 +95,14 @@ export const Sidebar = () => {
       <div className="relative h-32 w-full overflow-hidden border-b border-primary-foreground/20 flex flex-col items-center justify-center px-4 bg-sidebar-accent text-white">
         <ChefHat className="h-8 w-8 text-black mb-2" />
         <h1 className="text-xl font-serif font-semibold text-black">
-          {businessName} {/* Use businessName from store */}
+          {businessName}
         </h1>
+        {currentUser && (
+          <div className="absolute bottom-2 right-2 flex items-center gap-1 text-xs text-black/80 bg-white/70 px-2 py-1 rounded-full">
+            <UserIcon className="h-3 w-3" />
+            <span>{currentUser.role}</span>
+          </div>
+        )}
       </div>
       <ScrollArea className="flex-1 py-4">
         <nav className="grid items-start px-4 text-sm font-medium">
