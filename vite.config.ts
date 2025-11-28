@@ -3,7 +3,8 @@ import dyadComponentTagger from "@dyad-sh/react-vite-component-tagger";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
-export default defineConfig(() => ({
+export default defineConfig(({ command }) => ({
+  base: '/', // Always use absolute path for Vercel deployments
   server: {
     host: "::",
     port: 8080,
@@ -13,5 +14,8 @@ export default defineConfig(() => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  optimizeDeps: {
+    include: ['lucide-react'], // Explicitly include lucide-react for pre-bundling
   },
 }));
