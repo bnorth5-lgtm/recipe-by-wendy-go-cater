@@ -47,8 +47,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main Content Area */}
       <main
         className={cn(
-          "flex-1 overflow-auto bg-background",
-          isMobile && !isSidebarOpen && "pl-[72px] pt-4" // Add left padding to clear hamburger, and some top padding
+          "flex-1 overflow-auto bg-background" // Removed conditional padding here
         )}
         onClick={isMobile && !isSidebarOpen ? toggleSidebar : undefined} // Tap anywhere to open sidebar on mobile when closed
       >
