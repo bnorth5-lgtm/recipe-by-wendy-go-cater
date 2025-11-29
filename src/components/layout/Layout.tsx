@@ -44,7 +44,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-auto bg-background p-4 lg:p-0">
+      <main className="flex-1 overflow-auto bg-background"> {/* Removed p-4 lg:p-0 */}
         {children}
       </main>
     </div>
