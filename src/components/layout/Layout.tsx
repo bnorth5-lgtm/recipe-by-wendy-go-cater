@@ -36,22 +36,21 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Sidebar */}
       <Sidebar isSidebarOpen={isSidebarOpen} onClose={toggleSidebar} />
 
-      {/* Overlay for mobile when sidebar is open */}
-      {/* This overlay is behind the main content, allowing clicks to pass through to main */}
+      {/* NEW: Click-to-close overlay for mobile when sidebar is open */}
       {isMobile && isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30"
-          onClick={toggleSidebar} // Clicking the overlay also closes the sidebar
+          className="fixed inset-0 bg-black/50 z-45" // Higher z-index than main content, lower than sidebar
+          onClick={toggleSidebar}
         ></div>
       )}
 
       {/* Main Content Area */}
       <main
         className={cn(
-          "flex-1 overflow-auto bg-background transition-transform duration-300 ease-in-out relative z-40 min-h-screen", // Added relative, z-40, and min-h-screen
+          "flex-1 overflow-auto bg-background transition-transform duration-300 ease-in-out relative z-40 min-h-screen",
           isMobile && isSidebarOpen && "translate-x-64" // Push content right by sidebar width (w-64 = 256px)
         )}
-        onClick={isMobile && isSidebarOpen ? toggleSidebar : undefined} // Tap anywhere on main to close sidebar
+        // Removed onClick from main, as the new overlay will handle it
       >
         {children}
       </main>
