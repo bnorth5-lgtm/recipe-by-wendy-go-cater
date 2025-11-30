@@ -180,7 +180,6 @@ const Dashboard = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
       }}
     >
       <div className="relative z-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4 flex-1">
