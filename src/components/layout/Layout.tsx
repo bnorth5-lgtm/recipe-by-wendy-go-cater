@@ -36,10 +36,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Sidebar */}
       <Sidebar isSidebarOpen={isSidebarOpen} onClose={toggleSidebar} />
 
-      {/* NEW: Click-to-close overlay for mobile when sidebar is open */}
+      {/* Click-to-close overlay for mobile when sidebar is open */}
       {isMobile && isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-45" // Higher z-index than main content, lower than sidebar
+          className="fixed inset-0 bg-black/50 z-45"
           onClick={toggleSidebar}
         ></div>
       )}
@@ -47,10 +47,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main Content Area */}
       <main
         className={cn(
-          "flex-1 overflow-auto bg-background transition-transform duration-300 ease-in-out relative z-40 min-h-screen",
+          "overflow-auto bg-background transition-transform duration-300 ease-in-out relative z-40 min-h-screen",
+          // Desktop: flex-1 to take remaining space
+          !isMobile && "flex-1",
+          // Mobile:
+          isMobile && "fixed inset-0 w-full", // Make it fixed and cover the whole screen on mobile
           isMobile && isSidebarOpen && "translate-x-64" // Push content right by sidebar width (w-64 = 256px)
         )}
-        // Removed onClick from main, as the new overlay will handle it
       >
         {children}
       </main>
