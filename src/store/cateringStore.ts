@@ -167,6 +167,7 @@ export interface EventBooking {
   selectedRecipeIds: string[]; // IDs of recipes used for this event
   status: "pending" | "completed" | "cancelled";
   proposalId?: string; // NEW: Link to the originating proposal
+  beoId?: string; // NEW: Link to the associated BEO
 }
 
 // Define the schema for an Estimate
@@ -225,6 +226,26 @@ export interface User {
   role: UserRole;
 }
 
+// NEW: BEO Custom Section
+export interface BEOCustomSection {
+  id: string;
+  title: string;
+  content: string;
+}
+
+// NEW: BEO Interface
+export interface BEO {
+  id: string;
+  bookingId: string; // Link to the EventBooking
+  eventTime: string; // e.g., "6:00 PM - 10:00 PM"
+  venue: string;
+  specialInstructions?: string;
+  customSections: BEOCustomSection[]; // Dynamic custom sections
+  status: "Draft" | "Finalized" | "Printed"; // BEO specific status
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface CateringState {
   inventory: InventoryItem[];
   recipes: Recipe[];
@@ -237,6 +258,7 @@ interface CateringState {
   criticalTasks: CriticalTask[]; // NEW: Critical Tasks state
   users: User[]; // NEW: Users state
   currentUser: User | null; // NEW: Current logged-in user
+  beos: BEO[]; // NEW: BEOs state
 
   // NEW: Global Settings
   businessName: string;
@@ -262,7 +284,7 @@ interface CateringState {
   updateRecipe: (recipe: Omit<Recipe, 'baseCost'>) => void; // baseCost is calculated
   deleteRecipe: (id: string) => void;
 
-  addBooking: (booking: Omit<EventBooking, 'id' | 'status'>) => void;
+  addBooking: (booking: Omit<EventBooking, 'id' | 'status' | 'beoId'>) => void; // beoId is set when BEO is created
   updateBooking: (booking: EventBooking) => void;
   deleteBooking: (id: string) => void;
   completeBooking: (id: string) => boolean; // Returns true if completed and inventory deducted, false otherwise
@@ -303,6 +325,11 @@ interface CateringState {
   updateUser: (user: User) => void;
   deleteUser: (id: string) => void;
   setCurrentUser: (user: User | null) => void;
+
+  // NEW: BEO actions
+  addBEO: (beo: Omit<BEO, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => void;
+  updateBEO: (beo: BEO) => void;
+  deleteBEO: (id: string) => void;
 
   // NEW: Global Settings actions
   setBusinessName: (name: string) => void;
@@ -1601,6 +1628,7 @@ const initialBookings: EventBooking[] = [
     selectedRecipeIds: ["r3", "r24", "r23", "r16"],
     status: "pending", // Default to pending, can be completed later
     proposalId: "p1", // Link to the accepted proposal
+    beoId: undefined, // No BEO yet
   },
   {
     id: "b2",
@@ -1611,6 +1639,7 @@ const initialBookings: EventBooking[] = [
     selectedRecipeIds: ["r10", "r20", "r1", "r2", "r12"],
     status: "pending",
     proposalId: "p2", // Linked to p2
+    beoId: undefined, // No BEO yet
   },
   {
     id: "b3",
@@ -1621,6 +1650,7 @@ const initialBookings: EventBooking[] = [
     selectedRecipeIds: ["r6", "r25", "r31", "r14"],
     status: "pending",
     proposalId: "p3", // Linked to p3
+    beoId: undefined, // No BEO yet
   },
 ];
 
@@ -1628,6 +1658,23 @@ const initialUsers: User[] = [
   { id: "u1", name: "Alice Johnson", email: "alice@example.com", role: "Owner" },
   { id: "u2", name: "Bob Caterer", email: "bob@example.com", role: "Caterer" },
   { id: "u3", name: "Charlie Employee", email: "charlie@example.com", role: "Employee" },
+];
+
+const initialBEOs: BEO[] = [
+  {
+    id: "beo1",
+    bookingId: "b1",
+    eventTime: "6:00 PM - 10:00 PM",
+    venue: "Grand Ballroom, City Convention Center",
+    specialInstructions: "Client requires all serving staff to wear black ties. VIP table near the stage.",
+    customSections: [
+      { id: "cs1", title: "Floral Arrangements", content: "White roses and lilies for all tables. Head table to have a larger centerpiece." },
+      { id: "cs2", title: "Audio/Visual Needs", content: "Projector and screen for presentation. Two wireless microphones for speeches." },
+    ],
+    status: "Finalized",
+    createdAt: getFutureDate(-10),
+    updatedAt: getFutureDate(-5),
+  },
 ];
 
 
@@ -1665,6 +1712,7 @@ export const useCateringStore = create<CateringState>()(
       criticalTasks: initialCriticalTasks, // NEW: Initialize critical tasks
       users: initialUsers, // NEW: Initialize users
       currentUser: initialUsers[0], // NEW: Set initial current user (e.g., Owner)
+      beos: initialBEOs, // NEW: Initialize BEOs
 
       // NEW: Global Settings initial values
       businessName: "Catering by Cronkhite",
@@ -1883,6 +1931,7 @@ export const useCateringStore = create<CateringState>()(
                 .map(item => item.id),
               status: "pending",
               proposalId: updatedProposal.id, // Link to the originating proposal
+              beoId: undefined, // No BEO yet
             };
             return {
               proposals: newProposals,
@@ -1997,6 +2046,37 @@ export const useCateringStore = create<CateringState>()(
         users: state.users.filter((user) => user.id !== id),
       })),
       setCurrentUser: (user) => set({ currentUser: user }),
+
+      // NEW: BEO actions
+      addBEO: (beo) => set((state) => {
+        const now = new Date().toISOString();
+        const newBEO = { ...beo, id: crypto.randomUUID(), status: "Draft", createdAt: now, updatedAt: now };
+        // Also update the associated booking with the new BEO ID
+        const updatedBookings = state.bookings.map(b =>
+          b.id === beo.bookingId ? { ...b, beoId: newBEO.id } : b
+        );
+        return {
+          beos: [...state.beos, newBEO],
+          bookings: updatedBookings,
+        };
+      }),
+      updateBEO: (updatedBEO) => set((state) => ({
+        beos: state.beos.map((b) =>
+          b.id === updatedBEO.id ? { ...updatedBEO, updatedAt: new Date().toISOString() } : b
+        ),
+      })),
+      deleteBEO: (id) => set((state) => {
+        // Also remove the beoId from the associated booking
+        const bookingToUpdate = state.bookings.find(b => b.beoId === id);
+        const updatedBookings = bookingToUpdate
+          ? state.bookings.map(b => b.id === bookingToUpdate.id ? { ...b, beoId: undefined } : b)
+          : state.bookings;
+
+        return {
+          beos: state.beos.filter((beo) => beo.id !== id),
+          bookings: updatedBookings,
+        };
+      }),
 
       // NEW: Global Settings actions
       setBusinessName: (name) => set({ businessName: name }),

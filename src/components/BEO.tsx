@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { EventBooking, Recipe, InventoryItem } from "@/store/cateringStore";
+import { EventBooking, Recipe, InventoryItem, BEO as BEOType } from "@/store/cateringStore"; // Import BEOType
 import { format, parseISO } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox for the checklist
 
@@ -9,11 +9,12 @@ interface BEOProps {
   booking: EventBooking;
   recipes: Recipe[];
   inventory: InventoryItem[];
+  beo: BEOType; // NEW: Pass the BEO object directly
 }
 
-export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
-  if (!booking) {
-    return <div className="p-2 text-center text-muted-foreground">No booking data available.</div>; {/* Reduced p-3 to p-2 */}
+export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory, beo }) => {
+  if (!booking || !beo) {
+    return <div className="p-2 text-center text-muted-foreground">No booking or BEO data available.</div>;
   }
 
   const formattedEventDate = format(parseISO(booking.eventDate), "PPP");
@@ -23,7 +24,7 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
     return recipe || null;
   };
 
-  // Simulated staff checklist items
+  // Simulated staff checklist items (can be moved to BEO object if dynamic)
   const staffChecklistItems = [
     "Confirm final guest count with client",
     "Verify all dietary restrictions are noted and planned for",
@@ -39,36 +40,34 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
   ];
 
   return (
-    <div className="p-4 bg-white text-gray-900 max-w-4xl mx-auto shadow-lg rounded-lg print:shadow-none print:p-0"> {/* Reduced p-6 to p-4 */}
-      <div className="flex justify-between items-center border-b pb-2 mb-3"> {/* Reduced pb-3 to pb-2, mb-4 to mb-3 */}
+    <div className="p-4 bg-white text-gray-900 max-w-4xl mx-auto shadow-lg rounded-lg print:shadow-none print:p-0">
+      <div className="flex justify-between items-center border-b pb-2 mb-3">
         <h1 className="text-3xl font-bold text-primary">Banquet Event Order (BEO)</h1>
         <div className="text-right">
-          <p className="text-sm">BEO ID: <span className="font-semibold">{booking.id.substring(0, 8)}</span></p>
-          <p className="text-sm">Date Generated: <span className="font-semibold">{format(new Date(), "PPP")}</span></p>
-          <p className="text-sm">Status: <span className="font-semibold capitalize">{booking.status}</span></p>
+          <p className="text-sm">BEO ID: <span className="font-semibold">{beo.id.substring(0, 8)}</span></p>
+          <p className="text-sm">Date Generated: <span className="font-semibold">{format(parseISO(beo.createdAt), "PPP")}</span></p>
+          <p className="text-sm">Status: <span className="font-semibold capitalize">{beo.status}</span></p>
         </div>
       </div>
 
       {/* Event Details */}
-      <div className="mb-3"> {/* Reduced mb-4 to mb-3 */}
-        <h2 className="text-xl font-semibold mb-1 text-primary">Event Details</h2> {/* Reduced mb-2 to mb-1 */}
+      <div className="mb-3">
+        <h2 className="text-xl font-semibold mb-1 text-primary">Event Details</h2>
         <p><span className="font-medium">Event Name:</span> {booking.eventName}</p>
         <p><span className="font-medium">Client Name:</span> {booking.clientName}</p>
         <p><span className="font-medium">Event Date:</span> {formattedEventDate}</p>
+        <p><span className="font-medium">Event Time:</span> {beo.eventTime}</p> {/* From BEO object */}
+        <p><span className="font-medium">Venue:</span> {beo.venue}</p> {/* From BEO object */}
         <p><span className="font-medium">Number of Guests:</span> {booking.numberOfGuests}</p>
-        {/* Placeholder for Event Time, Venue, etc. */}
-        <p className="text-sm text-muted-foreground mt-1"> {/* Reduced mt-2 to mt-1 */}
-          *Additional details like event time, venue, and setup instructions would go here.*
-        </p>
       </div>
 
       {/* Menu Items */}
-      <div className="mb-3"> {/* Reduced mb-4 to mb-3 */}
-        <h2 className="text-xl font-semibold mb-1 text-primary">Menu Items</h2> {/* Reduced mb-2 to mb-1 */}
+      <div className="mb-3">
+        <h2 className="text-xl font-semibold mb-1 text-primary">Menu Items</h2>
         {booking.selectedRecipeIds.length === 0 ? (
           <p className="text-muted-foreground">No recipes selected for this event.</p>
         ) : (
-          <ul className="list-disc list-inside space-y-1"> {/* Reduced space-y-2 to space-y-1 */}
+          <ul className="list-disc list-inside space-y-1">
             {booking.selectedRecipeIds.map((recipeId) => {
               const recipe = getRecipeDetails(recipeId);
               return recipe ? (
@@ -93,20 +92,20 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
       </div>
 
       {/* Staffing & Equipment (Placeholders) */}
-      <div className="mb-3 border-t pt-2"> {/* Reduced mb-4 to mb-3, pt-3 to pt-2 */}
-        <h2 className="text-xl font-semibold mb-1 text-primary">Staffing & Equipment</h2> {/* Reduced mb-2 to mb-1 */}
+      <div className="mb-3 border-t pt-2">
+        <h2 className="text-xl font-semibold mb-1 text-primary">Staffing & Equipment</h2>
         <p className="text-muted-foreground">
           <span className="font-medium">Staff Required:</span> Head Chef, 2 Line Cooks, 3 Servers, 1 Bartender
         </p>
         <p className="text-muted-foreground">
           <span className="font-medium">Equipment:</span> Chafing Dishes, Serving Utensils, Table Linens, Glassware, etc.
         </p>
-        <p className="text-sm text-muted-foreground mt-1"> {/* Reduced mt-2 to mt-1 */}
+        <p className="text-sm text-muted-foreground mt-1">
           *Detailed staff assignments, setup diagrams, and equipment lists would be included here.*
         </p>
       </div>
 
-      {/* NEW: Staff Checklist */}
+      {/* Staff Checklist */}
       <div className="mb-3 border-t pt-2">
         <h2 className="text-xl font-semibold mb-1 text-primary">Staff Operational Checklist</h2>
         <p className="text-sm text-muted-foreground mb-2">
@@ -128,18 +127,29 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
       </div>
 
       {/* Special Notes */}
-      <div className="border-t pt-2 mt-3"> {/* Reduced pt-3 mt-4 to pt-2 mt-3 */}
-        <h2 className="text-xl font-semibold mb-1 text-primary">Special Notes / Requirements</h2> {/* Reduced mb-2 to mb-1 */}
-        <p className="text-sm text-gray-700 whitespace-pre-wrap">
-          Client has requested gluten-free options for 10 guests. Ensure all dietary restrictions are clearly marked.
-          Setup to begin at 3:00 PM. Event starts at 6:00 PM.
-        </p>
-        <p className="text-sm text-muted-foreground mt-1"> {/* Reduced mt-2 to mt-1 */}
-          *Any specific client requests, dietary restrictions, or logistical notes for the team.*
-        </p>
-      </div>
+      {beo.specialInstructions && (
+        <div className="border-t pt-2 mt-3">
+          <h2 className="text-xl font-semibold mb-1 text-primary">Special Notes / Requirements</h2>
+          <p className="text-sm text-gray-700 whitespace-pre-wrap">
+            {beo.specialInstructions}
+          </p>
+        </div>
+      )}
 
-      <div className="text-center text-sm text-muted-foreground mt-4 pt-2 border-t"> {/* Reduced mt-6 pt-3 to mt-4 pt-2 */}
+      {/* Custom Sections */}
+      {beo.customSections && beo.customSections.length > 0 && (
+        <div className="border-t pt-2 mt-3">
+          <h2 className="text-xl font-semibold mb-1 text-primary">Additional Details</h2>
+          {beo.customSections.map((section) => (
+            <div key={section.id} className="mb-2">
+              <h3 className="text-lg font-semibold text-secondary-foreground">{section.title}</h3>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{section.content}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="text-center text-sm text-muted-foreground mt-4 pt-2 border-t">
         This BEO is for internal use by catering staff.
       </div>
     </div>
