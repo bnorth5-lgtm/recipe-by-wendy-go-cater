@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CheckCircle, Loader2, Trash2, XCircle } from "lucide-react"; // XCircle added here
+import { CheckCircle, Loader2, Trash2, XCircle, Edit } from "lucide-react"; // XCircle and Edit added here
 import { toast } from "sonner";
 import { useCateringStore, EventBooking } from "@/store/cateringStore";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,15 @@ import { format } from "date-fns"; // Import format from date-fns
 import * as z from "zod"; // Import Zod
 import { bookingFormSchema } from "@/components/BookingForm"; // Import the schema
 import { cn } from "@/lib/utils"; // Import cn for conditional classNames
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 type BookingFormData = z.infer<typeof bookingFormSchema>; // Infer type from schema
 
@@ -28,8 +37,11 @@ const Bookings = () => {
   const bookings = useCateringStore((state) => state.bookings);
   const recipes = useCateringStore((state) => state.recipes);
   const addBooking = useCateringStore((state) => state.addBooking);
-  const completeBooking = useCateringStore((state) => state.completeBooking);
+  const updateBooking = useCateringStore((state) => state.updateBooking);
   const deleteBooking = useCateringStore((state) => state.deleteBooking);
+
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingBooking, setEditingBooking] = useState<EventBooking | null>(null);
 
   // Explicitly type data as BookingFormData
   const handleAddBookingSubmit = (data: BookingFormData) => {
@@ -43,8 +55,24 @@ const Bookings = () => {
     toast.success("Event booking added successfully!");
   };
 
+  const handleUpdateBookingSubmit = (data: BookingFormData) => {
+    if (editingBooking) {
+      updateBooking({
+        ...editingBooking,
+        eventName: data.eventName,
+        clientName: data.clientName,
+        eventDate: format(data.eventDate, "yyyy-MM-dd"),
+        numberOfGuests: data.numberOfGuests,
+        selectedRecipeIds: data.selectedRecipeIds,
+      });
+      toast.success("Event booking updated successfully!");
+      setEditingBooking(null);
+      setIsEditDialogOpen(false);
+    }
+  };
+
   const handleCompleteBooking = (bookingId: string) => {
-    const success = completeBooking(bookingId);
+    const success = useCateringStore.getState().completeBooking(bookingId); // Use getState for direct access
     if (success) {
       toast.success("Event completed and inventory deducted!");
     } else {
@@ -55,6 +83,11 @@ const Bookings = () => {
   const handleDeleteBooking = (bookingId: string) => {
     deleteBooking(bookingId);
     toast.info("Booking deleted.");
+  };
+
+  const handleEditBooking = (booking: EventBooking) => {
+    setEditingBooking(booking);
+    setIsEditDialogOpen(true);
   };
 
   return (
@@ -142,14 +175,24 @@ const Bookings = () => {
                         </TableCell>
                         <TableCell className="text-right px-3 py-2">
                           {booking.status === "pending" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleCompleteBooking(booking.id)}
-                              className="mr-2"
-                            >
-                              Complete Event
-                            </Button>
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCompleteBooking(booking.id)}
+                                className="mr-2"
+                              >
+                                Complete Event
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditBooking(booking)}
+                                className="mr-2"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </>
                           )}
                           <Button
                             variant="destructive"
@@ -169,6 +212,25 @@ const Bookings = () => {
         </Card>
       </div>
       <MadeWithDyad />
+
+      {/* Edit Booking Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Event Booking</DialogTitle>
+            <DialogDescription>
+              Make changes to the event details here. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          {editingBooking && (
+            <BookingForm
+              initialData={editingBooking}
+              onSubmit={handleUpdateBookingSubmit}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

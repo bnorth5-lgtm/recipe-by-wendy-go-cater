@@ -3,6 +3,7 @@
 import React from "react";
 import { EventBooking, Recipe, InventoryItem } from "@/store/cateringStore";
 import { format, parseISO } from "date-fns";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox for the checklist
 
 interface BEOProps {
   booking: EventBooking;
@@ -21,6 +22,21 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
     const recipe = recipes.find(r => r.id === recipeId);
     return recipe || null;
   };
+
+  // Simulated staff checklist items
+  const staffChecklistItems = [
+    "Confirm final guest count with client",
+    "Verify all dietary restrictions are noted and planned for",
+    "Assign kitchen staff roles for prep and cooking",
+    "Assign service staff roles (servers, bartenders, setup crew)",
+    "Confirm equipment rentals and delivery schedule",
+    "Prepare all mise en place for recipes",
+    "Conduct pre-event briefing with all staff",
+    "Perform final quality check on all dishes before serving",
+    "Ensure venue setup matches client's diagram",
+    "Coordinate with venue contact for event flow",
+    "Post-event cleanup and inventory reconciliation",
+  ];
 
   return (
     <div className="p-4 bg-white text-gray-900 max-w-4xl mx-auto shadow-lg rounded-lg print:shadow-none print:p-0"> {/* Reduced p-6 to p-4 */}
@@ -88,6 +104,27 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory }) => {
         <p className="text-sm text-muted-foreground mt-1"> {/* Reduced mt-2 to mt-1 */}
           *Detailed staff assignments, setup diagrams, and equipment lists would be included here.*
         </p>
+      </div>
+
+      {/* NEW: Staff Checklist */}
+      <div className="mb-3 border-t pt-2">
+        <h2 className="text-xl font-semibold mb-1 text-primary">Staff Operational Checklist</h2>
+        <p className="text-sm text-muted-foreground mb-2">
+          Ensure all critical tasks are completed for a successful event.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {staffChecklistItems.map((item, index) => (
+            <div key={index} className="flex items-center space-x-2">
+              <Checkbox id={`checklist-item-${index}`} />
+              <label
+                htmlFor={`checklist-item-${index}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {item}
+              </label>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Special Notes */}

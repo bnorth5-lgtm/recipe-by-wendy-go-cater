@@ -48,7 +48,7 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Edit, Trash2, CalendarIcon, Eye, Send, CheckCircle, XCircle, Archive, Utensils, Wine, Package, Printer } from "lucide-react"; // Added Printer icon
+import { PlusCircle, Edit, Trash2, CalendarIcon, Eye, Send, CheckCircle, XCircle, Archive, Utensils, Wine, Package, Printer, CalendarCheck } from "lucide-react"; // Added CalendarCheck
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useCateringStore, Client, Recipe, InventoryItem, Proposal, ProposalItem } from "@/store/cateringStore";
@@ -607,11 +607,18 @@ const Proposals = () => {
                           </TableCell>
                           <TableCell className="text-right flex justify-end space-x-2 px-3 py-2">
                             {proposal.status === "Accepted" && associatedBooking && (
-                              <Link to={`/events/beos/${associatedBooking.id}`}>
-                                <Button variant="outline" size="icon" className="mr-2" title="View BEO">
-                                  <Printer className="h-4 w-4" />
-                                </Button>
-                              </Link>
+                              <>
+                                <Link to={`/events/calendar/${associatedBooking.id}`} className="block"> {/* Link to bookings page */}
+                                  <Button variant="outline" size="icon" className="mr-2" title="View Booking">
+                                    <CalendarCheck className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                                <Link to={`/events/beos/${associatedBooking.id}`}>
+                                  <Button variant="outline" size="icon" className="mr-2" title="View BEO">
+                                    <Printer className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                              </>
                             )}
                             <Button variant="outline" size="icon" onClick={() => handleView(proposal)} title="View Proposal">
                               <Eye className="h-4 w-4" />

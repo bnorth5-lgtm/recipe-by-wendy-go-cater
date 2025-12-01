@@ -18,6 +18,7 @@ import {
   Edit,
   Trash2,
   PlusCircle,
+  Printer, // Added Printer icon for BEOs card
 } from "lucide-react";
 import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore";
 import {
@@ -405,6 +406,24 @@ const Dashboard = () => {
             </Dialog>
           </CardContent>
         </Card>
+
+        {/* NEW: View BEOs Card */}
+        <Link to="/events/beos" className="block">
+          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+              <CardTitle className="text-sm font-medium">
+                View BEOs
+              </CardTitle>
+              <Printer className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="flex flex-col justify-between h-full">
+              <div className="text-lg font-bold">Generate & review Banquet Event Orders</div>
+              <p className="text-xs text-muted-foreground">
+                Detailed operational plans for your catering staff.
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Row 4 (formerly Row 5): Core Management */}
         <Link to="/menu/inventory" className="block">
