@@ -4,6 +4,7 @@ import React from "react";
 import { EventBooking, Recipe, InventoryItem, BEO as BEOType } from "@/store/cateringStore"; // Import BEOType
 import { format, parseISO } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox for the checklist
+import { useCateringStore } from "@/store/cateringStore"; // Import useCateringStore
 
 interface BEOProps {
   booking: EventBooking;
@@ -13,6 +14,8 @@ interface BEOProps {
 }
 
 export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory, beo }) => {
+  const updateBEOChecklistItem = useCateringStore((state) => state.updateBEOChecklistItem);
+
   if (!booking || !beo) {
     return <div className="p-2 text-center text-muted-foreground">No booking or BEO data available.</div>;
   }
@@ -24,20 +27,9 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory, beo }) =>
     return recipe || null;
   };
 
-  // Simulated staff checklist items (can be moved to BEO object if dynamic)
-  const staffChecklistItems = [
-    "Confirm final guest count with client",
-    "Verify all dietary restrictions are noted and planned for",
-    "Assign kitchen staff roles for prep and cooking",
-    "Assign service staff roles (servers, bartenders, setup crew)",
-    "Confirm equipment rentals and delivery schedule",
-    "Prepare all mise en place for recipes",
-    "Conduct pre-event briefing with all staff",
-    "Perform final quality check on all dishes before serving",
-    "Ensure venue setup matches client's diagram",
-    "Coordinate with venue contact for event flow",
-    "Post-event cleanup and inventory reconciliation",
-  ];
+  const handleChecklistToggle = (itemId: string, completed: boolean) => {
+    updateBEOChecklistItem(beo.id, itemId, completed);
+  };
 
   return (
     <div className="p-4 bg-white text-gray-900 max-w-4xl mx-auto shadow-lg rounded-lg print:shadow-none print:p-0">
@@ -112,17 +104,25 @@ export const BEO: React.FC<BEOProps> = ({ booking, recipes, inventory, beo }) =>
           Ensure all critical tasks are completed for a successful event.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {staffChecklistItems.map((item, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <Checkbox id={`checklist-item-${index}`} />
-              <label
-                htmlFor={`checklist-item-${index}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {item}
-              </label>
-            </div>
-          ))}
+          {beo.checklist.length === 0 ? (
+            <p className="text-muted-foreground text-sm col-span-2">No checklist items defined for this BEO.</p>
+          ) : (
+            beo.checklist.map((item, index) => (
+              <div key={item.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`checklist-item-${item.id}`}
+                  checked={item.completed}
+                  onCheckedChange={(checked: boolean) => handleChecklistToggle(item.id, checked)}
+                />
+                <label
+                  htmlFor={`checklist-item-${item.id}`}
+                  className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${item.completed ? "line-through text-muted-foreground" : ""}`}
+                >
+                  {item.task}
+                </label>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

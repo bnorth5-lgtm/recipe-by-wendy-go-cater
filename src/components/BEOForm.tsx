@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BEO, BEOCustomSection } from "@/store/cateringStore";
+import { BEO, BEOCustomSection, BEOChecklistItem } from "@/store/cateringStore"; // Import BEOChecklistItem
 import { cn } from "@/lib/utils";
 
 // Define the schema for a custom section
@@ -34,6 +34,13 @@ const customSectionSchema = z.object({
   content: z.string().min(1, "Section content is required"),
 });
 
+// Define the schema for a checklist item
+const checklistItemSchema = z.object({
+  id: z.string().optional(), // ID is optional for new items
+  task: z.string().min(1, "Checklist task is required"),
+  completed: z.boolean().default(false),
+});
+
 // Define the main schema for the BEO form
 export const beoFormSchema = z.object({
   bookingId: z.string().min(1, "Booking is required"),
@@ -41,6 +48,7 @@ export const beoFormSchema = z.object({
   venue: z.string().min(1, "Venue is required"),
   specialInstructions: z.string().optional(),
   customSections: z.array(customSectionSchema).optional(),
+  checklist: z.array(checklistItemSchema).optional(), // NEW: Add checklist to schema
   status: z.enum(["Draft", "Finalized", "Printed"]).default("Draft"),
 });
 
@@ -62,6 +70,7 @@ export const BEOForm: React.FC<BEOFormProps> = ({ initialData, bookingName, onSu
       venue: "",
       specialInstructions: "",
       customSections: [],
+      checklist: [], // Initialize checklist
       status: "Draft",
     },
   });
@@ -69,6 +78,11 @@ export const BEOForm: React.FC<BEOFormProps> = ({ initialData, bookingName, onSu
   const { fields: customSectionFields, append: appendCustomSection, remove: removeCustomSection } = useFieldArray({
     control: form.control,
     name: "customSections",
+  });
+
+  const { fields: checklistFields, append: appendChecklist, remove: removeChecklist } = useFieldArray({
+    control: form.control,
+    name: "checklist", // NEW: Field array for checklist
   });
 
   return (
@@ -181,6 +195,64 @@ export const BEOForm: React.FC<BEOFormProps> = ({ initialData, bookingName, onSu
             onClick={() => appendCustomSection({ id: crypto.randomUUID(), title: "", content: "" })}
           >
             <PlusCircle className="mr-2 h-4 w-4" /> Add Custom Section
+          </Button>
+        </div>
+
+        {/* NEW: Checklist Section */}
+        <div>
+          <h3 className="text-lg font-medium mb-2">Staff Checklist</h3>
+          <div className="space-y-3">
+            {checklistFields.map((item, index) => (
+              <div key={item.id} className="flex items-center space-x-2 border p-2 rounded-md bg-secondary/20">
+                <FormField
+                  control={form.control}
+                  name={`checklist.${index}.completed`}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`checklist.${index}.task`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel className="sr-only">Task</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Confirm final guest count" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => removeChecklist(index)}
+                  className="shrink-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={() => appendChecklist({ id: crypto.randomUUID(), task: "", completed: false })}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Checklist Item
           </Button>
         </div>
 

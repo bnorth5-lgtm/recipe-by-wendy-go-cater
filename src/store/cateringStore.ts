@@ -233,6 +233,13 @@ export interface BEOCustomSection {
   content: string;
 }
 
+// NEW: BEO Checklist Item
+export interface BEOChecklistItem {
+  id: string;
+  task: string;
+  completed: boolean;
+}
+
 // NEW: BEO Interface
 export interface BEO {
   id: string;
@@ -241,6 +248,7 @@ export interface BEO {
   venue: string;
   specialInstructions?: string;
   customSections: BEOCustomSection[]; // Dynamic custom sections
+  checklist: BEOChecklistItem[]; // NEW: Interactive checklist for staff
   status: "Draft" | "Finalized" | "Printed"; // BEO specific status
   createdAt: string;
   updatedAt: string;
@@ -327,9 +335,10 @@ interface CateringState {
   setCurrentUser: (user: User | null) => void;
 
   // NEW: BEO actions
-  addBEO: (beo: Omit<BEO, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => void;
+  addBEO: (beo: Omit<BEO, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'checklist'>) => void; // Checklist is initialized
   updateBEO: (beo: BEO) => void;
   deleteBEO: (id: string) => void;
+  updateBEOChecklistItem: (beoId: string, itemId: string, completed: boolean) => void; // NEW: Toggle checklist item completion
 
   // NEW: Global Settings actions
   setBusinessName: (name: string) => void;
@@ -1671,6 +1680,13 @@ const initialBEOs: BEO[] = [
       { id: "cs1", title: "Floral Arrangements", content: "White roses and lilies for all tables. Head table to have a larger centerpiece." },
       { id: "cs2", title: "Audio/Visual Needs", content: "Projector and screen for presentation. Two wireless microphones for speeches." },
     ],
+    checklist: [
+      { id: "cl1", task: "Confirm final guest count with client", completed: false },
+      { id: "cl2", task: "Verify all dietary restrictions are noted and planned for", completed: false },
+      { id: "cl3", task: "Assign kitchen staff roles for prep and cooking", completed: false },
+      { id: "cl4", task: "Assign service staff roles (servers, bartenders, setup crew)", completed: false },
+      { id: "cl5", task: "Confirm equipment rentals and delivery schedule", completed: false },
+    ],
     status: "Finalized",
     createdAt: getFutureDate(-10),
     updatedAt: getFutureDate(-5),
@@ -2050,7 +2066,15 @@ export const useCateringStore = create<CateringState>()(
       // NEW: BEO actions
       addBEO: (beo) => set((state) => {
         const now = new Date().toISOString();
-        const newBEO = { ...beo, id: crypto.randomUUID(), status: "Draft", createdAt: now, updatedAt: now };
+        const newBEO: BEO = { // Explicitly type newBEO
+          ...beo,
+          id: crypto.randomUUID(),
+          status: "Draft", // Default status
+          createdAt: now,
+          updatedAt: now,
+          checklist: beo.checklist || [], // Ensure checklist is initialized
+          customSections: beo.customSections || [], // Ensure customSections is initialized
+        };
         // Also update the associated booking with the new BEO ID
         const updatedBookings = state.bookings.map(b =>
           b.id === beo.bookingId ? { ...b, beoId: newBEO.id } : b
@@ -2077,6 +2101,19 @@ export const useCateringStore = create<CateringState>()(
           bookings: updatedBookings,
         };
       }),
+      updateBEOChecklistItem: (beoId, itemId, completed) => set((state) => ({
+        beos: state.beos.map(beo =>
+          beo.id === beoId
+            ? {
+                ...beo,
+                checklist: beo.checklist.map(item =>
+                  item.id === itemId ? { ...item, completed } : item
+                ),
+                updatedAt: new Date().toISOString(),
+              }
+            : beo
+        ),
+      })),
 
       // NEW: Global Settings actions
       setBusinessName: (name) => set({ businessName: name }),
