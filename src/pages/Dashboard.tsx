@@ -41,6 +41,7 @@ import { TwoMonthCalendar } from "@/components/TwoMonthCalendar";
 import { OverdueSidebar } from "@/components/OverdueSidebar";
 import { VendorsCard } from "@/components/VendorsCard";
 import { YouTubePlayerCard } from "@/components/YouTubePlayerCard";
+import { LowStockAlertsCard } from "@/components/LowStockAlertsCard"; // NEW: Import LowStockAlertsCard
 import { format, isPast, differenceInDays, parseISO, isFuture } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -309,8 +310,13 @@ const Dashboard = () => {
           <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
         </div>
 
+        {/* NEW Row for Low Stock Alerts Card */}
+        <div className="lg:col-span-2">
+          <LowStockAlertsCard />
+        </div>
+
         {/* NEW Row for full-width VendorsCard */}
-        <div className="lg:col-span-4"> {/* This will make it full width */}
+        <div className="lg:col-span-2"> {/* This will make it full width */}
           <VendorsCard />
         </div>
 
