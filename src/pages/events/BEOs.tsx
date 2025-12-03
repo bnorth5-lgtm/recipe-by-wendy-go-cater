@@ -114,13 +114,26 @@ const BEOs = () => {
       return;
     }
 
+    // Ensure all custom sections and checklist items have an ID
+    const processedCustomSections: BEOCustomSection[] = (data.customSections || []).map(section => ({
+      id: section.id || crypto.randomUUID(),
+      title: section.title,
+      content: section.content,
+    }));
+
+    const processedChecklist: BEOChecklistItem[] = (data.checklist || []).map(item => ({
+      id: item.id || crypto.randomUUID(),
+      task: item.task,
+      completed: item.completed,
+    }));
+
     if (editingBEO && editingBEO.id) {
       // Update existing BEO
       updateBEO({
         ...editingBEO, // Keep existing ID, createdAt
         ...data,
-        customSections: (data.customSections || []) as BEOCustomSection[],
-        checklist: (data.checklist || []) as BEOChecklistItem[],
+        customSections: processedCustomSections,
+        checklist: processedChecklist,
         updatedAt: new Date().toISOString(),
       });
       toast.success("BEO updated successfully!");
@@ -131,8 +144,8 @@ const BEOs = () => {
         eventTime: data.eventTime,
         venue: data.venue,
         specialInstructions: data.specialInstructions,
-        customSections: (data.customSections || []) as BEOCustomSection[],
-        checklist: (data.checklist || []) as BEOChecklistItem[],
+        customSections: processedCustomSections,
+        checklist: processedChecklist,
       });
       toast.success("BEO created successfully!");
     }
