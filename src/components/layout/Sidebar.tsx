@@ -67,13 +67,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
       children: [],
     },
     {
-      name: "Quoting & Proposals",
+      name: "Estimates & Proposals", // Changed from "Quoting & Proposals"
       href: "/quoting/clients",
       icon: DollarSign,
       children: [
         { name: "Clients", href: "/quoting/clients" },
         { name: "Proposals", href: "/quoting/proposals" },
-        { name: "Estimates", href: "/quoting/estimates" }, // Changed from Quotes
+        { name: "Estimates", href: "/quoting/estimates" },
       ],
     },
     {
