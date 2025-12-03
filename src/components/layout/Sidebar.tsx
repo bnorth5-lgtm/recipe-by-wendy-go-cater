@@ -73,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
       children: [
         { name: "Clients", href: "/quoting/clients" },
         { name: "Proposals", href: "/quoting/proposals" },
-        { name: "Estimates", href: "/quoting/estimates" },
+        { name: "Quotes", href: "/quoting/quotes" }, // Changed from Estimates
       ],
     },
     {

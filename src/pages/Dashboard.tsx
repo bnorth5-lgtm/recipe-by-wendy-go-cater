@@ -216,12 +216,12 @@ const Dashboard = () => {
               {overdueEstimates.length > 0 && (
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold text-destructive flex items-center gap-1">
-                    <AlertCircle className="h-4 w-4" /> Overdue Estimates:
+                    <AlertCircle className="h-4 w-4" /> Overdue Quotes: {/* Changed from Estimates */}
                   </h3>
                   <ul className="list-disc list-inside text-xs text-destructive ml-4">
                     {overdueEstimates.map(e => (
                       <li key={e.id}>
-                        <Link to={`/quoting/estimates/${e.id}`} className="hover:underline">
+                        <Link to={`/quoting/quotes/${e.id}`} className="hover:underline"> {/* Changed from estimates */}
                           {e.eventName} ({format(parseISO(e.createdAt), "MMM d")})
                         </Link>
                       </li>

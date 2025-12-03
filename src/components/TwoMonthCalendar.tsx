@@ -181,9 +181,9 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
 
                   if (type === "quote") {
                     const quoteItem = item as Estimate;
-                    title = `Estimate: ${quoteItem.eventName}`;
+                    title = `Quote: ${quoteItem.eventName}`;
                     description = `Guests: ${quoteItem.numberOfGuests}, Total: $${quoteItem.totalAmount.toFixed(2)}`;
-                    link = `/quoting/estimates/${quoteItem.id}`; // Direct link to edit form
+                    link = `/quoting/quotes/${quoteItem.id}`; // Direct link to edit form
                     Icon = DollarSign;
                     badgeVariant = "outline";
                     badgeText = "Quote";

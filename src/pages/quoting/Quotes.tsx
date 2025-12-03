@@ -70,7 +70,7 @@ const estimateFormSchema = z.object({
 
 type EstimateFormData = z.infer<typeof estimateFormSchema>;
 
-const Estimates = () => {
+const Quotes = () => { // Renamed from Estimates
   const { estimateId } = useParams<{ estimateId?: string }>(); // Get ID from URL
   const recipes = useCateringStore((state) => state.recipes);
   const inventory = useCateringStore((state) => state.inventory); // Use unified inventory
@@ -111,7 +111,7 @@ const Estimates = () => {
         form.reset(estimateToEdit);
         setIsFormDialogOpen(true);
       } else {
-        toast.error("Estimate not found.");
+        toast.error("Quote not found."); // Changed from Estimate
       }
     }
   }, [estimateId, estimates, form]);
@@ -144,7 +144,7 @@ const Estimates = () => {
           unitCost: recipe.baseCost,
           totalCost: recipe.baseCost,
         });
-        toast.success(`Added ${recipe.name} to estimate.`);
+        toast.success(`Added ${recipe.name} to quote.`); // Changed from estimate
       }
     } else if (type === "inventoryItem") { // Handle generic inventory items
       const invItem = inventory.find(i => i.id === selectedId);
@@ -157,7 +157,7 @@ const Estimates = () => {
           unitCost: invItem.costPerUnit,
           totalCost: invItem.costPerUnit,
         });
-        toast.success(`Added ${invItem.name} to estimate.`);
+        toast.success(`Added ${invItem.name} to quote.`); // Changed from estimate
       }
     }
   };
@@ -171,7 +171,7 @@ const Estimates = () => {
 
   const handleRemoveItem = (index: number, itemName: string) => {
     removeItem(index);
-    toast.info(`Removed ${itemName} from estimate.`);
+    toast.info(`Removed ${itemName} from quote.`); // Changed from estimate
   };
 
   const onSubmit = (data: EstimateFormData) => {
@@ -183,10 +183,10 @@ const Estimates = () => {
 
     if (editingEstimate) {
       updateEstimate({ ...estimateData, id: editingEstimate.id } as Estimate);
-      toast.success("Estimate updated successfully!");
+      toast.success("Quote updated successfully!"); // Changed from Estimate
     } else {
       addEstimate(estimateData as Omit<Estimate, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>);
-      toast.success("Estimate saved successfully!");
+      toast.success("Quote saved successfully!"); // Changed from Estimate
     }
     form.reset();
     setEditingEstimate(null);
@@ -201,7 +201,7 @@ const Estimates = () => {
 
   const handleDelete = (id: string) => {
     deleteEstimate(id);
-    toast.info("Estimate deleted.");
+    toast.info("Quote deleted."); // Changed from Estimate
   };
 
   const getIconForItemType = (type: "recipe" | "inventoryItem", category?: InventoryItem["category"]) => {
@@ -224,9 +224,9 @@ const Estimates = () => {
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2"> {/* Reduced p-4 to p-2 */}
       <div className="text-center mb-4"> {/* Reduced mb-6 to mb-4 */}
-        <h1 className="text-4xl font-bold mb-2">Cost Estimates</h1> {/* Reduced mb-4 to mb-2 */}
+        <h1 className="text-4xl font-bold mb-2">Cost Quotes</h1> {/* Changed from Cost Estimates */}
         <p className="text-xl text-muted-foreground">
-          Quickly calculate and save detailed cost estimates for your events.
+          Quickly calculate and save detailed cost quotes for your events. {/* Changed from cost estimates */}
         </p>
       </div>
 
@@ -235,24 +235,24 @@ const Estimates = () => {
         <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
-              {editingEstimate ? "Edit Estimate" : "Create New Estimate"}
+              {editingEstimate ? "Edit Quote" : "Create New Quote"} {/* Changed from Estimate */}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              {editingEstimate ? `Updating estimate for ${editingEstimate.eventName}.` : "Build and save a new catering estimate."}
+              {editingEstimate ? `Updating quote for ${editingEstimate.eventName}.` : "Build and save a new catering quote."} {/* Changed from estimate */}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="w-full mb-3"> {/* Reduced mb-4 to mb-3 */}
-                  <PlusCircle className="mr-2 h-4 w-4" /> Create New Estimate
+                  <PlusCircle className="mr-2 h-4 w-4" /> Create New Quote {/* Changed from Estimate */}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>{editingEstimate ? "Edit Estimate" : "Create New Estimate"}</DialogTitle>
+                  <DialogTitle>{editingEstimate ? "Edit Quote" : "Create New Quote"}</DialogTitle> {/* Changed from Estimate */}
                   <DialogDescription>
-                    {editingEstimate ? "Adjust the details of this estimate." : "Fill in the details to generate and save a new estimate."}
+                    {editingEstimate ? "Adjust the details of this quote." : "Fill in the details to generate and save a new quote."} {/* Changed from estimate */}
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -439,7 +439,7 @@ const Estimates = () => {
                     </div>
 
                     <DialogFooter>
-                      <Button type="submit" className="w-full">{editingEstimate ? "Save Changes" : "Save Estimate"}</Button>
+                      <Button type="submit" className="w-full">{editingEstimate ? "Save Changes" : "Save Quote"}</Button> {/* Changed from Estimate */}
                     </DialogFooter>
                   </form>
                 </Form>
@@ -451,12 +451,12 @@ const Estimates = () => {
         {/* Display Existing Estimates */}
         <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
           <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-primary">Saved Estimates</CardTitle>
-            <CardDescription className="text-muted-foreground">A list of all your saved cost estimates.</CardDescription>
+            <CardTitle className="text-2xl font-semibold text-primary">Saved Quotes</CardTitle> {/* Changed from Saved Estimates */}
+            <CardDescription className="text-muted-foreground">A list of all your saved cost quotes.</CardDescription> {/* Changed from estimates */}
           </CardHeader>
           <CardContent>
             {estimates.length === 0 ? (
-              <p className="text-muted-foreground text-center">No estimates saved yet. Click "Create New Estimate" to get started!</p>
+              <p className="text-muted-foreground text-center">No quotes saved yet. Click "Create New Quote" to get started!</p> /* Changed from estimates */
             ) : (
               <div className="overflow-x-auto">
                 <Table>
@@ -500,4 +500,4 @@ const Estimates = () => {
   );
 };
 
-export default Estimates;
+export default Quotes;

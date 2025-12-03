@@ -15,7 +15,7 @@ import Inventory from "./pages/menu/Inventory.tsx";
 
 import Clients from "./pages/quoting/Clients.tsx";
 import Proposals from "./pages/quoting/Proposals.tsx";
-import Estimates from "./pages/quoting/Estimates.tsx";
+import Quotes from "./pages/quoting/Quotes.tsx"; // Changed from Estimates
 
 import Calendar from "./pages/events/Calendar.tsx";
 import Bookings from "./pages/events/Bookings.tsx";
@@ -51,8 +51,8 @@ const App = () => {
             <Route path="/quoting/clients" element={<Clients />} />
             <Route path="/quoting/proposals" element={<Proposals />} />
             <Route path="/quoting/proposals/:proposalId" element={<Proposals />} /> {/* Added optional ID */}
-            <Route path="/quoting/estimates" element={<Estimates />} />
-            <Route path="/quoting/estimates/:estimateId" element={<Estimates />} /> {/* Added optional ID */}
+            <Route path="/quoting/quotes" element={<Quotes />} /> {/* Changed from Estimates */}
+            <Route path="/quoting/quotes/:estimateId" element={<Quotes />} /> {/* Changed from Estimates */}
 
             {/* Events & Planning Routes with optional ID for drill-down */}
             <Route path="/events" element={<Navigate to="/events/calendar" replace />} />
