@@ -70,7 +70,7 @@ const estimateFormSchema = z.object({
 
 type EstimateFormData = z.infer<typeof estimateFormSchema>;
 
-const Estimates = () => { // Renamed from Quotes
+const Estimates = () => {
   const { estimateId } = useParams<{ estimateId?: string }>(); // Get ID from URL
   const recipes = useCateringStore((state) => state.recipes);
   const inventory = useCateringStore((state) => state.inventory); // Use unified inventory
@@ -111,7 +111,7 @@ const Estimates = () => { // Renamed from Quotes
         form.reset(estimateToEdit);
         setIsFormDialogOpen(true);
       } else {
-        toast.error("Estimate not found."); // Changed from Quote
+        toast.error("Estimate not found.");
       }
     }
   }, [estimateId, estimates, form]);
@@ -132,7 +132,7 @@ const Estimates = () => { // Renamed from Quotes
 
   const { subtotal, totalAmount } = calculateTotals();
 
-  const handleAddItem = (type: "recipe" | "inventoryItem", selectedId: string) => { // Changed type
+  const handleAddItem = (type: "recipe" | "inventoryItem", selectedId: string) => {
     if (type === "recipe") {
       const recipe = recipes.find(r => r.id === selectedId);
       if (recipe) {
@@ -144,7 +144,7 @@ const Estimates = () => { // Renamed from Quotes
           unitCost: recipe.baseCost,
           totalCost: recipe.baseCost,
         });
-        toast.success(`Added ${recipe.name} to estimate.`); // Changed from quote
+        toast.success(`Added ${recipe.name} to estimate.`);
       }
     } else if (type === "inventoryItem") { // Handle generic inventory items
       const invItem = inventory.find(i => i.id === selectedId);
@@ -157,7 +157,7 @@ const Estimates = () => { // Renamed from Quotes
           unitCost: invItem.costPerUnit,
           totalCost: invItem.costPerUnit,
         });
-        toast.success(`Added ${invItem.name} to estimate.`); // Changed from quote
+        toast.success(`Added ${invItem.name} to estimate.`);
       }
     }
   };
@@ -171,7 +171,7 @@ const Estimates = () => { // Renamed from Quotes
 
   const handleRemoveItem = (index: number, itemName: string) => {
     removeItem(index);
-    toast.info(`Removed ${itemName} from estimate.`); // Changed from quote
+    toast.info(`Removed ${itemName} from estimate.`);
   };
 
   const onSubmit = (data: EstimateFormData) => {
@@ -183,10 +183,10 @@ const Estimates = () => { // Renamed from Quotes
 
     if (editingEstimate) {
       updateEstimate({ ...estimateData, id: editingEstimate.id } as Estimate);
-      toast.success("Estimate updated successfully!"); // Changed from Quote
+      toast.success("Estimate updated successfully!");
     } else {
       addEstimate(estimateData as Omit<Estimate, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'totalAmount'>);
-      toast.success("Estimate saved successfully!"); // Changed from Quote
+      toast.success("Estimate saved successfully!");
     }
     form.reset();
     setEditingEstimate(null);
@@ -201,7 +201,7 @@ const Estimates = () => { // Renamed from Quotes
 
   const handleDelete = (id: string) => {
     deleteEstimate(id);
-    toast.info("Estimate deleted."); // Changed from Quote
+    toast.info("Estimate deleted.");
   };
 
   const getIconForItemType = (type: "recipe" | "inventoryItem", category?: InventoryItem["category"]) => {
@@ -224,9 +224,9 @@ const Estimates = () => { // Renamed from Quotes
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-2"> {/* Reduced p-4 to p-2 */}
       <div className="text-center mb-4"> {/* Reduced mb-6 to mb-4 */}
-        <h1 className="text-4xl font-bold mb-2">Cost Estimates</h1> {/* Changed from Cost Quotes */}
+        <h1 className="text-4xl font-bold mb-2">Cost Estimates</h1>
         <p className="text-xl text-muted-foreground">
-          Quickly calculate and save detailed cost estimates for your events. {/* Changed from cost quotes */}
+          Quickly calculate and save detailed cost estimates for your events.
         </p>
       </div>
 
@@ -235,24 +235,24 @@ const Estimates = () => { // Renamed from Quotes
         <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">
-              {editingEstimate ? "Edit Estimate" : "Create New Estimate"} {/* Changed from Quote */}
+              {editingEstimate ? "Edit Estimate" : "Create New Estimate"}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              {editingEstimate ? `Updating estimate for ${editingEstimate.eventName}.` : "Build and save a new catering estimate."} {/* Changed from quote */}
+              {editingEstimate ? `Updating estimate for ${editingEstimate.eventName}.` : "Build and save a new catering estimate."}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="w-full mb-3"> {/* Reduced mb-4 to mb-3 */}
-                  <PlusCircle className="mr-2 h-4 w-4" /> Create New Estimate {/* Changed from Quote */}
+                  <PlusCircle className="mr-2 h-4 w-4" /> Create New Estimate
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>{editingEstimate ? "Edit Estimate" : "Create New Estimate"}</DialogTitle> {/* Changed from Quote */}
+                  <DialogTitle>{editingEstimate ? "Edit Estimate" : "Create New Estimate"}</DialogTitle>
                   <DialogDescription>
-                    {editingEstimate ? "Adjust the details of this estimate." : "Fill in the details to generate and save a new estimate."} {/* Changed from quote */}
+                    {editingEstimate ? "Adjust the details of this estimate." : "Fill in the details to generate and save a new estimate."}
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -326,12 +326,12 @@ const Estimates = () => { // Renamed from Quotes
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="px-3 py-2">Item</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                                <TableHead className="px-3 py-2">Type</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                                <TableHead className="px-3 py-2 text-right">Unit Cost</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                                <TableHead className="px-3 py-2 text-right">Quantity</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                                <TableHead className="px-3 py-2 text-right">Total</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                                <TableHead className="px-3 py-2 text-right">Actions</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                                <TableHead className="px-3 py-2">Item</TableHead>
+                                <TableHead className="px-3 py-2">Type</TableHead>
+                                <TableHead className="px-3 py-2 text-right">Unit Cost</TableHead>
+                                <TableHead className="px-3 py-2 text-right">Quantity</TableHead>
+                                <TableHead className="px-3 py-2 text-right">Total</TableHead>
+                                <TableHead className="px-3 py-2 text-right">Actions</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -339,13 +339,13 @@ const Estimates = () => { // Renamed from Quotes
                                 const inventoryItemDetails = item.type === "inventoryItem" ? inventory.find(inv => inv.id === item.id) : undefined;
                                 return (
                                   <TableRow key={item.id}>
-                                    <TableCell className="font-medium px-3 py-2 flex items-center gap-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                                    <TableCell className="font-medium px-3 py-2 flex items-center gap-2">
                                       {getIconForItemType(item.type, inventoryItemDetails?.category)}
                                       {item.name}
                                     </TableCell>
-                                    <TableCell className="capitalize px-3 py-2">{item.type === "inventoryItem" ? inventoryItemDetails?.category : item.type}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                                    <TableCell className="text-right px-3 py-2">{currencySymbol}{item.unitCost.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                                    <TableCell className="text-right px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                                    <TableCell className="capitalize px-3 py-2">{item.type === "inventoryItem" ? inventoryItemDetails?.category : item.type}</TableCell>
+                                    <TableCell className="text-right px-3 py-2">{currencySymbol}{item.unitCost.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right px-3 py-2">
                                       <Input
                                         type="number"
                                         value={item.quantity}
@@ -354,8 +354,8 @@ const Estimates = () => { // Renamed from Quotes
                                         min="1"
                                       />
                                     </TableCell>
-                                    <TableCell className="font-semibold text-right px-3 py-2">{currencySymbol}{item.totalCost.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                                    <TableCell className="text-right px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                                    <TableCell className="font-semibold text-right px-3 py-2">{currencySymbol}{item.totalCost.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right px-3 py-2">
                                       <Button
                                         type="button"
                                         variant="destructive"
@@ -375,7 +375,7 @@ const Estimates = () => { // Renamed from Quotes
                     </div>
 
                     {/* Additional Costs */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3"> {/* Reduced gap-4 to gap-3 */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <FormField
                         control={form.control}
                         name="laborCost"
@@ -433,13 +433,13 @@ const Estimates = () => { // Renamed from Quotes
                     />
 
                     {/* Totals Display */}
-                    <div className="text-right space-y-1 mt-3"> {/* Reduced mt-4 to mt-3 */}
+                    <div className="text-right space-y-1 mt-3">
                       <p className="text-lg">Subtotal: <span className="font-bold">{currencySymbol}{subtotal.toFixed(2)}</span></p>
                       <p className="text-xl font-extrabold text-primary">Total Estimated Cost: <span className="font-bold">{currencySymbol}{totalAmount.toFixed(2)}</span></p>
                     </div>
 
                     <DialogFooter>
-                      <Button type="submit" className="w-full">{editingEstimate ? "Save Changes" : "Save Estimate"}</Button> {/* Changed from Quote */}
+                      <Button type="submit" className="w-full">{editingEstimate ? "Save Changes" : "Save Estimate"}</Button>
                     </DialogFooter>
                   </form>
                 </Form>
@@ -449,36 +449,36 @@ const Estimates = () => { // Renamed from Quotes
         </Card>
 
         {/* Display Existing Estimates */}
-        <Card className="bg-card p-3 rounded-lg shadow-md"> {/* Reduced p-4 to p-3 */}
+        <Card className="bg-card p-3 rounded-lg shadow-md">
           <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-primary">Saved Estimates</CardTitle> {/* Changed from Saved Quotes */}
-            <CardDescription className="text-muted-foreground">A list of all your saved cost estimates.</CardDescription> {/* Changed from quotes */}
+            <CardTitle className="text-2xl font-semibold text-primary">Saved Estimates</CardTitle>
+            <CardDescription className="text-muted-foreground">A list of all your saved cost estimates.</CardDescription>
           </CardHeader>
           <CardContent>
             {estimates.length === 0 ? (
-              <p className="text-muted-foreground text-center">No estimates saved yet. Click "Create New Estimate" to get started!</p> {/* Changed from quotes */}
+              <p className="text-muted-foreground text-center">No estimates saved yet. Click "Create New Estimate" to get started!</p>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="px-3 py-2">Event Name</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Guests</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Subtotal</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Total</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2">Created</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                      <TableHead className="px-3 py-2 text-right">Actions</TableHead> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                      <TableHead className="px-3 py-2">Event Name</TableHead>
+                      <TableHead className="px-3 py-2">Guests</TableHead>
+                      <TableHead className="px-3 py-2">Subtotal</TableHead>
+                      <TableHead className="px-3 py-2">Total</TableHead>
+                      <TableHead className="px-3 py-2">Created</TableHead>
+                      <TableHead className="px-3 py-2 text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {estimates.map((estimate) => (
                       <TableRow key={estimate.id}>
-                        <TableCell className="font-medium px-3 py-2">{estimate.eventName}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2">{estimate.numberOfGuests}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2">{currencySymbol}{estimate.subtotal.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2">{currencySymbol}{estimate.totalAmount.toFixed(2)}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="px-3 py-2">{format(new Date(estimate.createdAt), "PPP")}</TableCell> {/* Reduced px-4 py-2 to px-3 py-2 */}
-                        <TableCell className="text-right flex justify-end space-x-2 px-3 py-2"> {/* Reduced px-4 py-2 to px-3 py-2 */}
+                        <TableCell className="font-medium px-3 py-2">{estimate.eventName}</TableCell>
+                        <TableCell className="px-3 py-2">{estimate.numberOfGuests}</TableCell>
+                        <TableCell className="px-3 py-2">{currencySymbol}{estimate.subtotal.toFixed(2)}</TableCell>
+                        <TableCell className="px-3 py-2">{currencySymbol}{estimate.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="px-3 py-2">{format(new Date(estimate.createdAt), "PPP")}</TableCell>
+                        <TableCell className="text-right flex justify-end space-x-2 px-3 py-2">
                           <Button variant="ghost" size="icon" onClick={() => handleEdit(estimate)}>
                             <Edit className="h-4 w-4" />
                           </Button>

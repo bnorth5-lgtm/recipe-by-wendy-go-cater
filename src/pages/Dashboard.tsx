@@ -216,12 +216,12 @@ const Dashboard = () => {
               {overdueEstimates.length > 0 && (
                 <div className="space-y-1">
                   <h3 className="text-sm font-semibold text-destructive flex items-center gap-1">
-                    <AlertCircle className="h-4 w-4" /> Overdue Estimates: {/* Changed from Quotes */}
+                    <AlertCircle className="h-4 w-4" /> Overdue Estimates:
                   </h3>
                   <ul className="list-disc list-inside text-xs text-destructive ml-4">
                     {overdueEstimates.map(e => (
                       <li key={e.id}>
-                        <Link to={`/quoting/estimates/${e.id}`} className="hover:underline"> {/* Changed from quotes */}
+                        <Link to={`/quoting/estimates/${e.id}`} className="hover:underline">
                           {e.eventName} ({format(parseISO(e.createdAt), "MMM d")})
                         </Link>
                       </li>
@@ -319,7 +319,7 @@ const Dashboard = () => {
           <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
               <CardTitle className="text-sm font-medium">
-                Quote Pipeline
+                Proposal Pipeline
               </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -347,7 +347,7 @@ const Dashboard = () => {
             <CardContent className="flex flex-col justify-between h-full">
               <div className="text-lg font-bold">Create a new client proposal</div>
               <p className="text-xs text-muted-foreground">
-                Generate detailed quotes for upcoming events.
+                Generate detailed proposals for upcoming events.
               </p>
             </CardContent>
           </Card>

@@ -242,3 +242,5 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
     </Card>
   );
 };
+
+export default TwoMonthCalendar;
