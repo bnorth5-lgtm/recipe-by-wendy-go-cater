@@ -74,6 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
         { name: "Clients", href: "/quoting/clients" },
         { name: "Proposals", href: "/quoting/proposals" },
         { name: "Estimates", href: "/quoting/estimates" },
+        { name: "New Booking", href: "/events/bookings" }, // Added this line
       ],
     },
     {
