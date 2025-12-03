@@ -119,8 +119,8 @@ const BEOs = () => {
       updateBEO({
         ...editingBEO, // Keep existing ID, createdAt
         ...data,
-        customSections: (data.customSections || []) as BEOCustomSection[],
-        checklist: (data.checklist || []) as BEOChecklistItem[],
+        customSections: data.customSections as BEOCustomSection[] || [],
+        checklist: data.checklist as BEOChecklistItem[] || [],
         updatedAt: new Date().toISOString(),
       });
       toast.success("BEO updated successfully!");
@@ -129,8 +129,8 @@ const BEOs = () => {
       addBEO({
         ...data,
         bookingId: selectedBooking.id, // Ensure bookingId is set
-        customSections: (data.customSections || []) as BEOCustomSection[],
-        checklist: (data.checklist || []) as BEOChecklistItem[],
+        customSections: data.customSections as BEOCustomSection[] || [],
+        checklist: data.checklist as BEOChecklistItem[] || [],
       });
       toast.success("BEO created successfully!");
     }
