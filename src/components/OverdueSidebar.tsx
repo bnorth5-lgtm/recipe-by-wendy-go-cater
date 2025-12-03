@@ -44,11 +44,11 @@ export const OverdueSidebar: React.FC = () => {
           <ScrollArea className="flex-1 pr-4">
             <div className="space-y-2">
               {overdueEstimates.map((estimate) => (
-                <Link to={`/quoting/quotes/${estimate.id}`} key={estimate.id} className="block">
+                <Link to={`/quoting/estimates/${estimate.id}`} key={estimate.id} className="block">
                   <div className="flex items-start space-x-3 p-2 border rounded-md bg-destructive/10 hover:bg-destructive/20 transition-colors cursor-pointer">
                     <DollarSign className="h-4 w-4 text-destructive mt-1 shrink-0" />
                     <div className="flex-1">
-                      <h4 className="font-semibold text-sm text-destructive">Quote: {estimate.eventName}</h4>
+                      <h4 className="font-semibold text-sm text-destructive">Estimate: {estimate.eventName}</h4>
                       <p className="text-xs text-muted-foreground">Created: {format(parseISO(estimate.createdAt), "MMM d, yyyy")}</p>
                       <p className="text-xs text-muted-foreground">Total: ${estimate.totalAmount.toFixed(2)}</p>
                     </div>

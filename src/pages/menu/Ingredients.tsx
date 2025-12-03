@@ -14,8 +14,8 @@ const Ingredients = () => {
             <Link to="/menu/inventory" className="text-xs text-blue-500 hover:underline">
               Inventory
             </Link>
-            <Link to="/quoting/quotes" className="text-xs text-green-500 hover:underline">
-              Add to Quote
+            <Link to="/quoting/estimates" className="text-xs text-green-500 hover:underline">
+              Add to Estimate
             </Link>
             <Link to="/menu/recipes" className="text-xs text-purple-500 hover:underline">
               Find Recipes

@@ -33,7 +33,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
   const nextMonth = addMonths(month, 1);
 
   // Prepare modifiers for dates with different types of items
-  const quoteDates = estimates
+  const estimateDates = estimates
     .filter(e => isFuture(parseISO(e.createdAt))) // Only future estimates for highlighting
     .map(e => parseISO(e.createdAt));
 
@@ -50,14 +50,14 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
     .map(b => parseISO(b.eventDate));
 
   const modifiers = {
-    quotes: quoteDates,
+    estimates: estimateDates,
     proposals: pendingProposalDates, // Renamed for clarity
     pendingEvents: pendingEventDates, // NEW
     completedEvents: completedEventDates, // NEW
   };
 
   const modifiersClassNames = {
-    quotes: "bg-calendar-quote text-primary-foreground rounded-full",
+    estimates: "bg-calendar-quote text-primary-foreground rounded-full",
     proposals: "bg-calendar-proposal text-primary-foreground rounded-full",
     pendingEvents: "bg-calendar-event text-primary-foreground rounded-full", // NEW
     completedEvents: "bg-calendar-completed-event text-primary-foreground rounded-full", // NEW
@@ -73,11 +73,11 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
   const getItemsForSelectedDate = () => {
     if (!selectedDate) return [];
 
-    const items: { type: "quote" | "proposal" | "pendingEvent" | "completedEvent" | "beo"; item: Estimate | Proposal | EventBooking }[] = [];
+    const items: { type: "estimate" | "proposal" | "pendingEvent" | "completedEvent" | "beo"; item: Estimate | Proposal | EventBooking }[] = [];
 
     estimates.forEach(e => {
       if (isSameDay(parseISO(e.createdAt), selectedDate)) {
-        items.push({ type: "quote", item: e });
+        items.push({ type: "estimate", item: e });
       }
     });
 
@@ -104,7 +104,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
 
     // Sort items by type for consistent display
     return items.sort((a, b) => {
-      const order = { quote: 1, proposal: 2, pendingEvent: 3, completedEvent: 4, beo: 5 };
+      const order = { estimate: 1, proposal: 2, pendingEvent: 3, completedEvent: 4, beo: 5 };
       return order[a.type] - order[b.type];
     });
   };
@@ -116,7 +116,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
       <CardHeader>
         <CardTitle className="text-2xl font-semibold text-primary">Upcoming Timeline</CardTitle>
         <CardDescription className="text-muted-foreground">
-          View quotes, proposals, and events. Click a date for details.
+          View estimates, proposals, and events. Click a date for details.
         </CardDescription>
         {/* Removed the Badge elements as requested */}
       </CardHeader>
@@ -138,7 +138,7 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
             <div className="space-y-2">
               <div className="flex items-center">
                 <span className="w-4 h-4 rounded-full bg-calendar-quote mr-2"></span>
-                <span className="text-sm text-muted-foreground">Quotes</span>
+                <span className="text-sm text-muted-foreground">Estimates</span>
               </div>
               <div className="flex items-center">
                 <span className="w-4 h-4 rounded-full bg-calendar-proposal mr-2"></span>
@@ -179,14 +179,14 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
                   let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
                   let badgeText = "";
 
-                  if (type === "quote") {
-                    const quoteItem = item as Estimate;
-                    title = `Quote: ${quoteItem.eventName}`;
-                    description = `Guests: ${quoteItem.numberOfGuests}, Total: $${quoteItem.totalAmount.toFixed(2)}`;
-                    link = `/quoting/quotes/${quoteItem.id}`; // Direct link to edit form
+                  if (type === "estimate") {
+                    const estimateItem = item as Estimate;
+                    title = `Estimate: ${estimateItem.eventName}`;
+                    description = `Guests: ${estimateItem.numberOfGuests}, Total: $${estimateItem.totalAmount.toFixed(2)}`;
+                    link = `/quoting/estimates/${estimateItem.id}`; // Direct link to edit form
                     Icon = DollarSign;
                     badgeVariant = "outline";
-                    badgeText = "Quote";
+                    badgeText = "Estimate";
                   } else if (type === "proposal") {
                     const proposalItem = item as Proposal;
                     title = `Proposal: ${proposalItem.eventName}`;
