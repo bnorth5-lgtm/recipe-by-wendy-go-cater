@@ -119,18 +119,20 @@ const BEOs = () => {
       updateBEO({
         ...editingBEO, // Keep existing ID, createdAt
         ...data,
-        customSections: data.customSections as BEOCustomSection[] || [],
-        checklist: data.checklist as BEOChecklistItem[] || [],
+        customSections: (data.customSections || []) as BEOCustomSection[],
+        checklist: (data.checklist || []) as BEOChecklistItem[],
         updatedAt: new Date().toISOString(),
       });
       toast.success("BEO updated successfully!");
     } else {
       // Create new BEO
       addBEO({
-        ...data,
         bookingId: selectedBooking.id, // Ensure bookingId is set
-        customSections: data.customSections as BEOCustomSection[] || [],
-        checklist: data.checklist as BEOChecklistItem[] || [],
+        eventTime: data.eventTime,
+        venue: data.venue,
+        specialInstructions: data.specialInstructions,
+        customSections: (data.customSections || []) as BEOCustomSection[],
+        checklist: (data.checklist || []) as BEOChecklistItem[],
       });
       toast.success("BEO created successfully!");
     }
