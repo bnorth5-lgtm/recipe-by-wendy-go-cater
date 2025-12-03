@@ -21,7 +21,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Printer, PlusCircle, Edit, FileText, CalendarCheck, XCircle, CheckCircle, Loader2 } from "lucide-react";
-import { useCateringStore, BEO as BEOType } from "@/store/cateringStore"; // Import BEOType
+import { useCateringStore, BEO as BEOType, BEOCustomSection, BEOChecklistItem } from "@/store/cateringStore"; // Import BEOType, BEOCustomSection, BEOChecklistItem
 import { BEO as BEOComponent } from "@/components/BEO";
 import { useParams, Link, useNavigate } from "react-router-dom"; // Import Link and useNavigate
 import { BEOForm, BEOFormData, beoFormSchema } from "@/components/BEOForm";
@@ -119,8 +119,8 @@ const BEOs = () => {
       updateBEO({
         ...editingBEO, // Keep existing ID, createdAt
         ...data,
-        customSections: data.customSections || [],
-        checklist: data.checklist || [],
+        customSections: (data.customSections || []) as BEOCustomSection[],
+        checklist: (data.checklist || []) as BEOChecklistItem[],
         updatedAt: new Date().toISOString(),
       });
       toast.success("BEO updated successfully!");
@@ -129,8 +129,8 @@ const BEOs = () => {
       addBEO({
         ...data,
         bookingId: selectedBooking.id, // Ensure bookingId is set
-        customSections: data.customSections || [],
-        checklist: data.checklist || [],
+        customSections: (data.customSections || []) as BEOCustomSection[],
+        checklist: (data.checklist || []) as BEOChecklistItem[],
       });
       toast.success("BEO created successfully!");
     }

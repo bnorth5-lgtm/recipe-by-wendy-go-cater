@@ -335,7 +335,7 @@ interface CateringState {
   setCurrentUser: (user: User | null) => void;
 
   // NEW: BEO actions
-  addBEO: (beo: Omit<BEO, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'checklist'>) => void; // Checklist is initialized
+  addBEO: (beo: Omit<BEO, 'id' | 'createdAt' | 'updatedAt' | 'status'> & Partial<Pick<BEO, 'checklist' | 'customSections'>>) => void; // Checklist and customSections are optional in input
   updateBEO: (beo: BEO) => void;
   deleteBEO: (id: string) => void;
   updateBEOChecklistItem: (beoId: string, itemId: string, completed: boolean) => void; // NEW: Toggle checklist item completion

@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { BEO, BEOCustomSection, BEOChecklistItem } from "@/store/cateringStore"; // Import BEOChecklistItem
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 
 // Define the schema for a custom section
 const customSectionSchema = z.object({
@@ -210,11 +211,9 @@ export const BEOForm: React.FC<BEOFormProps> = ({ initialData, bookingName, onSu
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                       <FormControl>
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                         />
                       </FormControl>
                     </FormItem>
