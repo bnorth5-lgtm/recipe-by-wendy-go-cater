@@ -127,7 +127,7 @@ const BEOs = () => {
     } else {
       // Create new BEO
       addBEO({
-        bookingId: selectedBooking.id, // Ensure bookingId is set
+        bookingId: selectedBooking.id,
         eventTime: data.eventTime,
         venue: data.venue,
         specialInstructions: data.specialInstructions,
