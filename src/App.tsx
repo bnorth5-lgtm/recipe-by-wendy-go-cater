@@ -12,6 +12,7 @@ import Ingredients from "./pages/menu/Ingredients.tsx";
 import Recipes from "./pages/menu/Recipes.tsx";
 import Menus from "./pages/menu/Menus.tsx";
 import Inventory from "./pages/menu/Inventory.tsx";
+import PrepSchedule from "./pages/menu/PrepSchedule.tsx"; // NEW Import
 
 import Clients from "./pages/quoting/Clients.tsx";
 import Proposals from "./pages/quoting/Proposals.tsx";
@@ -45,6 +46,7 @@ const App = () => {
             <Route path="/menu/ingredients" element={<Ingredients />} />
             <Route path="/menu/recipes" element={<Recipes />} />
             <Route path="/menu/menus" element={<Menus />} />
+            <Route path="/menu/schedule" element={<PrepSchedule />} /> {/* NEW Route */}
 
             {/* Quoting & Proposals Routes with optional ID for drill-down */}
             <Route path="/quoting" element={<Navigate to="/quoting/clients" replace />} />

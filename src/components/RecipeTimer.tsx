@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Play, Pause, RotateCcw, Bell } from "lucide-react";
 import { toast } from "sonner";
-import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { StyledProgress } from "@/components/StyledProgress"; // Use StyledProgress
 
 interface RecipeTimerProps {
   initialTimeInSeconds: number;
@@ -122,7 +122,11 @@ const RecipeTimer: React.FC<RecipeTimerProps> = ({ initialTimeInSeconds, recipeN
         {formatTime(timeRemaining)}
       </div>
 
-      <Progress value={progressValue} className="h-2 mb-3" indicatorClassName={timeRemaining <= 60 && timeRemaining > 0 ? "bg-destructive" : "bg-primary"} />
+      <StyledProgress 
+        value={progressValue} 
+        className="h-2 mb-3" 
+        indicatorClassName={timeRemaining <= 60 && timeRemaining > 0 ? "bg-destructive" : "bg-primary"} 
+      />
 
       <div className="flex justify-center space-x-2">
         <Button onClick={toggleRun} disabled={timeRemaining === 0 && !isAlarming} variant={isRunning ? "secondary" : "default"}>

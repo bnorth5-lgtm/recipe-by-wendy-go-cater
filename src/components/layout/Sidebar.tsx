@@ -19,6 +19,7 @@ import {
   ChefHat,
   User as UserIcon,
   X, // Import X icon for close button
+  Timer, // Import Timer icon
 } from "lucide-react";
 import { useCateringStore } from "@/store/cateringStore";
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
@@ -64,6 +65,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
       name: "Menus",
       href: "/menu/menus",
       icon: Menu,
+      children: [],
+    },
+    {
+      name: "Prep Schedule", // NEW ITEM
+      href: "/menu/schedule",
+      icon: Timer, // Using Timer icon
       children: [],
     },
     {
