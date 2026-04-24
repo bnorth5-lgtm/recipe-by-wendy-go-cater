@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu } from "lucide-react";
@@ -11,9 +11,15 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+const APP_DOCUMENT_TITLE = "Catering By Wendy";
+
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    document.title = APP_DOCUMENT_TITLE;
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
