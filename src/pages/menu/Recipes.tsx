@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { parseRecipeWithLocalAi } from "@/lib/localAi";
+import { cn } from "@/lib/utils";
 
 // Define the main schema for a recipe
 const recipeFormSchema = z.object({
@@ -81,12 +82,50 @@ const Recipes = () => {
   const [quickServingsById, setQuickServingsById] = useState<Record<string, number>>({});
   const [bulkText, setBulkText] = useState("");
   const [isBulkParsing, setIsBulkParsing] = useState(false);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     void hydrateRecipesFromDb();
   }, [hydrateRecipesFromDb]);
 
   const canSave = useMemo(() => Boolean(parsed), [parsed]);
+
+  const filteredRecipes = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return recipes;
+
+    const norm = (s: string) => s.toLowerCase();
+    const score = (text: string, pattern: string) => {
+      // lightweight fuzzy: subsequence match with compactness bonus
+      const t = norm(text);
+      let ti = 0;
+      let first = -1;
+      let last = -1;
+      for (let pi = 0; pi < pattern.length; pi++) {
+        const ch = pattern[pi];
+        ti = t.indexOf(ch, ti);
+        if (ti === -1) return -1;
+        if (first === -1) first = ti;
+        last = ti;
+        ti++;
+      }
+      const span = last - first + 1;
+      // higher is better
+      return pattern.length * 10 - span;
+    };
+
+    return [...recipes]
+      .map((r) => ({
+        r,
+        s: Math.max(
+          score(r.name, q),
+          score(`${r.name} ${r.description} ${r.category}`, q),
+        ),
+      }))
+      .filter((x) => x.s >= 0)
+      .sort((a, b) => b.s - a.s || a.r.name.localeCompare(b.r.name))
+      .map((x) => x.r);
+  }, [recipes, query]);
 
   const selectedRecipe = useMemo(() => {
     if (!selectedRecipeId) return null;
@@ -206,14 +245,14 @@ const Recipes = () => {
               className="min-h-[140px] text-base leading-relaxed"
             />
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
-                {isBulkParsing ? "Parsing…" : "Paste triggers parsing automatically."}
+              <p className={cn("text-xs", isBulkParsing ? "text-sky-400" : "text-muted-foreground")}>
+                {isBulkParsing ? "Analyzing Recipe Structure..." : "Paste triggers instant analysis."}
               </p>
               <Button
                 variant="outline"
                 disabled={!bulkText.trim() || isBulkParsing}
                 onClick={async () => {
-                  // Optional fallback: if user typed/edited after paste, one click reparses.
+                  // Optional fallback: if user edited after paste, one click reparses.
                   setIsBulkParsing(true);
                   try {
                     const draft = await parseRecipeWithLocalAi({
@@ -221,7 +260,7 @@ const Recipes = () => {
                       meta: { sourceType: "paste", importMethod: "bulk-paste", importedAt: new Date().toISOString() },
                     });
                     setParsed(draft);
-                    toast.success("Bulk Import ready. Hit Save.");
+                    toast.success("Bulk Import ready.");
                   } catch (err: any) {
                     toast.error(err?.message ?? "Bulk Import failed.");
                   } finally {
@@ -230,9 +269,18 @@ const Recipes = () => {
                 }}
                 className="h-10"
               >
-                Re-parse
+                Re-analyze
               </Button>
             </div>
+
+            {parsed ? (
+              <Button
+                onClick={saveParsed}
+                className="h-12 w-full text-base font-semibold bg-emerald-600 hover:bg-emerald-600/90 text-white"
+              >
+                Confirm &amp; Save Recipe
+              </Button>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -247,16 +295,28 @@ const Recipes = () => {
         {/* Display Existing Recipes */}
         <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-2xl border shadow-sm">
           <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-primary">Existing Recipes</CardTitle>
-            <CardDescription className="text-muted-foreground">A list of all your managed recipes.</CardDescription>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <CardTitle className="text-2xl font-semibold text-primary">Existing Recipes</CardTitle>
+                <CardDescription className="text-muted-foreground">A list of all your managed recipes.</CardDescription>
+              </div>
+              <div className="w-full sm:max-w-xs">
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search recipes (fuzzy)…"
+                  className="h-11"
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            {recipes.length === 0 ? (
+            {filteredRecipes.length === 0 ? (
               <p className="text-muted-foreground text-center">No recipes added yet. Start by adding one above!</p>
             ) : (
               <ScrollArea className="h-[400px] w-full rounded-md border p-3">
                 <div className="space-y-3">
-                  {recipes.map((recipe) => (
+                  {filteredRecipes.map((recipe) => (
                     <div key={recipe.id} className="border p-3 rounded-xl bg-background flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0">
                         <button
