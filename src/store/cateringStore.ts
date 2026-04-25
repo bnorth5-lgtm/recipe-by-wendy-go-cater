@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { format, isFuture, parseISO, addDays, addMonths } from "date-fns"; // Import date-fns for date handling
+import { deleteRecipeById, getAllRecipes, upsertRecipe } from "@/lib/recipeDb";
 
 // Helper to parse quantity strings from initial data for conversion
 const parseQuantityAndUnit = (quantityString: string): { quantity: number; unit: string } => {
@@ -99,8 +100,21 @@ export interface Recipe {
   category: "Appetizer" | "Main Course" | "Dessert" | "Alcoholic Beverage" | "Non-Alcoholic Beverage" | "Side Dish" | "Breakfast" | "Vegetarian Main" | "Other";
   ingredients: RecipeIngredient[];
   instructions: RecipeInstruction[];
-  sourceUrl?: string; // Added for recipe import simulation
-  baseCost: number; // New: Base cost for the recipe
+  // Source tracking (Legacy-Table alignment)
+  sourceUrl?: string;
+  sourceType?: string; // e.g. "url" | "ocr" | "paste"
+  sourceSite?: string; // hostname
+  sourceTitle?: string;
+  sourceAuthor?: string;
+  sourceJson?: any; // structured JSON-LD or importer payload (stored as TEXT in SQLite)
+  importMethod?: string; // "url-jsonld" | "ocr-image" | "ocr-pdf" | "magic-paste"
+  importedAt?: string; // ISO
+
+  // Cost fields
+  baseCost: number; // computed from inventory matches
+  currency?: string; // default USD
+  costPerServing?: number;
+  importedBaseCost?: number; // if provided by import text (used as override)
 }
 
 // Define the schema for an inventory item (now includes all types of items)
@@ -291,6 +305,7 @@ interface CateringState {
   addRecipe: (recipe: Omit<Recipe, 'id' | 'baseCost'>) => void; // baseCost is calculated
   updateRecipe: (recipe: Omit<Recipe, 'baseCost'>) => void; // baseCost is calculated
   deleteRecipe: (id: string) => void;
+  hydrateRecipesFromDb: () => Promise<void>;
 
   addBooking: (booking: Omit<EventBooking, 'id' | 'status' | 'beoId'>) => void; // beoId is set when BEO is created
   updateBooking: (booking: EventBooking) => void;
@@ -1826,9 +1841,22 @@ export const useCateringStore = create<CateringState>()(
             console.warn(`Ingredient "${ingredient.name}" with unit "${ingredient.unit}" not found in inventory for new recipe "${recipe.name}".`);
           }
         }
-        return {
-          recipes: [...state.recipes, { ...recipe, id: crypto.randomUUID(), baseCost: calculatedCost }],
+        const chosenBaseCost =
+          typeof recipe.importedBaseCost === "number" && Number.isFinite(recipe.importedBaseCost) && recipe.importedBaseCost >= 0
+            ? recipe.importedBaseCost
+            : calculatedCost;
+        const servingsNum = Number.parseFloat(String(recipe.servings ?? "").replace(/[^\d.]/g, ""));
+        const costPerServing = Number.isFinite(servingsNum) && servingsNum > 0 ? chosenBaseCost / servingsNum : undefined;
+        const created: Recipe = {
+          ...recipe,
+          id: crypto.randomUUID(),
+          baseCost: chosenBaseCost,
+          costPerServing,
+          currency: recipe.currency ?? "USD",
+          importedAt: recipe.importedAt ?? new Date().toISOString(),
         };
+        void upsertRecipe(created).catch((e) => console.warn("SQLite upsertRecipe failed", e));
+        return { recipes: [...state.recipes, created] };
       }),
       updateRecipe: (updatedRecipe) => set((state) => {
         let calculatedCost = 0;
@@ -1842,15 +1870,38 @@ export const useCateringStore = create<CateringState>()(
             console.warn(`Ingredient "${ingredient.name}" with unit "${ingredient.unit}" not found in inventory for updated recipe "${updatedRecipe.name}".`);
           }
         }
-        return {
-          recipes: state.recipes.map((recipe) =>
-            recipe.id === updatedRecipe.id ? { ...updatedRecipe, baseCost: calculatedCost } : recipe
-          ),
+        const chosenBaseCost =
+          typeof updatedRecipe.importedBaseCost === "number" &&
+          Number.isFinite(updatedRecipe.importedBaseCost) &&
+          updatedRecipe.importedBaseCost >= 0
+            ? updatedRecipe.importedBaseCost
+            : calculatedCost;
+        const servingsNum = Number.parseFloat(String(updatedRecipe.servings ?? "").replace(/[^\d.]/g, ""));
+        const costPerServing = Number.isFinite(servingsNum) && servingsNum > 0 ? chosenBaseCost / servingsNum : undefined;
+        const merged: Recipe = {
+          ...updatedRecipe,
+          baseCost: chosenBaseCost,
+          costPerServing,
+          currency: updatedRecipe.currency ?? "USD",
         };
+        void upsertRecipe(merged).catch((e) => console.warn("SQLite upsertRecipe failed", e));
+        return { recipes: state.recipes.map((r) => (r.id === updatedRecipe.id ? merged : r)) };
       }),
-      deleteRecipe: (id) => set((state) => ({
-        recipes: state.recipes.filter((recipe) => recipe.id !== id),
-      })),
+      deleteRecipe: (id) =>
+        set((state) => {
+          void deleteRecipeById(id).catch((e) => console.warn("SQLite deleteRecipe failed", e));
+          return { recipes: state.recipes.filter((recipe) => recipe.id !== id) };
+        }),
+      hydrateRecipesFromDb: async () => {
+        try {
+          const fromDb = await getAllRecipes();
+          if (fromDb.length) {
+            set({ recipes: fromDb });
+          }
+        } catch (e) {
+          console.warn("SQLite getAllRecipes failed", e);
+        }
+      },
 
       addBooking: (booking) => set((state) => ({
         bookings: [...state.bookings, { ...booking, id: crypto.randomUUID(), status: "pending" }],

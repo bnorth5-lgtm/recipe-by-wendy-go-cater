@@ -1,46 +1,23 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { PlusCircle, Trash2, Link as LinkIcon, AlertCircle } from "lucide-react";
+import { AlertCircle, ExternalLink, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { useCateringStore, Recipe, RecipeIngredient, RecipeInstruction } from "@/store/cateringStore";
+import { useCateringStore, Recipe } from "@/store/cateringStore";
 import { Badge } from "@/components/ui/badge"; // Import Badge for visual cues
+import type { ParsedRecipeDraft } from "@/lib/localAi";
+import { UniversalRecipeImporter } from "@/components/recipes/UniversalRecipeImporter";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { parseRecipeWithLocalAi } from "@/lib/localAi";
 
 // Define the main schema for a recipe
 const recipeFormSchema = z.object({
@@ -63,19 +40,32 @@ const recipeFormSchema = z.object({
   sourceUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
-type RecipeFormData = z.infer<typeof recipeFormSchema>;
+type RecipeDraft = z.infer<typeof recipeFormSchema>;
 
-// Define a simple structure for simulated imported recipe data
-interface SimulatedImportedRecipe {
-  name: string;
-  description: string;
-  prepTime: string;
-  cookTime: string;
-  servings: string;
-  category: "Appetizer" | "Main Course" | "Dessert" | "Alcoholic Beverage" | "Non-Alcoholic Beverage" | "Side Dish" | "Breakfast" | "Vegetarian Main" | "Other";
-  ingredients: { name: string; quantity: number; unit: string }[];
-  instructions: { step: string }[];
-  sourceUrl?: string;
+function parseYieldToNumber(servings: string | undefined): number | null {
+  if (!servings) return null;
+  const cleaned = String(servings).trim();
+  // common: "8", "8 servings", "Serves 8", "8-10"
+  const range = cleaned.match(/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/);
+  if (range) {
+    const a = Number.parseFloat(range[1]);
+    const b = Number.parseFloat(range[2]);
+    if (Number.isFinite(a) && Number.isFinite(b) && a > 0 && b > 0) return (a + b) / 2;
+  }
+  const single = cleaned.match(/(\d+(?:\.\d+)?)/);
+  if (single) {
+    const n = Number.parseFloat(single[1]);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  return null;
+}
+
+function formatMoney(amount: number, currency = "USD") {
+  try {
+    return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(amount);
+  } catch {
+    return `$${amount.toFixed(2)}`;
+  }
 }
 
 const Recipes = () => {
@@ -83,67 +73,106 @@ const Recipes = () => {
   const addRecipe = useCateringStore((state) => state.addRecipe);
   const deleteRecipe = useCateringStore((state) => state.deleteRecipe);
   const inventory = useCateringStore((state) => state.inventory);
+  const hydrateRecipesFromDb = useCateringStore((state) => state.hydrateRecipesFromDb);
 
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [importJson, setImportJson] = useState(""); // State for the JSON input
+  const [parsed, setParsed] = useState<ParsedRecipeDraft | null>(null);
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
+  const [currentServings, setCurrentServings] = useState<number>(0);
+  const [quickServingsById, setQuickServingsById] = useState<Record<string, number>>({});
+  const [bulkText, setBulkText] = useState("");
+  const [isBulkParsing, setIsBulkParsing] = useState(false);
 
-  const form = useForm<RecipeFormData>({
-    resolver: zodResolver(recipeFormSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      prepTime: "",
-      cookTime: "",
-      servings: "",
-      category: "Main Course",
-      ingredients: [{ name: "", quantity: 0.01, unit: "lb" }],
-      instructions: [{ step: "" }],
-      sourceUrl: "",
-    },
-  });
+  useEffect(() => {
+    void hydrateRecipesFromDb();
+  }, [hydrateRecipesFromDb]);
 
-  const { fields: ingredientFields, append: appendIngredient, remove: removeIngredient } = useFieldArray({
-    control: form.control,
-    name: "ingredients",
-  });
+  const canSave = useMemo(() => Boolean(parsed), [parsed]);
 
-  const { fields: instructionFields, append: appendInstruction, remove: removeInstruction } = useFieldArray({
-    control: form.control,
-    name: "instructions",
-  });
+  const selectedRecipe = useMemo(() => {
+    if (!selectedRecipeId) return null;
+    return recipes.find((r) => r.id === selectedRecipeId) ?? null;
+  }, [recipes, selectedRecipeId]);
 
-  const onSubmit = (data: RecipeFormData) => {
+  const originalYield = useMemo(() => {
+    return parseYieldToNumber(selectedRecipe?.servings) ?? 1;
+  }, [selectedRecipe?.servings]);
+
+  const factor = useMemo(() => {
+    const denom = originalYield || 1;
+    return denom > 0 ? currentServings / denom : 1;
+  }, [currentServings, originalYield]);
+
+  const effectiveCostPerServing = useMemo(() => {
+    if (!selectedRecipe) return 0;
+    if (typeof selectedRecipe.costPerServing === "number" && Number.isFinite(selectedRecipe.costPerServing)) {
+      return selectedRecipe.costPerServing;
+    }
+    const oy = parseYieldToNumber(selectedRecipe.servings);
+    if (oy && oy > 0) return selectedRecipe.baseCost / oy;
+    return 0;
+  }, [selectedRecipe]);
+
+  const totalEstimatedCost = useMemo(() => {
+    return currentServings * effectiveCostPerServing;
+  }, [currentServings, effectiveCostPerServing]);
+
+  const saveParsed = () => {
+    if (!parsed) return;
+
+    const validation = recipeFormSchema.safeParse(parsed as any);
+    if (!validation.success) {
+      toast.error("Parsed recipe is incomplete. Try again or add more detail.");
+      return;
+    }
+
+    const data: RecipeDraft = validation.data;
     const missingIngredients: string[] = [];
-    data.ingredients.forEach(ing => {
-      const found = inventory.some(item =>
-        item.name.toLowerCase() === ing.name.toLowerCase() &&
-        item.unit.toLowerCase() === ing.unit.toLowerCase()
+    data.ingredients.forEach((ing) => {
+      const found = inventory.some(
+        (item) =>
+          item.name.toLowerCase() === ing.name.toLowerCase() &&
+          item.unit.toLowerCase() === ing.unit.toLowerCase()
       );
-      if (!found) {
-        missingIngredients.push(`${ing.name} (${ing.unit})`);
-      }
+      if (!found) missingIngredients.push(`${ing.name} (${ing.unit})`);
     });
 
     if (missingIngredients.length > 0) {
       toast.warning(
-        `The following ingredients are not found in your inventory: ${missingIngredients.join(", ")}. Consider adding them to inventory.`,
+        `Missing in inventory: ${missingIngredients.join(", ")}. You can still save the recipe.`,
         { duration: 8000 }
       );
     }
 
-    addRecipe(data as Omit<Recipe, 'id' | 'baseCost'>);
-    form.reset({
-      name: "",
-      description: "",
-      prepTime: "",
-      cookTime: "",
-      servings: "",
-      category: "Main Course",
-      ingredients: [{ name: "", quantity: 0.01, unit: "lb" }],
-      instructions: [{ step: "" }],
-      sourceUrl: "",
-    });
-    toast.success("Recipe added successfully!");
+    addRecipe(data as Omit<Recipe, "id" | "baseCost">);
+    setParsed(null);
+    toast.success("Recipe saved locally.");
+  };
+
+  const bulkPasteAndParse: React.ClipboardEventHandler<HTMLTextAreaElement> = async (e) => {
+    const text = e.clipboardData.getData("text/plain");
+    if (!text?.trim()) return;
+
+    // Let the paste happen visually, then immediately parse.
+    setIsBulkParsing(true);
+    try {
+      const draft = await parseRecipeWithLocalAi({
+        text,
+        meta: {
+          sourceType: "paste",
+          importMethod: "bulk-paste",
+          importedAt: new Date().toISOString(),
+        },
+      });
+
+      // Make the import "instant": fill the pending recipe and keep UI ready to Save.
+      setBulkText(text);
+      setParsed(draft);
+      toast.success("Bulk Import ready. Hit Save.");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Bulk Import failed. Try pasting cleaner text.");
+    } finally {
+      setIsBulkParsing(false);
+    }
   };
 
   const handleDeleteRecipe = (id: string) => {
@@ -151,321 +180,72 @@ const Recipes = () => {
     toast.info("Recipe deleted.");
   };
 
-  const handleSimulateImport = () => {
-    try {
-      const importedRecipe: SimulatedImportedRecipe = JSON.parse(importJson);
-      form.reset({
-        name: importedRecipe.name || "",
-        description: importedRecipe.description || "",
-        prepTime: importedRecipe.prepTime || "",
-        cookTime: importedRecipe.cookTime || "",
-        servings: importedRecipe.servings || "",
-        category: importedRecipe.category || "Main Course",
-        ingredients: importedRecipe.ingredients || [{ name: "", quantity: 0.01, unit: "lb" }],
-        instructions: importedRecipe.instructions || [{ step: "" }],
-        sourceUrl: importedRecipe.sourceUrl || "",
-      });
-      toast.success("Recipe details pre-filled from import!");
-      setIsImportDialogOpen(false);
-      setImportJson(""); // Clear the textarea
-    } catch (error) {
-      toast.error("Failed to parse JSON. Please ensure it's valid JSON format.");
-      console.error("JSON parsing error:", error);
-    }
-  };
-
-  const availableUnits = Array.from(new Set(inventory.map(item => item.unit)));
-
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground p-3">
-      <div className="text-center mb-4">
-        <h1 className="text-4xl font-bold mb-2">Recipe Management</h1>
-        <p className="text-xl text-muted-foreground">
-          Create and manage your recipes, including ingredients and instructions.
-        </p>
-      </div>
+    <div className="min-h-full flex flex-col items-center bg-background text-foreground px-6 py-8">
+      <div className="w-full max-w-5xl space-y-6">
+        <div className="mb-8">
+          <h1 className="text-4xl font-semibold tracking-tight">Recipes</h1>
+          <p className="mt-2 text-lg text-muted-foreground">
+            Universal Importer ingests recipes from OCR, URL JSON, or raw text — stored locally in SQLite.
+          </p>
+        </div>
 
-      <div className="w-full max-w-4xl space-y-4">
-        <Card className="bg-card p-3 rounded-lg shadow-md">
-          <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-primary">Add New Recipe</CardTitle>
-            <CardDescription className="text-muted-foreground">Fill in the details to create a new recipe.</CardDescription>
+        <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-2xl border shadow-sm">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-semibold tracking-tight">Bulk Import</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Paste a raw recipe. We’ll auto-extract Name, Yield, Cost (if present), and Ingredients — then you just hit Save.
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full mb-3">
-                  <LinkIcon className="mr-2 h-4 w-4" /> Simulate Recipe Import
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Simulate Recipe Import</DialogTitle>
-                  <DialogDescription>
-                    Paste recipe details in JSON format. This will pre-fill the form below.
-                    <br />
-                    <span className="text-xs text-muted-foreground">
-                      (Note: For legal reasons, direct web scraping is not supported. Please ensure your source is legal.)
-                    </span>
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-2 py-2">
-                  <Label htmlFor="recipeJson" className="text-left">
-                    Recipe JSON
-                  </Label>
-                  <Textarea
-                    id="recipeJson"
-                    placeholder={`{\n  "name": "Example Dish",\n  "description": "A delicious example.",\n  "prepTime": "10 mins",\n  "cookTime": "20 mins",\n  "servings": "4",\n  "category": "Main Course",\n  "ingredients": [\n    { "name": "Chicken Breast", "quantity": 1, "unit": "lb" }\n  ],\n  "instructions": [\n    { "step": "Cook chicken." }\n  ],\n  "sourceUrl": "https://example.com/recipe"\n}`}
-                    className="min-h-[200px] font-mono text-xs"
-                    value={importJson}
-                    onChange={(e) => setImportJson(e.target.value)}
-                  />
-                </div>
-                <DialogFooter>
-                  <Button type="button" onClick={handleSimulateImport}>Pre-fill Form</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Recipe Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Classic Beef Stroganoff" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="A rich and creamy beef dish..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <FormField
-                    control={form.control}
-                    name="prepTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Prep Time</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., 20 mins" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cookTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cook Time</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., 45 mins" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="servings"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Servings</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., 4-6" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Appetizer">Appetizer</SelectItem>
-                          <SelectItem value="Main Course">Main Course</SelectItem>
-                          <SelectItem value="Dessert">Dessert</SelectItem>
-                          <SelectItem value="Alcoholic Beverage">Alcoholic Beverage</SelectItem>
-                          <SelectItem value="Non-Alcoholic Beverage">Non-Alcoholic Beverage</SelectItem>
-                          <SelectItem value="Side Dish">Side Dish</SelectItem>
-                          <SelectItem value="Breakfast">Breakfast</SelectItem>
-                          <SelectItem value="Vegetarian Main">Vegetarian Main</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Ingredients Section */}
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Ingredients</h3>
-                  <div className="space-y-2">
-                    {ingredientFields.map((item, index) => (
-                      <div key={item.id} className="flex items-end space-x-2">
-                        <FormField
-                          control={form.control}
-                          name={`ingredients.${index}.name`}
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel className={cn(index !== 0 && "sr-only")}>Ingredient Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g., Beef sirloin" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`ingredients.${index}.quantity`}
-                          render={({ field }) => (
-                            <FormItem className="w-24">
-                              <FormLabel className={cn(index !== 0 && "sr-only")}>Quantity</FormLabel>
-                              <FormControl>
-                                <Input type="number" step="0.01" placeholder="1.5" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`ingredients.${index}.unit`}
-                          render={({ field }) => (
-                            <FormItem className="w-28">
-                              <FormLabel className={cn(index !== 0 && "sr-only")}>Unit</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Unit" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {availableUnits.map(unit => (
-                                    <SelectItem key={unit} value={unit}>{unit}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => removeIngredient(index)}
-                          className="shrink-0"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() => appendIngredient({ name: "", quantity: 0.01, unit: "lb" })}
-                  >
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Ingredient
-                  </Button>
-                </div>
-
-                {/* Instructions Section */}
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Instructions</h3>
-                  <div className="space-y-2">
-                    {instructionFields.map((item, index) => (
-                      <div key={item.id} className="flex items-end space-x-2">
-                        <FormField
-                          control={form.control}
-                          name={`instructions.${index}.step`}
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel className={cn(index !== 0 && "sr-only")}>Step {index + 1}</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder={`Step ${index + 1}:`} {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => removeInstruction(index)}
-                          className="shrink-0"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() => appendInstruction({ step: "" })}
-                  >
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Step
-                  </Button>
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="sourceUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Source URL (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., https://www.allrecipes.com/my-recipe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button type="submit" className="w-full">Add Recipe</Button>
-              </form>
-            </Form>
+          <CardContent className="space-y-3">
+            <Textarea
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+              onPaste={bulkPasteAndParse}
+              placeholder="Paste here (no typing). Example: “Name: … Serves: … Cost: … Ingredients: …”"
+              className="min-h-[140px] text-base leading-relaxed"
+            />
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                {isBulkParsing ? "Parsing…" : "Paste triggers parsing automatically."}
+              </p>
+              <Button
+                variant="outline"
+                disabled={!bulkText.trim() || isBulkParsing}
+                onClick={async () => {
+                  // Optional fallback: if user typed/edited after paste, one click reparses.
+                  setIsBulkParsing(true);
+                  try {
+                    const draft = await parseRecipeWithLocalAi({
+                      text: bulkText,
+                      meta: { sourceType: "paste", importMethod: "bulk-paste", importedAt: new Date().toISOString() },
+                    });
+                    setParsed(draft);
+                    toast.success("Bulk Import ready. Hit Save.");
+                  } catch (err: any) {
+                    toast.error(err?.message ?? "Bulk Import failed.");
+                  } finally {
+                    setIsBulkParsing(false);
+                  }
+                }}
+                className="h-10"
+              >
+                Re-parse
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
+        <UniversalRecipeImporter onParsed={(draft) => setParsed(draft)} />
+
+        <div className="flex justify-end">
+          <Button onClick={saveParsed} disabled={!canSave} className="h-11 px-5 text-base">
+            Save to SQLite
+          </Button>
+        </div>
+
         {/* Display Existing Recipes */}
-        <Card className="bg-card p-3 rounded-lg shadow-md">
+        <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-2xl border shadow-sm">
           <CardHeader>
             <CardTitle className="text-2xl font-semibold text-primary">Existing Recipes</CardTitle>
             <CardDescription className="text-muted-foreground">A list of all your managed recipes.</CardDescription>
@@ -477,52 +257,86 @@ const Recipes = () => {
               <ScrollArea className="h-[400px] w-full rounded-md border p-3">
                 <div className="space-y-3">
                   {recipes.map((recipe) => (
-                    <div key={recipe.id} className="border p-2 rounded-md bg-background flex justify-between items-start">
-                      <div>
-                        <h3 className="text-xl font-semibold">{recipe.name}</h3>
-                        <p className="text-sm text-muted-foreground">{recipe.description}</p>
-                        <div className="mt-1 text-sm">
-                          <p><strong>Category:</strong> {recipe.category}</p>
-                          <p><strong>Prep:</strong> {recipe.prepTime} | <strong>Cook:</strong> {recipe.cookTime} | <strong>Servings:</strong> {recipe.servings}</p>
-                          <p><strong>Base Cost:</strong> ${recipe.baseCost.toFixed(2)}</p>
-                          {recipe.sourceUrl && (
-                            <p>
-                              <strong>Source:</strong>{" "}
-                              <a href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                                {new URL(recipe.sourceUrl).hostname}
-                              </a>
-                            </p>
-                          )}
-                        </div>
-                        <div className="mt-1">
-                          <h4 className="font-medium">Ingredients:</h4>
-                          <ul className="list-disc list-inside text-sm text-muted-foreground">
-                            {recipe.ingredients.map((ing, idx) => {
-                              const isIngredientInInventory = inventory.some(item =>
-                                item.name.toLowerCase() === ing.name.toLowerCase() &&
-                                item.unit.toLowerCase() === ing.unit.toLowerCase()
-                              );
-                              return (
-                                <li key={idx} className="flex items-center gap-1">
-                                  {ing.quantity} {ing.unit} {ing.name}
-                                  {!isIngredientInInventory && (
-                                    <Badge variant="destructive" className="ml-2">
-                                      <AlertCircle className="h-3 w-3 mr-1" /> Missing in Inventory
-                                    </Badge>
-                                  )}
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </div>
-                        <div className="mt-1">
-                          <h4 className="font-medium">Instructions:</h4>
-                          <ol className="list-decimal list-inside text-sm text-muted-foreground">
-                            {recipe.instructions.map((inst, idx) => (
-                              <li key={idx}>{inst.step}</li>
-                            ))}
-                          </ol>
-                        </div>
+                    <div key={recipe.id} className="border p-3 rounded-xl bg-background flex justify-between items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <button
+                          type="button"
+                          className="text-left w-full rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background"
+                          onClick={() => {
+                            setSelectedRecipeId(recipe.id);
+                            const oy = parseYieldToNumber(recipe.servings) ?? 1;
+                            setCurrentServings(oy);
+                          }}
+                        >
+                          <h3 className="text-xl font-semibold truncate">{recipe.name}</h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2">{recipe.description}</p>
+                          <div className="mt-1 text-sm">
+                            <p><strong>Category:</strong> {recipe.category}</p>
+                            <p><strong>Prep:</strong> {recipe.prepTime} | <strong>Cook:</strong> {recipe.cookTime} | <strong>Yield:</strong> {recipe.servings}</p>
+                          </div>
+                        </button>
+
+                        {(() => {
+                          const oy = parseYieldToNumber(recipe.servings) ?? 1;
+                          const qs = quickServingsById[recipe.id] ?? oy;
+                          const cps =
+                            typeof recipe.costPerServing === "number" && Number.isFinite(recipe.costPerServing)
+                              ? recipe.costPerServing
+                              : oy > 0
+                                ? recipe.baseCost / oy
+                                : 0;
+                          const total = qs * cps;
+                          const sliderMax = Math.max(10, Math.round(oy * 10));
+
+                          return (
+                            <div className="mt-3 rounded-xl border bg-card/20 px-3 py-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="text-xs font-medium text-muted-foreground">Quick Scale</p>
+                                  <p className="text-base font-semibold tracking-tight truncate">
+                                    {formatMoney(total, recipe.currency ?? "USD")}
+                                    <span className="text-muted-foreground font-normal"> · {qs} guests</span>
+                                  </p>
+                                </div>
+                                <div className="w-[96px] shrink-0">
+                                  <Input
+                                    type="number"
+                                    min={1}
+                                    value={Math.max(1, Math.round(qs))}
+                                    onChange={(e) => {
+                                      const n = Number.parseFloat(e.target.value);
+                                      if (!Number.isFinite(n) || n <= 0) return;
+                                      setQuickServingsById((prev) => ({ ...prev, [recipe.id]: n }));
+                                    }}
+                                    className="h-9 text-sm"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="mt-2">
+                                <Slider
+                                  value={[Math.max(1, Math.round(qs))]}
+                                  min={1}
+                                  max={sliderMax}
+                                  step={1}
+                                  onValueChange={(v) =>
+                                    setQuickServingsById((prev) => ({ ...prev, [recipe.id]: v[0] ?? 1 }))
+                                  }
+                                />
+                                <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
+                                  <span>1</span>
+                                  <span>{sliderMax}</span>
+                                </div>
+                              </div>
+
+                              <div className="mt-2 text-[11px] text-muted-foreground">
+                                Base {formatMoney(recipe.baseCost, recipe.currency ?? "USD")}
+                                <span> · </span>
+                                {formatMoney(cps, recipe.currency ?? "USD")} / serving
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                       <Button
                         variant="destructive"
@@ -541,6 +355,151 @@ const Recipes = () => {
         </Card>
       </div>
       <MadeWithDyad />
+
+      <Dialog
+        open={Boolean(selectedRecipe)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedRecipeId(null);
+        }}
+      >
+        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+          {selectedRecipe ? (
+            <div className="bg-background">
+              <div className="p-8 space-y-6">
+                <div className="flex items-start justify-between gap-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-3xl font-semibold tracking-tight">{selectedRecipe.name}</h2>
+                      <Badge variant="secondary">{selectedRecipe.category}</Badge>
+                    </div>
+                    <p className="text-muted-foreground text-base leading-relaxed max-w-2xl">
+                      {selectedRecipe.description}
+                    </p>
+                    <div className="text-sm text-muted-foreground">
+                      {selectedRecipe.prepTime ? <span>Prep {selectedRecipe.prepTime}</span> : null}
+                      {selectedRecipe.prepTime && selectedRecipe.cookTime ? <span> · </span> : null}
+                      {selectedRecipe.cookTime ? <span>Cook {selectedRecipe.cookTime}</span> : null}
+                      <span> · Yield {selectedRecipe.servings}</span>
+                    </div>
+                    {selectedRecipe.sourceUrl ? (
+                      <a
+                        href={selectedRecipe.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Source
+                      </a>
+                    ) : null}
+                  </div>
+
+                  <div className="min-w-[320px] rounded-2xl border bg-card/40 backdrop-blur supports-[backdrop-filter]:bg-card/30 p-6 space-y-5">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Victus Scaling & Costing</p>
+                      <p className="text-4xl font-semibold tracking-tight">
+                        {formatMoney(totalEstimatedCost, selectedRecipe.currency ?? "USD")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Total Estimated Cost · {formatMoney(effectiveCostPerServing, selectedRecipe.currency ?? "USD")} / serving
+                      </p>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-3">
+                      <div className="flex items-end justify-between gap-4">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">Guest count</p>
+                          <p className="text-xs text-muted-foreground">
+                            Factor \(CurrentServings / OriginalYield\) = {Number.isFinite(factor) ? factor.toFixed(2) : "—"}
+                          </p>
+                        </div>
+                        <div className="w-[120px]">
+                          <Input
+                            inputMode="numeric"
+                            type="number"
+                            min={1}
+                            value={Number.isFinite(currentServings) ? currentServings : 1}
+                            onChange={(e) => {
+                              const n = Number.parseFloat(e.target.value);
+                              if (!Number.isFinite(n) || n <= 0) return;
+                              setCurrentServings(n);
+                            }}
+                            className="h-11 text-base"
+                          />
+                        </div>
+                      </div>
+
+                      <Slider
+                        value={[Math.max(1, Math.round(currentServings || 1))]}
+                        min={1}
+                        max={Math.max(10, Math.round(originalYield * 10))}
+                        step={1}
+                        onValueChange={(v) => setCurrentServings(v[0] ?? 1)}
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>1</span>
+                        <span>{Math.max(10, Math.round(originalYield * 10))}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-8 md:grid-cols-2">
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold tracking-tight">Ingredients (scaled)</h3>
+                    <div className="rounded-2xl border bg-background/50">
+                      <div className="p-4 space-y-2">
+                        {selectedRecipe.ingredients.map((ing, idx) => {
+                          const scaledQty = ing.quantity * (Number.isFinite(factor) ? factor : 1);
+                          const isIngredientInInventory = inventory.some(
+                            (item) =>
+                              item.name.toLowerCase() === ing.name.toLowerCase() &&
+                              item.unit.toLowerCase() === ing.unit.toLowerCase()
+                          );
+                          return (
+                            <div key={idx} className="flex items-center justify-between gap-3 py-2">
+                              <div className="min-w-0">
+                                <p className="font-medium truncate">{ing.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {scaledQty.toFixed(scaledQty < 10 ? 2 : 1)} {ing.unit}
+                                </p>
+                              </div>
+                              {!isIngredientInInventory ? (
+                                <Badge variant="destructive" className="shrink-0">
+                                  <AlertCircle className="h-3 w-3 mr-1" /> Missing
+                                </Badge>
+                              ) : (
+                                <span className="text-xs text-muted-foreground shrink-0">In inventory</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold tracking-tight">Instructions</h3>
+                    <div className="rounded-2xl border bg-background/50 p-4">
+                      <ol className="list-decimal pl-5 space-y-2 text-sm leading-relaxed">
+                        {selectedRecipe.instructions.map((inst, idx) => (
+                          <li key={idx} className="text-foreground/90">
+                            {inst.step}
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-6">Loading…</div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

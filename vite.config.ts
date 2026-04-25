@@ -6,8 +6,8 @@ import path from "path";
 export default defineConfig(({ command }) => ({
   base: '/', // Always use absolute path for Vercel deployments
   server: {
-    host: "::",
-    port: 8080,
+    host: "127.0.0.1",
+    port: 3000,
   },
   plugins: [dyadComponentTagger(), react()],
   resolve: {

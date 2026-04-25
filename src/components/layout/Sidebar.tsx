@@ -16,10 +16,10 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  ChefHat,
   User as UserIcon,
   X, // Import X icon for close button
   Timer, // Import Timer icon
+  Sparkles,
 } from "lucide-react";
 import { useCateringStore } from "@/store/cateringStore";
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
@@ -32,9 +32,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
-  const businessName = useCateringStore((state) => state.businessName);
   const currentUser = useCateringStore((state) => state.currentUser);
-  const logoUrl = useCateringStore((state) => state.logoUrl);
 
   const navItems = [
     {
@@ -71,6 +69,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
       name: "Prep Schedule", // NEW ITEM
       href: "/menu/schedule",
       icon: Timer, // Using Timer icon
+      children: [],
+    },
+    {
+      name: "Live Story",
+      href: "/live-story",
+      icon: Sparkles,
       children: [],
     },
     {
@@ -119,29 +123,32 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
         !isMobile && "translate-x-0" // Always show on desktop
       )}
     >
-      <div className="relative h-32 w-full overflow-hidden border-b border-primary-foreground/20 flex flex-col items-center justify-center px-4 bg-sidebar-accent text-white">
+      <div className="relative w-full shrink-0 border-b border-sidebar-border bg-muted/40">
+        <div className="flex min-h-[168px] w-full items-center justify-center px-3 pb-10 pt-4 sm:min-h-[188px] sm:px-4 sm:pb-11 sm:pt-5">
+          <img
+            src="/wendylogo.jpg"
+            alt="Catering By Wendy"
+            width={512}
+            height={256}
+            className="h-auto w-full max-h-[152px] max-w-full object-contain object-center sm:max-h-[172px]"
+            fetchPriority="high"
+          />
+        </div>
         {isMobile && (
           <Button
-            variant="ghost"
+            variant="secondary"
             size="icon"
-            className="absolute top-4 right-4 text-black"
+            className="absolute top-2 right-2 z-20 h-9 w-9 shadow-md"
             onClick={onClose}
+            aria-label="Close menu"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5" />
           </Button>
         )}
-        {logoUrl ? (
-          <img src={logoUrl} alt="Company Logo" className="h-16 w-auto object-contain mb-2" />
-        ) : (
-          <ChefHat className="h-8 w-8 text-black mb-2" />
-        )}
-        <h1 className="text-xl font-serif font-semibold text-black">
-          {businessName}
-        </h1>
         {currentUser && (
-          <div className="absolute bottom-2 right-2 flex items-center gap-1 text-xs text-black/80 bg-white/70 px-2 py-1 rounded-full">
-            <UserIcon className="h-3 w-3" />
-            <span>{currentUser.role}</span>
+          <div className="absolute bottom-2 right-2 z-20 flex max-w-[calc(100%-1rem)] items-center gap-1 truncate rounded-full bg-background/95 px-2 py-1 text-xs text-foreground shadow-sm backdrop-blur-sm">
+            <UserIcon className="h-3 w-3 shrink-0" />
+            <span className="truncate">{currentUser.role}</span>
           </div>
         )}
       </div>

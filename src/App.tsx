@@ -26,6 +26,7 @@ import GeneralSettings from "./pages/settings/General.tsx";
 import UsersSettings from "./pages/settings/Users.tsx";
 import BrandingSettings from "./pages/settings/Branding.tsx";
 import CateringAverages from "./pages/settings/CateringAverages.tsx";
+import LiveStory from "./pages/LiveStory.tsx";
 
 const App = () => {
   console.log("App.tsx is rendering!"); // Diagnostic log
@@ -70,6 +71,8 @@ const App = () => {
             <Route path="/settings/users" element={<UsersSettings />} />
             <Route path="/settings/branding" element={<BrandingSettings />} />
             <Route path="/settings/catering-averages" element={<CateringAverages />} />
+
+            <Route path="/live-story" element={<LiveStory />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

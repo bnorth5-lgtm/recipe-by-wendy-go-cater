@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ClientForm, ClientFormData } from "@/components/ClientForm";
+import { CateringIntakeForm, CateringIntakeFormData } from "@/components/CateringIntakeForm";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { NotesCard } from "@/components/NotesCard";
@@ -67,6 +68,7 @@ const Dashboard = () => {
   const updateNote = useCateringStore((state) => state.updateNote);
 
   const [isClientFormDialogOpen, setIsClientFormDialogOpen] = useState(false);
+  const [isCateringIntakeDialogOpen, setIsCateringIntakeDialogOpen] = useState(false);
   const [isEditTaskDialogOpen, setIsEditTaskDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<CriticalTask | null>(null);
   const [currentTaskContent, setCurrentTaskContent] = useState("");
@@ -112,6 +114,12 @@ const Dashboard = () => {
     addClient(data as Omit<Client, 'id'>);
     toast.success("New client added successfully!");
     setIsClientFormDialogOpen(false);
+  };
+
+  const handleCateringIntakeSubmit = (data: CateringIntakeFormData) => {
+    console.log("Catering Intake submitted:", data);
+    toast.success("Catering intake captured!");
+    setIsCateringIntakeDialogOpen(false);
   };
 
   const overdueThresholdDays = 7;
@@ -401,6 +409,45 @@ const Dashboard = () => {
                 <ClientForm
                   onSubmit={handleAddClientSubmit}
                   onCancel={() => setIsClientFormDialogOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-sm font-medium">
+              Catering Intake Form
+            </CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="flex flex-col">
+            <div className="text-lg font-bold mb-2">Capture a new catering request</div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Great for <span className="font-medium">Corporate Lunch</span>,{" "}
+              <span className="font-medium">Private Dinners</span>, and{" "}
+              <span className="font-medium">Event Trays</span>.
+            </p>
+            <Dialog open={isCateringIntakeDialogOpen} onOpenChange={setIsCateringIntakeDialogOpen}>
+              <DialogTrigger>
+                <Button size="sm" className="bg-blue-500 text-white hover:bg-blue-600">
+                  <PlusCircle className="mr-2 h-4 w-4" /> New Intake
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Catering Intake Form</DialogTitle>
+                  <DialogDescription>
+                    Capture the essentials for{" "}
+                    <span className="font-medium">Corporate Lunch</span>,{" "}
+                    <span className="font-medium">Private Dinners</span>, or{" "}
+                    <span className="font-medium">Event Trays</span>.
+                  </DialogDescription>
+                </DialogHeader>
+                <CateringIntakeForm
+                  onSubmit={handleCateringIntakeSubmit}
+                  onCancel={() => setIsCateringIntakeDialogOpen(false)}
                 />
               </DialogContent>
             </Dialog>
