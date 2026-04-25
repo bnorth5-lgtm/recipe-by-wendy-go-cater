@@ -5,7 +5,7 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import * as z from "zod";
-import { AlertCircle, ExternalLink, Trash2 } from "lucide-react";
+import { AlertCircle, ExternalLink, Search, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useCateringStore, Recipe } from "@/store/cateringStore";
@@ -395,6 +395,23 @@ const Recipes = () => {
           </Button>
         </div>
 
+        <div className="pt-1">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search Your Cookbook..."
+              aria-label="Search Your Cookbook"
+              className={cn(
+                "h-14 w-full rounded-2xl border-2 bg-background pl-12 pr-4",
+                "text-lg shadow-md shadow-black/5",
+                "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
+              )}
+            />
+          </div>
+        </div>
+
         {/* Display Existing Recipes */}
         <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-2xl border shadow-sm">
           <CardHeader>
@@ -402,14 +419,6 @@ const Recipes = () => {
               <div>
                 <CardTitle className="text-2xl font-semibold text-primary">Existing Recipes</CardTitle>
                 <CardDescription className="text-muted-foreground">A list of all your managed recipes.</CardDescription>
-              </div>
-              <div className="w-full sm:max-w-xs">
-                <Input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search recipes (fuzzy)…"
-                  className="h-11"
-                />
               </div>
             </div>
           </CardHeader>
