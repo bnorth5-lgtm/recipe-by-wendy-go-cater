@@ -83,6 +83,7 @@ const Recipes = () => {
   const [bulkText, setBulkText] = useState("");
   const [isBulkParsing, setIsBulkParsing] = useState(false);
   const [query, setQuery] = useState("");
+  const [importMode, setImportMode] = useState<"paste" | "website" | "scan">("paste");
 
   useEffect(() => {
     void hydrateRecipesFromDb();
@@ -185,7 +186,7 @@ const Recipes = () => {
 
     addRecipe(data as Omit<Recipe, "id" | "baseCost">);
     setParsed(null);
-    toast.success("Recipe saved locally.");
+    toast.success("Added to your Local Vault.");
   };
 
   const bulkPasteAndParse: React.ClipboardEventHandler<HTMLTextAreaElement> = async (e) => {
@@ -226,72 +227,171 @@ const Recipes = () => {
         <div className="mb-8">
           <h1 className="text-4xl font-semibold tracking-tight">Recipes</h1>
           <p className="mt-2 text-lg text-muted-foreground">
-            Universal Importer ingests recipes from OCR, URL JSON, or raw text — stored locally in SQLite.
+            Add recipes your way — paste it, grab it from a website, or Smart Scan a photo or document. Everything stays in your Local Vault.
           </p>
         </div>
 
-        <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-2xl border shadow-sm">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-semibold tracking-tight">Bulk Import</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Paste a raw recipe. We’ll auto-extract Name, Yield, Cost (if present), and Ingredients — then you just hit Save.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Textarea
-              value={bulkText}
-              onChange={(e) => setBulkText(e.target.value)}
-              onPaste={bulkPasteAndParse}
-              placeholder="Paste here (no typing). Example: “Name: … Serves: … Cost: … Ingredients: …”"
-              className="min-h-[140px] text-base leading-relaxed"
-            />
-            <div className="flex items-center justify-between">
-              <p className={cn("text-xs", isBulkParsing ? "text-sky-400" : "text-muted-foreground")}>
-                {isBulkParsing ? "Analyzing Recipe Structure..." : "Paste triggers instant analysis."}
+        <div className="grid gap-4 md:grid-cols-3">
+          <button
+            type="button"
+            onClick={() => setImportMode("paste")}
+            className={cn(
+              "group text-left rounded-3xl border shadow-sm transition-all",
+              "hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
+              "bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-transparent",
+              importMode === "paste" ? "border-emerald-500/50 shadow-md" : "border-border",
+            )}
+          >
+            <div className="p-5 md:p-6 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Quick Paste</p>
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-sm">
+                  ⌘
+                </span>
+              </div>
+              <p className="text-xl font-semibold tracking-tight">Paste a recipe and we’ll fill it in.</p>
+              <p className="text-sm text-muted-foreground">
+                Great for notes, emails, and printed recipes copied from anywhere.
               </p>
-              <Button
-                variant="outline"
-                disabled={!bulkText.trim() || isBulkParsing}
-                onClick={async () => {
-                  // Optional fallback: if user edited after paste, one click reparses.
-                  setIsBulkParsing(true);
-                  try {
-                    const draft = await parseRecipeWithLocalAi({
-                      text: bulkText,
-                      meta: { sourceType: "paste", importMethod: "bulk-paste", importedAt: new Date().toISOString() },
-                    });
-                    setParsed(draft);
-                    toast.success("Bulk Import ready.");
-                  } catch (err: any) {
-                    toast.error(err?.message ?? "Bulk Import failed.");
-                  } finally {
-                    setIsBulkParsing(false);
-                  }
-                }}
-                className="h-10"
-              >
-                Re-analyze
-              </Button>
             </div>
+          </button>
 
-            {hasAnyParsedDraft ? (
-              <div className="sticky bottom-3 z-[80]">
+          <button
+            type="button"
+            onClick={() => setImportMode("website")}
+            className={cn(
+              "group text-left rounded-3xl border shadow-sm transition-all",
+              "hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
+              "bg-gradient-to-br from-sky-500/15 via-sky-500/10 to-transparent",
+              importMode === "website" ? "border-sky-500/50 shadow-md" : "border-border",
+            )}
+          >
+            <div className="p-5 md:p-6 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-sky-700 dark:text-sky-300">From Website</p>
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-sm">
+                  ↗
+                </span>
+              </div>
+              <p className="text-xl font-semibold tracking-tight">Bring in a recipe from a link.</p>
+              <p className="text-sm text-muted-foreground">
+                Paste a recipe webpage and we’ll pull the details into a Recipe File.
+              </p>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setImportMode("scan")}
+            className={cn(
+              "group text-left rounded-3xl border shadow-sm transition-all",
+              "hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
+              "bg-gradient-to-br from-orange-500/20 via-orange-500/10 to-transparent",
+              importMode === "scan" ? "border-orange-500/50 shadow-md" : "border-border",
+            )}
+          >
+            <div className="p-5 md:p-6 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-orange-700 dark:text-orange-300">Scan Document</p>
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-orange-600 text-white shadow-sm">
+                  ▣
+                </span>
+              </div>
+              <p className="text-xl font-semibold tracking-tight">Smart Scan a photo or document.</p>
+              <p className="text-sm text-muted-foreground">
+                Perfect for recipe cards, screenshots, and photos from your camera roll.
+              </p>
+            </div>
+          </button>
+        </div>
+
+        {importMode === "paste" ? (
+          <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-3xl border shadow-sm">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-semibold tracking-tight">Quick Paste</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Paste your recipe below. We’ll organize it into a clean Recipe File you can save.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Textarea
+                value={bulkText}
+                onChange={(e) => setBulkText(e.target.value)}
+                onPaste={bulkPasteAndParse}
+                placeholder="Paste here. Example: “Name… Serves… Ingredients… Steps…”"
+                className="min-h-[160px] text-base leading-relaxed rounded-2xl"
+              />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className={cn("text-sm", isBulkParsing ? "text-sky-400" : "text-muted-foreground")}>
+                  {isBulkParsing ? "Reading your recipe..." : "Tip: pasting starts automatically."}
+                </p>
                 <Button
-                  onClick={saveParsed}
-                  className="h-12 w-full text-base font-semibold bg-emerald-600 hover:bg-emerald-600/90 text-white shadow-lg"
+                  variant="outline"
+                  disabled={!bulkText.trim() || isBulkParsing}
+                  onClick={async () => {
+                    setIsBulkParsing(true);
+                    try {
+                      const draft = await parseRecipeWithLocalAi({
+                        text: bulkText,
+                        meta: { sourceType: "paste", importMethod: "bulk-paste", importedAt: new Date().toISOString() },
+                      });
+                      setParsed(draft);
+                      toast.success("Ready to add to your cookbook.");
+                    } catch (err: any) {
+                      toast.error(err?.message ?? "Couldn’t read that recipe. Try pasting a cleaner copy.");
+                    } finally {
+                      setIsBulkParsing(false);
+                    }
+                  }}
+                  className="h-11 rounded-2xl px-5 text-base"
                 >
-                  Confirm &amp; Save Recipe
+                  Tidy it up again
                 </Button>
               </div>
-            ) : null}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ) : null}
 
-        <UniversalRecipeImporter onParsed={(draft) => setParsed(draft)} />
+        {importMode === "website" ? (
+          <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-3xl border shadow-sm">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-semibold tracking-tight">From Website</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Use a recipe link and we’ll turn it into a Recipe File you can save.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <UniversalRecipeImporter onParsed={(draft) => setParsed(draft)} />
+            </CardContent>
+          </Card>
+        ) : null}
 
-        <div className="flex justify-end">
-          <Button onClick={saveParsed} disabled={!canSave} className="h-11 px-5 text-base">
-            Save to SQLite
+        {importMode === "scan" ? (
+          <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-3xl border shadow-sm">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-semibold tracking-tight">Scan Document</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Drop in a photo or document for Smart Scan, then save it to your cookbook.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <UniversalRecipeImporter onParsed={(draft) => setParsed(draft)} />
+            </CardContent>
+          </Card>
+        ) : null}
+
+        <div className="sticky bottom-3 z-[80]">
+          <Button
+            onClick={saveParsed}
+            disabled={!canSave}
+            className={cn(
+              "h-14 w-full rounded-2xl text-base font-semibold shadow-lg",
+              canSave
+                ? "bg-emerald-600 hover:bg-emerald-600/90 text-white"
+                : "bg-muted text-muted-foreground shadow-none",
+            )}
+          >
+            Add to My Cookbook
           </Button>
         </div>
 
