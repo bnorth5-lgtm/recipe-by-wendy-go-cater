@@ -89,6 +89,7 @@ const Recipes = () => {
   }, [hydrateRecipesFromDb]);
 
   const canSave = useMemo(() => Boolean(parsed), [parsed]);
+  const hasAnyParsedDraft = useMemo(() => parsed !== null, [parsed]);
 
   const filteredRecipes = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -273,13 +274,15 @@ const Recipes = () => {
               </Button>
             </div>
 
-            {parsed ? (
-              <Button
-                onClick={saveParsed}
-                className="h-12 w-full text-base font-semibold bg-emerald-600 hover:bg-emerald-600/90 text-white"
-              >
-                Confirm &amp; Save Recipe
-              </Button>
+            {hasAnyParsedDraft ? (
+              <div className="sticky bottom-3 z-[80]">
+                <Button
+                  onClick={saveParsed}
+                  className="h-12 w-full text-base font-semibold bg-emerald-600 hover:bg-emerald-600/90 text-white shadow-lg"
+                >
+                  Confirm &amp; Save Recipe
+                </Button>
+              </div>
             ) : null}
           </CardContent>
         </Card>
