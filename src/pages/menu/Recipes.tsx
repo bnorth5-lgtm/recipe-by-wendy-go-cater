@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -84,10 +84,20 @@ const Recipes = () => {
   const [isBulkParsing, setIsBulkParsing] = useState(false);
   const [query, setQuery] = useState("");
   const [importMode, setImportMode] = useState<"paste" | "website" | "scan">("paste");
+  const quickPasteRef = useRef<HTMLTextAreaElement | null>(null);
+  const bulkParseDebounceRef = useRef<number | null>(null);
+  const lastParsedTextRef = useRef<string>("");
 
   useEffect(() => {
     void hydrateRecipesFromDb();
   }, [hydrateRecipesFromDb]);
+
+  useEffect(() => {
+    if (importMode !== "paste") return;
+    // Focus the textarea as soon as Quick Paste is chosen.
+    const id = window.setTimeout(() => quickPasteRef.current?.focus(), 0);
+    return () => window.clearTimeout(id);
+  }, [importMode]);
 
   const canSave = useMemo(() => Boolean(parsed), [parsed]);
   const hasAnyParsedDraft = useMemo(() => parsed !== null, [parsed]);
@@ -194,27 +204,51 @@ const Recipes = () => {
     if (!text?.trim()) return;
 
     // Let the paste happen visually, then immediately parse.
+    void startBulkParse(text, "paste");
+  };
+
+  const startBulkParse = async (text: string, trigger: "paste" | "change" | "manual") => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    if (isBulkParsing) return;
+    if (lastParsedTextRef.current === trimmed) return;
+
     setIsBulkParsing(true);
     try {
       const draft = await parseRecipeWithLocalAi({
-        text,
+        text: trimmed,
         meta: {
           sourceType: "paste",
-          importMethod: "bulk-paste",
+          importMethod: trigger === "paste" ? "bulk-paste" : trigger === "manual" ? "bulk-manual" : "bulk-change",
           importedAt: new Date().toISOString(),
         },
       });
-
-      // Make the import "instant": fill the pending recipe and keep UI ready to Save.
-      setBulkText(text);
+      lastParsedTextRef.current = trimmed;
       setParsed(draft);
-      toast.success("Bulk Import ready. Hit Save.");
+      toast.success("Ready to add to your cookbook.");
     } catch (err: any) {
-      toast.error(err?.message ?? "Bulk Import failed. Try pasting cleaner text.");
+      toast.error(err?.message ?? "Couldn’t read that recipe. Try pasting a cleaner copy.");
     } finally {
       setIsBulkParsing(false);
     }
   };
+
+  const scheduleBulkParseFromChange = (nextText: string) => {
+    if (importMode !== "paste") return;
+    const trimmed = nextText.trim();
+    if (!trimmed) return;
+
+    if (bulkParseDebounceRef.current) window.clearTimeout(bulkParseDebounceRef.current);
+    bulkParseDebounceRef.current = window.setTimeout(() => {
+      void startBulkParse(trimmed, "change");
+    }, 450);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (bulkParseDebounceRef.current) window.clearTimeout(bulkParseDebounceRef.current);
+    };
+  }, []);
 
   const handleDeleteRecipe = (id: string) => {
     deleteRecipe(id);
@@ -314,34 +348,42 @@ const Recipes = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
+              <button
+                type="button"
+                onClick={() => quickPasteRef.current?.focus()}
+                className={cn(
+                  "w-full text-left rounded-2xl border-2 p-4 shadow-sm transition",
+                  "bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent",
+                  "hover:shadow-md hover:-translate-y-[1px] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
+                )}
+              >
+                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Paste Text Here</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Click this box, then press <span className="font-medium">Ctrl+V</span> to paste. If it doesn’t auto-read, it will start as soon as text appears.
+                </p>
+              </button>
               <Textarea
+                ref={quickPasteRef}
                 value={bulkText}
-                onChange={(e) => setBulkText(e.target.value)}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setBulkText(next);
+                  // Never miss a paste: if onPaste doesn’t fire, onChange still triggers analysis.
+                  scheduleBulkParseFromChange(next);
+                }}
                 onPaste={bulkPasteAndParse}
-                placeholder="Paste here. Example: “Name… Serves… Ingredients… Steps…”"
+                placeholder="Paste your recipe here…"
                 className="min-h-[160px] text-base leading-relaxed rounded-2xl"
               />
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className={cn("text-sm", isBulkParsing ? "text-sky-400" : "text-muted-foreground")}>
-                  {isBulkParsing ? "Reading your recipe..." : "Tip: pasting starts automatically."}
+                  {isBulkParsing ? "Analyzing Recipe Structure..." : "Tip: pasting (or typing) starts automatically."}
                 </p>
                 <Button
                   variant="outline"
                   disabled={!bulkText.trim() || isBulkParsing}
                   onClick={async () => {
-                    setIsBulkParsing(true);
-                    try {
-                      const draft = await parseRecipeWithLocalAi({
-                        text: bulkText,
-                        meta: { sourceType: "paste", importMethod: "bulk-paste", importedAt: new Date().toISOString() },
-                      });
-                      setParsed(draft);
-                      toast.success("Ready to add to your cookbook.");
-                    } catch (err: any) {
-                      toast.error(err?.message ?? "Couldn’t read that recipe. Try pasting a cleaner copy.");
-                    } finally {
-                      setIsBulkParsing(false);
-                    }
+                    await startBulkParse(bulkText, "manual");
                   }}
                   className="h-11 rounded-2xl px-5 text-base"
                 >
