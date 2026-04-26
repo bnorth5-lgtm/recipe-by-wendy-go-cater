@@ -110,6 +110,11 @@ export interface Recipe {
   importMethod?: string; // "url-jsonld" | "ocr-image" | "ocr-pdf" | "magic-paste"
   importedAt?: string; // ISO
 
+  /** Human citation / provenance (Supabase + Local Vault: `source`) */
+  source?: string;
+  /** Family notes (Supabase + Local Vault: `comments`) */
+  comments?: string;
+
   // Cost fields
   baseCost: number; // computed from inventory matches
   currency?: string; // default USD
@@ -302,7 +307,7 @@ interface CateringState {
   deductInventory: (recipeId: string) => boolean; // Returns true if deduction successful, false otherwise
   deductInventoryItem: (itemId: string, quantity: number) => boolean; // For direct inventory item deduction
 
-  addRecipe: (recipe: Omit<Recipe, 'id' | 'baseCost'>) => void; // baseCost is calculated
+  addRecipe: (recipe: Omit<Recipe, 'id' | 'baseCost'>) => Promise<Recipe>; // persists locally, then returns created recipe
   updateRecipe: (recipe: Omit<Recipe, 'baseCost'>) => void; // baseCost is calculated
   deleteRecipe: (id: string) => void;
   hydrateRecipesFromDb: () => Promise<void>;
@@ -1829,7 +1834,8 @@ export const useCateringStore = create<CateringState>()(
         return false;
       },
 
-      addRecipe: (recipe) => set((state) => {
+      addRecipe: async (recipe) => {
+        const state = get();
         let calculatedCost = 0;
         for (const ingredient of recipe.ingredients) {
           const inventoryItem = state.inventory.find(
@@ -1855,9 +1861,10 @@ export const useCateringStore = create<CateringState>()(
           currency: recipe.currency ?? "USD",
           importedAt: recipe.importedAt ?? new Date().toISOString(),
         };
-        void upsertRecipe(created).catch((e) => console.warn("SQLite upsertRecipe failed", e));
-        return { recipes: [...state.recipes, created] };
-      }),
+        await upsertRecipe(created);
+        set((s) => ({ recipes: [...s.recipes, created] }));
+        return created;
+      },
       updateRecipe: (updatedRecipe) => set((state) => {
         let calculatedCost = 0;
         for (const ingredient of updatedRecipe.ingredients) {

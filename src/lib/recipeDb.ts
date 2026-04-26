@@ -84,6 +84,8 @@ function ensureSchema(db: Database) {
   addCol("currency", "currency TEXT NOT NULL DEFAULT 'USD'");
   addCol("costPerServing", "costPerServing REAL");
   addCol("importedBaseCost", "importedBaseCost REAL");
+  addCol("source", "source TEXT");
+  addCol("comments", "comments TEXT");
 }
 
 async function getDb(): Promise<Database> {
@@ -116,9 +118,9 @@ export async function upsertRecipe(recipe: Recipe): Promise<void> {
          id, name, description, prepTime, cookTime, servings, category,
          sourceUrl, sourceType, sourceSite, sourceTitle, sourceAuthor,
          importMethod, importedAt, sourceJson,
-       currency, costPerServing, importedBaseCost, baseCost
+       currency, costPerServing, importedBaseCost, baseCost, source, comments
        )
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          name=excluded.name,
          description=excluded.description,
@@ -137,7 +139,9 @@ export async function upsertRecipe(recipe: Recipe): Promise<void> {
          currency=excluded.currency,
          costPerServing=excluded.costPerServing,
          importedBaseCost=excluded.importedBaseCost,
-         baseCost=excluded.baseCost`,
+         baseCost=excluded.baseCost,
+         source=excluded.source,
+         comments=excluded.comments`,
       [
         recipe.id,
         recipe.name,
@@ -158,6 +162,8 @@ export async function upsertRecipe(recipe: Recipe): Promise<void> {
         recipe.costPerServing ?? null,
         recipe.importedBaseCost ?? null,
         recipe.baseCost ?? 0,
+        recipe.source ?? null,
+        recipe.comments ?? null,
       ]
     );
 
@@ -218,6 +224,8 @@ export async function getAllRecipes(): Promise<Recipe[]> {
   const cpsIdx = cols.indexOf("costPerServing");
   const importedBaseCostIdx = cols.indexOf("importedBaseCost");
   const baseIdx = cols.indexOf("baseCost");
+  const citationSourceIdx = cols.indexOf("source");
+  const familyCommentsIdx = cols.indexOf("comments");
 
   const recipeIds = rows.values.map((v) => String(v[idIdx]));
   const ingredientsById = new Map<string, Recipe["ingredients"]>();
@@ -286,6 +294,8 @@ export async function getAllRecipes(): Promise<Recipe[]> {
     importedBaseCost:
       importedBaseCostIdx >= 0 && v[importedBaseCostIdx] != null ? Number(v[importedBaseCostIdx]) : undefined,
     baseCost: Number(v[baseIdx] ?? 0),
+    source: citationSourceIdx >= 0 && v[citationSourceIdx] ? String(v[citationSourceIdx]) : undefined,
+    comments: familyCommentsIdx >= 0 && v[familyCommentsIdx] ? String(v[familyCommentsIdx]) : undefined,
     ingredients: ingredientsById.get(String(v[idIdx])) ?? [],
     instructions: instructionsById.get(String(v[idIdx])) ?? [],
   }));

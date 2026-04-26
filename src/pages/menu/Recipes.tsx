@@ -5,13 +5,13 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import * as z from "zod";
-import { AlertCircle, ExternalLink, Search, Trash2 } from "lucide-react";
+import { AlertCircle, Check, ExternalLink, Search, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useCateringStore, Recipe } from "@/store/cateringStore";
 import { Badge } from "@/components/ui/badge"; // Import Badge for visual cues
 import type { ParsedRecipeDraft } from "@/lib/localAi";
-import { UniversalRecipeImporter } from "@/components/recipes/UniversalRecipeImporter";
+import { assertCloudVaultReady, upsertRecipeToCloudVault } from "@/lib/cloudVault";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,93 @@ const recipeFormSchema = z.object({
 });
 
 type RecipeDraft = z.infer<typeof recipeFormSchema>;
+
+const RECIPE_CATEGORIES = [
+  "Appetizer",
+  "Main Course",
+  "Dessert",
+  "Alcoholic Beverage",
+  "Non-Alcoholic Beverage",
+  "Side Dish",
+  "Breakfast",
+  "Vegetarian Main",
+  "Other",
+] as const satisfies readonly Recipe["category"][];
+
+function cloneParsedDraft(d: ParsedRecipeDraft): ParsedRecipeDraft {
+  return {
+    ...d,
+    ingredients: (d.ingredients ?? []).map((i) => ({ ...i })),
+    instructions: (d.instructions ?? []).map((s) => ({ ...s })),
+  };
+}
+
+function isValidOptionalUrl(s: string | undefined): boolean {
+  if (!s || !String(s).trim()) return true;
+  try {
+    const u = new URL(String(s).trim());
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+/** Button enable: enough to save without touching other fields first. */
+function isDraftSaveable(d: ParsedRecipeDraft | null): boolean {
+  if (!d) return false;
+  const name = String(d.name ?? "").trim();
+  if (!name) return false;
+  const ings = d.ingredients ?? [];
+  return ings.some(
+    (ing) =>
+      String(ing?.name ?? "").trim() &&
+      String(ing?.unit ?? "").trim() &&
+      Number(ing?.quantity) > 0,
+  );
+}
+
+/** Fill gaps so strict save validation passes without extra clicks. */
+function normalizeDraftForSave(d: ParsedRecipeDraft): RecipeDraft {
+  const category = (RECIPE_CATEGORIES as readonly string[]).includes(d.category)
+    ? d.category
+    : "Other";
+
+  let sourceUrl = String(d.sourceUrl ?? "").trim();
+  if (!isValidOptionalUrl(sourceUrl)) sourceUrl = "";
+
+  const ingredients = (d.ingredients ?? [])
+    .map((i) => ({
+      name: String(i?.name ?? "").trim(),
+      quantity: Number(i?.quantity ?? 0),
+      unit: String(i?.unit ?? "").trim(),
+    }))
+    .filter((i) => i.name && i.unit && i.quantity > 0);
+
+  const rawSteps = (d.instructions ?? [])
+    .map((x) => String(x?.step ?? "").trim())
+    .filter(Boolean);
+  const instructions =
+    rawSteps.length > 0
+      ? rawSteps.map((step) => ({ step }))
+      : [{ step: "Review and finish preparation steps in your cookbook." }];
+
+  return {
+    name: String(d.name ?? "").trim(),
+    description: String(d.description ?? "").trim() || "Imported recipe.",
+    prepTime: String(d.prepTime ?? "").trim() || "—",
+    cookTime: String(d.cookTime ?? "").trim() || "—",
+    servings: String(d.servings ?? "").trim() || "Serves 4",
+    category: category as RecipeDraft["category"],
+    ingredients,
+    instructions,
+    sourceUrl,
+  };
+}
+
+function historySourceFromDraft(d: ParsedRecipeDraft): string | undefined {
+  const line = [d.sourceTitle, d.sourceSite, d.sourceAuthor].filter(Boolean).join(" · ").trim();
+  return line || undefined;
+}
 
 function parseYieldToNumber(servings: string | undefined): number | null {
   if (!servings) return null;
@@ -83,24 +170,29 @@ const Recipes = () => {
   const [bulkText, setBulkText] = useState("");
   const [isBulkParsing, setIsBulkParsing] = useState(false);
   const [query, setQuery] = useState("");
-  const [importMode, setImportMode] = useState<"paste" | "website" | "scan">("paste");
+  const [saveFlash, setSaveFlash] = useState<"idle" | "success" | "error">("idle");
+  const [lastSavedRecipeName, setLastSavedRecipeName] = useState<string | null>(null);
+  const [lastSaveErrorReason, setLastSaveErrorReason] = useState<string | null>(null);
   const quickPasteRef = useRef<HTMLTextAreaElement | null>(null);
   const bulkParseDebounceRef = useRef<number | null>(null);
   const lastParsedTextRef = useRef<string>("");
+  const saveLockRef = useRef(false);
 
   useEffect(() => {
     void hydrateRecipesFromDb();
   }, [hydrateRecipesFromDb]);
 
   useEffect(() => {
-    if (importMode !== "paste") return;
-    // Focus the textarea as soon as Quick Paste is chosen.
+    // Focus the textarea immediately on load.
     const id = window.setTimeout(() => quickPasteRef.current?.focus(), 0);
     return () => window.clearTimeout(id);
-  }, [importMode]);
+  }, []);
 
-  const canSave = useMemo(() => Boolean(parsed), [parsed]);
-  const hasAnyParsedDraft = useMemo(() => parsed !== null, [parsed]);
+  const hasAnyText = useMemo(() => Boolean(bulkText.trim()), [bulkText]);
+  const canAddToCookbook = useMemo(() => {
+    // Allow click anytime there’s text; if not parsed yet, click will parse-and-save.
+    return hasAnyText && !isBulkParsing && saveFlash === "idle";
+  }, [hasAnyText, isBulkParsing, saveFlash]);
 
   const filteredRecipes = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -167,36 +259,11 @@ const Recipes = () => {
     return currentServings * effectiveCostPerServing;
   }, [currentServings, effectiveCostPerServing]);
 
-  const saveParsed = () => {
-    if (!parsed) return;
-
-    const validation = recipeFormSchema.safeParse(parsed as any);
-    if (!validation.success) {
-      toast.error("Parsed recipe is incomplete. Try again or add more detail.");
-      return;
-    }
-
-    const data: RecipeDraft = validation.data;
-    const missingIngredients: string[] = [];
-    data.ingredients.forEach((ing) => {
-      const found = inventory.some(
-        (item) =>
-          item.name.toLowerCase() === ing.name.toLowerCase() &&
-          item.unit.toLowerCase() === ing.unit.toLowerCase()
-      );
-      if (!found) missingIngredients.push(`${ing.name} (${ing.unit})`);
-    });
-
-    if (missingIngredients.length > 0) {
-      toast.warning(
-        `Missing in inventory: ${missingIngredients.join(", ")}. You can still save the recipe.`,
-        { duration: 8000 }
-      );
-    }
-
-    addRecipe(data as Omit<Recipe, "id" | "baseCost">);
+  const resetImporterForNextRecipe = () => {
+    setBulkText("");
+    lastParsedTextRef.current = "";
     setParsed(null);
-    toast.success("Added to your Local Vault.");
+    setLastSavedRecipeName(null);
   };
 
   const bulkPasteAndParse: React.ClipboardEventHandler<HTMLTextAreaElement> = async (e) => {
@@ -224,8 +291,7 @@ const Recipes = () => {
         },
       });
       lastParsedTextRef.current = trimmed;
-      setParsed(draft);
-      toast.success("Ready to add to your cookbook.");
+      setParsed(cloneParsedDraft(draft));
     } catch (err: any) {
       toast.error(err?.message ?? "Couldn’t read that recipe. Try pasting a cleaner copy.");
     } finally {
@@ -234,7 +300,6 @@ const Recipes = () => {
   };
 
   const scheduleBulkParseFromChange = (nextText: string) => {
-    if (importMode !== "paste") return;
     const trimmed = nextText.trim();
     if (!trimmed) return;
 
@@ -255,8 +320,153 @@ const Recipes = () => {
     toast.info("Recipe deleted.");
   };
 
+  const forceRecipeFromText = (text: string): Omit<Recipe, "id" | "baseCost"> => {
+    const t = text.trim();
+    const firstLine = t.split(/\r?\n/).map((s) => s.trim()).find(Boolean) ?? "Untitled Recipe";
+    return {
+      name: firstLine.slice(0, 120),
+      description: "Imported from Quick Paste.",
+      prepTime: "—",
+      cookTime: "—",
+      servings: "—",
+      category: "Other",
+      ingredients: [],
+      instructions: [{ step: "See original pasted text." }],
+      sourceUrl: "",
+      sourceType: "paste",
+      importMethod: "force-save",
+      importedAt: new Date().toISOString(),
+      sourceJson: { rawText: t },
+      currency: "USD",
+      baseCost: 0 as any, // omitted field; store computes baseCost
+    } as any;
+  };
+
+  const saveParsed = async () => {
+    if (saveLockRef.current) return;
+    saveLockRef.current = true;
+    setLastSaveErrorReason(null);
+
+    let created: Recipe | null = null;
+    try {
+      // Ensure cloud vault is reachable now so errors are specific.
+      await assertCloudVaultReady();
+
+      let draftToSave = parsed;
+      // If text exists but parsing hasn't produced a draft yet, parse on click.
+      if (!draftToSave && bulkText.trim()) {
+        setIsBulkParsing(true);
+        try {
+          const freshDraft = await parseRecipeWithLocalAi({
+            text: bulkText.trim(),
+            meta: { sourceType: "paste", importMethod: "button-press", importedAt: new Date().toISOString() },
+          });
+          draftToSave = cloneParsedDraft(freshDraft);
+          setParsed(draftToSave);
+        } finally {
+          setIsBulkParsing(false);
+        }
+      }
+
+      // FORCE SAVE: if parsing/validation doesn't produce a full draft, we still save the raw text.
+      let data: RecipeDraft | null = null;
+      if (draftToSave) {
+        const normalized = normalizeDraftForSave(draftToSave);
+        const validation = recipeFormSchema.safeParse(normalized);
+        if (validation.success) {
+          data = validation.data;
+        }
+      }
+
+      const payload: Omit<Recipe, "id" | "baseCost"> =
+        data
+          ? ({
+              ...(data as Omit<Recipe, "id" | "baseCost">),
+              source: historySourceFromDraft(draftToSave ?? ({} as any)),
+              comments: undefined,
+            } as any)
+          : (forceRecipeFromText(bulkText) as any);
+
+      const missingIngredients: string[] = [];
+      (data?.ingredients ?? []).forEach((ing) => {
+        const found = inventory.some(
+          (item) =>
+            item.name.toLowerCase() === ing.name.toLowerCase() &&
+            item.unit.toLowerCase() === ing.unit.toLowerCase()
+        );
+        if (!found) missingIngredients.push(`${ing.name} (${ing.unit})`);
+      });
+      if (missingIngredients.length > 0) {
+        toast.warning(`Missing in inventory: ${missingIngredients.join(", ")}. Saving anyway.`, { duration: 6000 });
+      }
+
+      created = await addRecipe(payload);
+      await upsertRecipeToCloudVault(created);
+
+      setLastSavedRecipeName(created.name);
+      setSaveFlash("success");
+      window.setTimeout(() => {
+        setSaveFlash("idle");
+        resetImporterForNextRecipe();
+        saveLockRef.current = false;
+      }, 900);
+    } catch (e: any) {
+      if (created) deleteRecipe(created.id);
+      const msg = String(e?.message ?? "");
+      let reason = msg || "Unknown error.";
+      if (/cloud vault offline/i.test(reason)) reason = "Cloud Vault offline.";
+      if (/key rejected/i.test(reason)) reason = "Cloud Vault key rejected.";
+      if (/table missing/i.test(reason)) reason = "Cloud Vault table missing.";
+      if (/Paste a recipe first/i.test(reason)) reason = "Missing text.";
+      setLastSaveErrorReason(reason);
+      setSaveFlash("error");
+      window.setTimeout(() => setSaveFlash("idle"), 900);
+      saveLockRef.current = false;
+      toast.error(reason);
+    }
+  };
+
   return (
-    <div className="min-h-full flex flex-col items-center bg-background text-foreground px-6 py-8">
+    <div className="relative min-h-full flex flex-col items-center bg-background text-foreground px-6 py-8">
+      {saveFlash === "success" ? (
+        <div
+          role="status"
+          aria-live="assertive"
+          className={cn(
+            "fixed inset-0 z-[400] flex flex-col items-center justify-center gap-7 px-6 py-12 text-white",
+            "bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-800",
+            "shadow-[inset_0_0_0_9999px_rgba(0,0,0,0.10)]",
+          )}
+        >
+          <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white/15 ring-2 ring-white/25 shadow-2xl sm:h-36 sm:w-36">
+            <Check className="h-16 w-16 shrink-0 stroke-[3] drop-shadow-2xl sm:h-20 sm:w-20" aria-hidden />
+          </div>
+          <p className="text-center text-6xl font-black tracking-tight drop-shadow-md sm:text-8xl">
+            SAVED
+          </p>
+          {lastSavedRecipeName ? (
+            <p className="max-w-3xl text-center text-2xl font-semibold leading-tight text-white/95 sm:text-3xl">
+              {lastSavedRecipeName}
+            </p>
+          ) : null}
+          <p className="max-w-xl text-center text-lg font-semibold leading-snug text-white/90 sm:text-xl">
+            Stored safely in your Local Vault and Cloud Vault.
+          </p>
+        </div>
+      ) : null}
+      {saveFlash === "error" ? (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="fixed inset-0 z-[400] flex flex-col items-center justify-center gap-4 bg-red-600 px-6 text-white"
+        >
+          <AlertCircle className="h-24 w-24 shrink-0 stroke-[2.5]" aria-hidden />
+          <p className="text-center text-4xl font-black tracking-tight sm:text-5xl">NOT SAVED</p>
+          <p className="max-w-2xl text-center text-lg font-semibold text-white/95">
+            {lastSaveErrorReason ?? "Fix the text and try again."}
+          </p>
+        </div>
+      ) : null}
       <div className="w-full max-w-5xl space-y-6">
         <div className="mb-8">
           <h1 className="text-4xl font-semibold tracking-tight">Recipes</h1>
@@ -265,175 +475,49 @@ const Recipes = () => {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <button
-            type="button"
-            onClick={() => setImportMode("paste")}
-            className={cn(
-              "group text-left rounded-3xl border shadow-sm transition-all",
-              "hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
-              "bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-transparent",
-              importMode === "paste" ? "border-emerald-500/50 shadow-md" : "border-border",
-            )}
-          >
-            <div className="p-5 md:p-6 space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Quick Paste</p>
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-sm">
-                  ⌘
-                </span>
-              </div>
-              <p className="text-xl font-semibold tracking-tight">Paste a recipe and we’ll fill it in.</p>
-              <p className="text-sm text-muted-foreground">
-                Great for notes, emails, and printed recipes copied from anywhere.
-              </p>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setImportMode("website")}
-            className={cn(
-              "group text-left rounded-3xl border shadow-sm transition-all",
-              "hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
-              "bg-gradient-to-br from-sky-500/15 via-sky-500/10 to-transparent",
-              importMode === "website" ? "border-sky-500/50 shadow-md" : "border-border",
-            )}
-          >
-            <div className="p-5 md:p-6 space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-sky-700 dark:text-sky-300">From Website</p>
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-sm">
-                  ↗
-                </span>
-              </div>
-              <p className="text-xl font-semibold tracking-tight">Bring in a recipe from a link.</p>
-              <p className="text-sm text-muted-foreground">
-                Paste a recipe webpage and we’ll pull the details into a Recipe File.
-              </p>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setImportMode("scan")}
-            className={cn(
-              "group text-left rounded-3xl border shadow-sm transition-all",
-              "hover:shadow-lg hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
-              "bg-gradient-to-br from-orange-500/20 via-orange-500/10 to-transparent",
-              importMode === "scan" ? "border-orange-500/50 shadow-md" : "border-border",
-            )}
-          >
-            <div className="p-5 md:p-6 space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-orange-700 dark:text-orange-300">Scan Document</p>
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-orange-600 text-white shadow-sm">
-                  ▣
-                </span>
-              </div>
-              <p className="text-xl font-semibold tracking-tight">Smart Scan a photo or document.</p>
-              <p className="text-sm text-muted-foreground">
-                Perfect for recipe cards, screenshots, and photos from your camera roll.
-              </p>
-            </div>
-          </button>
-        </div>
-
-        {importMode === "paste" ? (
-          <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-3xl border shadow-sm">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-semibold tracking-tight">Quick Paste</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Paste your recipe below. We’ll organize it into a clean Recipe File you can save.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <button
-                type="button"
-                onClick={() => quickPasteRef.current?.focus()}
-                className={cn(
-                  "w-full text-left rounded-2xl border-2 p-4 shadow-sm transition",
-                  "bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent",
-                  "hover:shadow-md hover:-translate-y-[1px] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
-                )}
-              >
-                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Paste Text Here</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Click this box, then press <span className="font-medium">Ctrl+V</span> to paste. If it doesn’t auto-read, it will start as soon as text appears.
-                </p>
-              </button>
-              <Textarea
-                ref={quickPasteRef}
-                value={bulkText}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setBulkText(next);
-                  // Never miss a paste: if onPaste doesn’t fire, onChange still triggers analysis.
-                  scheduleBulkParseFromChange(next);
-                }}
-                onPaste={bulkPasteAndParse}
-                placeholder="Paste your recipe here…"
-                className="min-h-[160px] text-base leading-relaxed rounded-2xl"
-              />
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className={cn("text-sm", isBulkParsing ? "text-sky-400" : "text-muted-foreground")}>
-                  {isBulkParsing ? "Analyzing Recipe Structure..." : "Tip: pasting (or typing) starts automatically."}
-                </p>
-                <Button
-                  variant="outline"
-                  disabled={!bulkText.trim() || isBulkParsing}
-                  onClick={async () => {
-                    await startBulkParse(bulkText, "manual");
-                  }}
-                  className="h-11 rounded-2xl px-5 text-base"
-                >
-                  Tidy it up again
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : null}
-
-        {importMode === "website" ? (
-          <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-3xl border shadow-sm">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-semibold tracking-tight">From Website</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Use a recipe link and we’ll turn it into a Recipe File you can save.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <UniversalRecipeImporter onParsed={(draft) => setParsed(draft)} />
-            </CardContent>
-          </Card>
-        ) : null}
-
-        {importMode === "scan" ? (
-          <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-3xl border shadow-sm">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-semibold tracking-tight">Scan Document</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Drop in a photo or document for Smart Scan, then save it to your cookbook.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <UniversalRecipeImporter onParsed={(draft) => setParsed(draft)} />
-            </CardContent>
-          </Card>
-        ) : null}
+        <Card className="rounded-3xl border bg-background shadow-lg shadow-black/5">
+          <CardHeader className="space-y-1 pb-3">
+            <CardTitle className="text-2xl font-semibold tracking-tight">Quick Paste</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Paste a recipe below.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 p-5 pt-0 md:p-6 md:pt-0">
+            <Textarea
+              ref={quickPasteRef}
+              value={bulkText}
+              onChange={(e) => {
+                const next = e.target.value;
+                setBulkText(next);
+                scheduleBulkParseFromChange(next);
+              }}
+              onPaste={bulkPasteAndParse}
+              placeholder="Paste recipe text here…"
+              className={cn(
+                "min-h-[420px] rounded-2xl border bg-white px-5 py-4 text-lg leading-relaxed text-slate-900",
+                "shadow-md shadow-black/10 placeholder:text-slate-400",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ring-offset-background",
+                parsed ? "border-sky-500 ring-sky-500/30" : "border-slate-200",
+                "dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:border-zinc-800",
+              )}
+            />
+          </CardContent>
+        </Card>
 
         <div className="sticky bottom-3 z-[80]">
           <Button
+            type="button"
             onClick={saveParsed}
-            disabled={!canSave}
+            disabled={!canAddToCookbook}
             className={cn(
-              "h-14 w-full rounded-2xl text-base font-semibold shadow-lg",
-              canSave
-                ? "bg-emerald-600 hover:bg-emerald-600/90 text-white"
-                : "bg-muted text-muted-foreground shadow-none",
+              "h-16 w-full rounded-2xl text-xl font-black tracking-wide shadow-2xl",
+              // STRICT: bright orange + opacity-100 whenever there is any text in the box.
+              hasAnyText
+                ? "bg-orange-600 hover:bg-orange-600/90 text-white opacity-100 disabled:opacity-100"
+                : "bg-muted text-muted-foreground shadow-none disabled:opacity-100",
             )}
           >
-            Add to My Cookbook
+            ADD TO COOKBOOK
           </Button>
         </div>
 
@@ -589,6 +673,18 @@ const Recipes = () => {
                     <p className="text-muted-foreground text-base leading-relaxed max-w-2xl">
                       {selectedRecipe.description}
                     </p>
+                    {selectedRecipe.source ? (
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">Citation: </span>
+                        {selectedRecipe.source}
+                      </p>
+                    ) : null}
+                    {selectedRecipe.comments ? (
+                      <div className="max-w-2xl rounded-2xl border bg-muted/30 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Family notes</p>
+                        <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap">{selectedRecipe.comments}</p>
+                      </div>
+                    ) : null}
                     <div className="text-sm text-muted-foreground">
                       {selectedRecipe.prepTime ? <span>Prep {selectedRecipe.prepTime}</span> : null}
                       {selectedRecipe.prepTime && selectedRecipe.cookTime ? <span> · </span> : null}
