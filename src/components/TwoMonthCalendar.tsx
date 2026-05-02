@@ -17,6 +17,12 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Estimate, Proposal, EventBooking } from "@/store/cateringStore";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { FileText, DollarSign, CalendarCheck, Printer } from "lucide-react";
 
 interface TwoMonthCalendarProps {
@@ -120,8 +126,8 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
         </CardDescription>
         {/* Removed the Badge elements as requested */}
       </CardHeader>
-      <CardContent className="flex-1 p-3 overflow-x-auto">
-        <div className="flex flex-col lg:flex-row gap-4">
+      <CardContent className="flex-1 p-3 overflow-hidden">
+        <div className="flex flex-col lg:flex-row flex-wrap lg:flex-nowrap gap-4 lg:gap-8">
           <ShadcnCalendar
             mode="single"
             selected={selectedDate}
@@ -131,9 +137,10 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
             numberOfMonths={3}
             modifiers={modifiers}
             modifiersClassNames={modifiersClassNames}
-            className="rounded-md border flex-1"
+            className="rounded-md border flex-1 min-w-0 overflow-hidden w-full lg:w-auto"
           />
-          <div className="flex-shrink-0 w-full lg:w-60 p-4 border rounded-md bg-background">
+          {/* Desktop Calendar Key */}
+          <div className="hidden lg:block flex-shrink-0 w-full lg:w-1/4 xl:w-1/5 p-4 border rounded-md bg-background lg:border-l-2 lg:border-l-muted lg:pl-6 lg:ml-2">
             <h3 className="text-lg font-semibold mb-3 text-primary">Calendar Key</h3>
             <div className="space-y-2">
               <div className="flex items-center">
@@ -153,6 +160,34 @@ export const TwoMonthCalendar: React.FC<TwoMonthCalendarProps> = ({ proposals, e
                 <span className="text-sm text-muted-foreground">Completed Events</span>
               </div>
             </div>
+          </div>
+          {/* Mobile Calendar Key Accordion */}
+          <div className="block lg:hidden w-full">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="calendar-key" className="border rounded-md px-4 bg-background">
+                <AccordionTrigger className="text-lg font-semibold text-primary hover:no-underline">Calendar Key</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-2 pt-2">
+                    <div className="flex items-center">
+                      <span className="w-4 h-4 rounded-full bg-calendar-quote mr-2"></span>
+                      <span className="text-sm text-muted-foreground">Estimates</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-4 h-4 rounded-full bg-calendar-proposal mr-2"></span>
+                      <span className="text-sm text-muted-foreground">Proposals</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-4 h-4 rounded-full bg-calendar-event mr-2"></span>
+                      <span className="text-sm text-muted-foreground">Pending Events</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-4 h-4 rounded-full bg-calendar-completed-event mr-2"></span>
+                      <span className="text-sm text-muted-foreground">Completed Events</span>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
       </CardContent>

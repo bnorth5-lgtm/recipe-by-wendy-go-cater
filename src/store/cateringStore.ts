@@ -4,6 +4,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { format, isFuture, parseISO, addDays, addMonths } from "date-fns"; // Import date-fns for date handling
 import { deleteRecipeById, getAllRecipes, upsertRecipe } from "@/lib/recipeDb";
+import type { SubscriptionTier } from "@/lib/subscriptionTiers";
+import { type NbsRole, NBS_CANONICAL_USERS } from "@/lib/partnershipLedger";
 
 // Helper to parse quantity strings from initial data for conversion
 const parseQuantityAndUnit = (quantityString: string): { quantity: number; unit: string } => {
@@ -77,11 +79,154 @@ const parseQuantityAndUnit = (quantityString: string): { quantity: number; unit:
 };
 
 
+// ---------------------------------------------------------------------------
+// Primitive value types
+// ---------------------------------------------------------------------------
+
+/**
+ * A numeric measurement paired with its unit of measure.
+ * Replaces all bare `string` quantity fields on Recipe (prepTime, cookTime,
+ * servings) so parsers and renderers always agree on structure.
+ */
+export interface Quantity {
+  value: number;
+  unit: string;
+}
+
+/**
+ * Memoir snippets and provenance annotations authored by Billbot.
+ * Stored as JSON in the `legacyMetadata` column of the local SQLite vault
+ * and the Supabase `recipes` table when synced.
+ */
+export interface LegacyMetadata {
+  /** Billbot's narrative excerpt from the Cronkhite Memoirs */
+  memoirSnippet?: string;
+  /** Origin story or family history note */
+  historicalNote?: string;
+  /** Source reference, e.g. "Cronkhite Memoirs Ch. 4" */
+  memoirSource?: string;
+  /** ISO date when Billbot processed the record */
+  transcribedAt?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Quantity helpers (exported so UI components can use them without importing
+// a separate utilities module)
+// ---------------------------------------------------------------------------
+
+/** Render a Quantity as a human-readable string, e.g. "30 min" or "8 servings". */
+export function formatQuantity(q: Quantity): string {
+  return `${q.value} ${q.unit}`.trim();
+}
+
+/** 
+ * Scales a given quantity and attempts to convert it to a more appropriate
+ * larger unit if the resulting quantity crosses a threshold 
+ * (e.g. 48 tsp -> 1 cup, 32 oz -> 2 lb).
+ */
+export function scaleAndConvertQuantity(quantity: number, unit: string, scaleFactor: number): { quantity: number, unit: string } {
+  let q = quantity * scaleFactor;
+  let u = unit.toLowerCase();
+
+  // Handle standard volume conversions
+  if (u === "tsp" || u === "teaspoon" || u === "teaspoons") {
+    if (q >= 48) { q = q / 48; u = "cup"; }
+    else if (q >= 3) { q = q / 3; u = "tbsp"; }
+  }
+  
+  if (u === "tbsp" || u === "tablespoon" || u === "tablespoons") {
+    if (q >= 16) { q = q / 16; u = "cup"; }
+    else if (q >= 2) { q = q / 2; u = "fl oz"; }
+  }
+  
+  if (u === "fl oz" || u === "fluid oz") {
+    if (q >= 128) { q = q / 128; u = "gallon"; }
+    else if (q >= 32) { q = q / 32; u = "quart"; }
+    else if (q >= 16) { q = q / 16; u = "pint"; }
+    else if (q >= 8) { q = q / 8; u = "cup"; }
+  }
+  
+  if (u === "cup" || u === "cups") {
+    if (q >= 16) { q = q / 16; u = "gallon"; }
+    else if (q >= 4) { q = q / 4; u = "quart"; }
+    else if (q >= 2) { q = q / 2; u = "pint"; }
+  }
+  
+  if (u === "pint" || u === "pints") {
+    if (q >= 8) { q = q / 8; u = "gallon"; }
+    else if (q >= 2) { q = q / 2; u = "quart"; }
+  }
+  
+  if (u === "quart" || u === "quarts") {
+    if (q >= 4) { q = q / 4; u = "gallon"; }
+  }
+
+  // Handle standard weight conversions
+  if (u === "oz" || u === "ounce" || u === "ounces") {
+    if (q >= 16) { q = q / 16; u = "lb"; }
+  }
+  
+  if (u === "g" || u === "gram" || u === "grams") {
+    if (q >= 1000) { q = q / 1000; u = "kg"; }
+  }
+
+  // Handle count
+  if (u === "count" || u === "counts") {
+    // just scale it, but keep the unit
+    u = "count";
+  }
+
+  return { quantity: q, unit: u };
+}
+
+/** Parse a freeform time string ("30 mins", "1 hr 30 min", "—") into a Quantity. */
+export function parseTimeQuantity(s: string | undefined): Quantity {
+  const fallback: Quantity = { value: 0, unit: "min" };
+  if (!s || !s.trim() || s.trim() === "—") return fallback;
+  const parts = s.toLowerCase().match(/(\d+(?:\.\d+)?)\s*(min|hr|hour|h|m)\b/g);
+  if (!parts) {
+    const num = Number.parseFloat(s);
+    return Number.isFinite(num) && num > 0 ? { value: num, unit: "min" } : fallback;
+  }
+  let totalMinutes = 0;
+  for (const part of parts) {
+    const m = part.match(/(\d+(?:\.\d+)?)\s*(min|hr|hour|h|m)\b/);
+    if (m) {
+      const val = Number.parseFloat(m[1]);
+      const isHour = /^(hr|hour|h)$/.test(m[2]);
+      totalMinutes += isHour ? val * 60 : val;
+    }
+  }
+  return { value: totalMinutes, unit: "min" };
+}
+
+/** Parse a freeform servings string ("8", "Serves 8", "8-10 servings") into a Quantity. */
+export function parseServingQuantity(s: string | undefined): Quantity {
+  const fallback: Quantity = { value: 4, unit: "servings" };
+  if (!s || !s.trim() || s.trim() === "—") return fallback;
+  const range = String(s).match(/(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)/);
+  if (range) {
+    const a = Number.parseFloat(range[1]);
+    const b = Number.parseFloat(range[2]);
+    if (Number.isFinite(a) && Number.isFinite(b) && a > 0 && b > 0) {
+      return { value: (a + b) / 2, unit: "servings" };
+    }
+  }
+  const single = String(s).match(/(\d+(?:\.\d+)?)/);
+  if (single) {
+    const n = Number.parseFloat(single[1]);
+    if (Number.isFinite(n) && n > 0) return { value: n, unit: "servings" };
+  }
+  return fallback;
+}
+
+// ---------------------------------------------------------------------------
 // Define the schema for a single ingredient within a recipe
+// ---------------------------------------------------------------------------
 export interface RecipeIngredient {
   name: string;
-  quantity: number; // Changed to number
-  unit: string;    // Added unit
+  quantity: number;
+  unit: string;
 }
 
 // Define the schema for a single instruction step within a recipe
@@ -89,25 +234,45 @@ export interface RecipeInstruction {
   step: string;
 }
 
+// ---------------------------------------------------------------------------
+// UUID guard — rejects IDs that are clearly not UUIDs so callers can
+// regenerate before a multi-vault sync would produce collisions.
+// ---------------------------------------------------------------------------
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isUUID(id: string): boolean {
+  return UUID_RE.test(id);
+}
+
+/** Return id if it is already a UUID, otherwise generate a fresh one. */
+export function ensureUUID(id: string | undefined): string {
+  return id && isUUID(id) ? id : crypto.randomUUID();
+}
+
 // Define the main schema for a recipe
 export interface Recipe {
+  /** UUID v4 — enforced at write time to prevent collisions during vault sync. */
   id: string;
   name: string;
   description: string;
-  prepTime: string;
-  cookTime: string;
-  servings: string;
+  /** Structured prep time, e.g. { value: 30, unit: "min" } */
+  prepTime: Quantity;
+  /** Structured cook time, e.g. { value: 45, unit: "min" } */
+  cookTime: Quantity;
+  /** Structured yield, e.g. { value: 8, unit: "servings" } */
+  servings: Quantity;
   category: "Appetizer" | "Main Course" | "Dessert" | "Alcoholic Beverage" | "Non-Alcoholic Beverage" | "Side Dish" | "Breakfast" | "Vegetarian Main" | "Other";
   ingredients: RecipeIngredient[];
   instructions: RecipeInstruction[];
   // Source tracking (Legacy-Table alignment)
   sourceUrl?: string;
-  sourceType?: string; // e.g. "url" | "ocr" | "paste"
-  sourceSite?: string; // hostname
+  sourceType?: string;
+  sourceSite?: string;
   sourceTitle?: string;
   sourceAuthor?: string;
-  sourceJson?: any; // structured JSON-LD or importer payload (stored as TEXT in SQLite)
-  importMethod?: string; // "url-jsonld" | "ocr-image" | "ocr-pdf" | "magic-paste"
+  sourceJson?: any;
+  importMethod?: string;
   importedAt?: string; // ISO
 
   /** Human citation / provenance (Supabase + Local Vault: `source`) */
@@ -115,11 +280,14 @@ export interface Recipe {
   /** Family notes (Supabase + Local Vault: `comments`) */
   comments?: string;
 
+  /** Billbot memoir snippets and provenance annotations. */
+  legacyMetadata?: LegacyMetadata;
+
   // Cost fields
-  baseCost: number; // computed from inventory matches
-  currency?: string; // default USD
+  baseCost: number;
+  currency?: string;
   costPerServing?: number;
-  importedBaseCost?: number; // if provided by import text (used as override)
+  importedBaseCost?: number;
 }
 
 // Define the schema for an inventory item (now includes all types of items)
@@ -235,14 +403,31 @@ export interface CriticalTask {
   completed: boolean; // NEW: Added completion status
 }
 
-// NEW: User and Role Definitions
-export type UserRole = "Owner" | "Caterer" | "Employee";
+// Menu price override — stores the computed optimal price for a recipe
+export interface MenuPriceOverride {
+  pricePerServing: number;
+  multiplierUsed: number;
+  competitorAvg: number | null;
+  updatedAt: string;
+}
+
+// User and Role Definitions
+export type UserRole =
+  | "Owner"
+  | "Caterer"
+  | "Employee"
+  | "System Admin"
+  | "Executive Chef";
 
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  /** NBS business-authority role — controls access to legal/financial settings */
+  nbsRole: NbsRole;
+  tier: SubscriptionTier;
+  subscribedAt?: string;
 }
 
 // NEW: BEO Custom Section
@@ -293,6 +478,10 @@ interface CateringState {
   defaultMarkupPercentage: number; // e.g., 0.20 for 20%
   globalLowStockThreshold: number;
   currencySymbol: string;
+
+  // Competitor pricing engine
+  competitorPriceMultiplier: number; // ratio vs competitor avg, e.g. 1.15 = 15% premium
+  menuPriceOverrides: Record<string, MenuPriceOverride>; // keyed by recipe.id
 
   // NEW: Branding Settings
   logoUrl: string;
@@ -373,6 +562,12 @@ interface CateringState {
   setSecondaryColor: (color: string) => void;
   setFontFamilyPrimary: (font: string) => void;
   setFontFamilySecondary: (font: string) => void;
+
+  // Competitor pricing engine actions
+  setCompetitorPriceMultiplier: (multiplier: number) => void;
+  setMenuPriceOverride: (itemId: string, override: MenuPriceOverride) => void;
+  setMenuPriceOverrides: (overrides: Record<string, MenuPriceOverride>) => void;
+  clearMenuPriceOverrides: () => void;
 }
 
 const initialInventory: InventoryItem[] = [
@@ -1684,9 +1879,25 @@ const initialBookings: EventBooking[] = [
 ];
 
 const initialUsers: User[] = [
-  { id: "u1", name: "Alice Johnson", email: "alice@example.com", role: "Owner" },
-  { id: "u2", name: "Bob Caterer", email: "bob@example.com", role: "Caterer" },
-  { id: "u3", name: "Charlie Employee", email: "charlie@example.com", role: "Employee" },
+  // ── Canonical NBS users (authoritative — sourced from partnershipLedger.ts)
+  {
+    id: NBS_CANONICAL_USERS[0].id,
+    name: NBS_CANONICAL_USERS[0].name,
+    email: NBS_CANONICAL_USERS[0].email,
+    role: "System Admin",
+    nbsRole: NBS_CANONICAL_USERS[0].nbsRole,
+    tier: NBS_CANONICAL_USERS[0].tier,
+    subscribedAt: NBS_CANONICAL_USERS[0].subscribedAt,
+  },
+  {
+    id: NBS_CANONICAL_USERS[1].id,
+    name: NBS_CANONICAL_USERS[1].name,
+    email: NBS_CANONICAL_USERS[1].email,
+    role: "Executive Chef",
+    nbsRole: NBS_CANONICAL_USERS[1].nbsRole,
+    tier: NBS_CANONICAL_USERS[1].tier,
+    subscribedAt: NBS_CANONICAL_USERS[1].subscribedAt,
+  },
 ];
 
 const initialBEOs: BEO[] = [
@@ -1756,6 +1967,10 @@ export const useCateringStore = create<CateringState>()(
       defaultMarkupPercentage: 0.20,
       globalLowStockThreshold: 10,
       currencySymbol: "$",
+
+      // Competitor pricing engine initial values
+      competitorPriceMultiplier: 1.15,
+      menuPriceOverrides: {},
 
       // NEW: Branding Settings initial values
       logoUrl: "", // Placeholder for a logo URL
@@ -1851,11 +2066,11 @@ export const useCateringStore = create<CateringState>()(
           typeof recipe.importedBaseCost === "number" && Number.isFinite(recipe.importedBaseCost) && recipe.importedBaseCost >= 0
             ? recipe.importedBaseCost
             : calculatedCost;
-        const servingsNum = Number.parseFloat(String(recipe.servings ?? "").replace(/[^\d.]/g, ""));
+        const servingsNum = recipe.servings.value;
         const costPerServing = Number.isFinite(servingsNum) && servingsNum > 0 ? chosenBaseCost / servingsNum : undefined;
         const created: Recipe = {
           ...recipe,
-          id: crypto.randomUUID(),
+          id: ensureUUID(recipe.id as string | undefined),
           baseCost: chosenBaseCost,
           costPerServing,
           currency: recipe.currency ?? "USD",
@@ -1883,7 +2098,7 @@ export const useCateringStore = create<CateringState>()(
           updatedRecipe.importedBaseCost >= 0
             ? updatedRecipe.importedBaseCost
             : calculatedCost;
-        const servingsNum = Number.parseFloat(String(updatedRecipe.servings ?? "").replace(/[^\d.]/g, ""));
+        const servingsNum = updatedRecipe.servings.value;
         const costPerServing = Number.isFinite(servingsNum) && servingsNum > 0 ? chosenBaseCost / servingsNum : undefined;
         const merged: Recipe = {
           ...updatedRecipe,
@@ -2186,6 +2401,19 @@ export const useCateringStore = create<CateringState>()(
       setSecondaryColor: (color) => set({ secondaryColor: color }),
       setFontFamilyPrimary: (font) => set({ fontFamilyPrimary: font }),
       setFontFamilySecondary: (font) => set({ fontFamilySecondary: font }),
+
+      // Competitor pricing engine actions
+      setCompetitorPriceMultiplier: (multiplier) =>
+        set({ competitorPriceMultiplier: multiplier }),
+      setMenuPriceOverride: (itemId, override) =>
+        set((state) => ({
+          menuPriceOverrides: { ...state.menuPriceOverrides, [itemId]: override },
+        })),
+      setMenuPriceOverrides: (overrides) =>
+        set((state) => ({
+          menuPriceOverrides: { ...state.menuPriceOverrides, ...overrides },
+        })),
+      clearMenuPriceOverrides: () => set({ menuPriceOverrides: {} }),
     }),
     {
       name: 'catering-storage', // unique name

@@ -6,14 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Utensils, Clock, Thermometer, ChefHat, Timer, X } from "lucide-react";
-import { useCateringStore, Recipe } from "@/store/cateringStore";
+import { useCateringStore, Recipe, formatQuantity, type Quantity } from "@/store/cateringStore";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Separator } from "@/components/ui/separator";
 import RecipeTimer from "@/components/RecipeTimer";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-// Helper function to convert time string (e.g., '20 mins', '1 hr 30 min') to seconds
+/** Convert a stored Quantity (value in minutes) to seconds for the timer. */
+const quantityToSeconds = (q: Quantity): number => Math.round(q.value * 60);
+
+// Legacy helper kept for any callers that may pass raw strings.
 const timeStringToSeconds = (timeStr: string): number => {
   if (!timeStr) return 0;
   const parts = timeStr.toLowerCase().match(/(\d+)\s*(min|hr|hour|h|m)/g);
@@ -59,8 +62,8 @@ const PrepSchedule = () => {
   }, [recipes, searchTerm]);
 
   const startTimer = (recipe: Recipe, type: 'prep' | 'cook') => {
-    const timeStr = type === 'prep' ? recipe.prepTime : recipe.cookTime;
-    const initialTimeInSeconds = timeStringToSeconds(timeStr);
+    const timeQuantity = type === 'prep' ? recipe.prepTime : recipe.cookTime;
+    const initialTimeInSeconds = quantityToSeconds(timeQuantity);
 
     if (initialTimeInSeconds === 0) {
       toast.error(`Cannot start ${type} timer: Time is not defined for ${recipe.name}.`);
@@ -101,7 +104,7 @@ const PrepSchedule = () => {
     // Placeholder for temperature, as it's not explicitly stored in the Recipe interface
     // We can infer a common cooking temperature based on category for demonstration
     let temperature = "N/A";
-    if (recipe.cookTime.toLowerCase().includes("min") && timeStringToSeconds(recipe.cookTime) > 0) {
+    if (recipe.cookTime.unit === "min" && quantityToSeconds(recipe.cookTime) > 0) {
         if (recipe.category.includes("Dessert")) {
             temperature = "350°F / 175°C";
         } else if (recipe.category.includes("Main Course") || recipe.category.includes("Appetizer")) {
@@ -117,11 +120,11 @@ const PrepSchedule = () => {
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">Prep Time:</span> {recipe.prepTime}
+            <span className="font-medium">Prep Time:</span> {formatQuantity(recipe.prepTime)}
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">Cook Time:</span> {recipe.cookTime}
+            <span className="font-medium">Cook Time:</span> {formatQuantity(recipe.cookTime)}
           </div>
           <div className="flex items-center gap-1 col-span-2">
             <Thermometer className="h-4 w-4 text-muted-foreground" />
@@ -129,7 +132,7 @@ const PrepSchedule = () => {
           </div>
           <div className="flex items-center gap-1">
             <ChefHat className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">Servings:</span> {recipe.servings}
+            <span className="font-medium">Servings:</span> {formatQuantity(recipe.servings)}
           </div>
         </div>
       </div>
@@ -189,17 +192,17 @@ const PrepSchedule = () => {
                           variant="outline" 
                           size="sm" 
                           onClick={() => startTimer(recipe, 'prep')}
-                          disabled={timeStringToSeconds(recipe.prepTime) === 0}
+                          disabled={quantityToSeconds(recipe.prepTime) === 0}
                         >
-                          <Clock className="h-3 w-3 mr-1" /> Start Prep ({recipe.prepTime})
+                          <Clock className="h-3 w-3 mr-1" /> Start Prep ({formatQuantity(recipe.prepTime)})
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={() => startTimer(recipe, 'cook')}
-                          disabled={timeStringToSeconds(recipe.cookTime) === 0}
+                          disabled={quantityToSeconds(recipe.cookTime) === 0}
                         >
-                          <Thermometer className="h-3 w-3 mr-1" /> Start Cook ({recipe.cookTime})
+                          <Thermometer className="h-3 w-3 mr-1" /> Start Cook ({formatQuantity(recipe.cookTime)})
                         </Button>
                       </div>
                     </div>

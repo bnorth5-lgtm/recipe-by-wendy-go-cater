@@ -10,19 +10,22 @@ import {
   Warehouse,
   Leaf,
   BookText,
-  Menu, // Keep Menu icon for the sidebar itself if needed, but not for toggle
+  Menu,
   DollarSign,
   CalendarCheck,
   Settings,
   ChevronDown,
   ChevronRight,
-  User as UserIcon,
-  X, // Import X icon for close button
-  Timer, // Import Timer icon
+  X,
+  Timer,
   Sparkles,
+  GraduationCap,
+  Lock,
+  FileText,
+  Radar,
 } from "lucide-react";
-import { useCateringStore } from "@/store/cateringStore";
-import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -32,9 +35,15 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
-  const currentUser = useCateringStore((state) => state.currentUser);
+  const { can, isExec } = useSubscription();
 
   const navItems = [
+    {
+      name: "Market Pulse",
+      href: "/market-pulse",
+      icon: Radar,
+      children: [],
+    },
     {
       name: "Dashboard",
       href: "/dashboard",
@@ -96,7 +105,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
         { name: "Calendar", href: "/events/calendar" },
         { name: "Bookings", href: "/events/bookings" },
         { name: "BEOs", href: "/events/beos" },
+        { name: "BEO Generator", href: "/logistics/beo-generator" },
       ],
+    },
+    {
+      name: "Educational Bank",
+      href: "/educational-bank",
+      icon: GraduationCap,
+      children: [],
+      requiresEnterprise: true,
     },
     {
       name: "Settings",
@@ -107,6 +124,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
         { name: "Users", href: "/settings/users" },
         { name: "Branding", href: "/settings/branding" },
         { name: "Catering Averages", href: "/settings/catering-averages" },
+        { name: "Pricing Engine", href: "/settings/pricing-engine" },
+        { name: "Market Expansion", href: "/settings/market-expansion" },
+        { name: "Subscription", href: "/settings/subscription" },
+        ...(isExec
+          ? [{ name: "Legal & Equity", href: "/settings/legal-equity" }]
+          : []),
       ],
     },
   ];
@@ -123,17 +146,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
         !isMobile && "translate-x-0" // Always show on desktop
       )}
     >
-      <div className="relative w-full shrink-0 border-b border-sidebar-border bg-muted/40">
-        <div className="flex min-h-[168px] w-full items-center justify-center px-3 pb-10 pt-4 sm:min-h-[188px] sm:px-4 sm:pb-11 sm:pt-5">
+      <div className="relative w-full shrink-0 border-b border-sidebar-border bg-muted/40 z-40">
+        <Link to="/" className="flex w-full items-center justify-start gap-3 px-3 py-4 sm:px-4 sm:py-5 relative group cursor-pointer transition-colors duration-300 hover:text-[#fbbf24]">
           <img
             src="/wendylogo.jpg"
-            alt="Catering By Wendy"
-            width={512}
-            height={256}
-            className="h-auto w-full max-h-[152px] max-w-full object-contain object-center sm:max-h-[172px]"
+            alt="Catering By Wendy Logo"
+            className="max-h-12 w-auto drop-shadow-sm object-contain"
             fetchPriority="high"
           />
-        </div>
+          <h1 
+            className="font-serif font-bold text-slate-800 dark:text-slate-200 transition-colors duration-300 group-hover:text-[#fbbf24] text-xl md:text-2xl lg:text-3xl"
+            style={{ fontSize: "clamp(1.125rem, 4vw, 1.875rem)" }}
+          >
+            Catering by Wendy
+          </h1>
+        </Link>
         {isMobile && (
           <Button
             variant="secondary"
@@ -145,12 +172,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
             <X className="h-5 w-5" />
           </Button>
         )}
-        {currentUser && (
-          <div className="absolute bottom-2 right-2 z-20 flex max-w-[calc(100%-1rem)] items-center gap-1 truncate rounded-full bg-background/95 px-2 py-1 text-xs text-foreground shadow-sm backdrop-blur-sm">
-            <UserIcon className="h-3 w-3 shrink-0" />
-            <span className="truncate">{currentUser.role}</span>
-          </div>
-        )}
       </div>
       <ScrollArea className="flex-1 py-4">
         <nav className="grid items-start px-4 text-sm font-medium">
@@ -158,6 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
             const isActiveParent = location.pathname.startsWith(item.href);
             const hasChildren = item.children && item.children.length > 0;
             const Icon = item.icon;
+            const locked = item.requiresEnterprise && !can("educational_bank");
 
             const baseTextColor = "text-sidebar-foreground";
             const hoverBg = "hover:bg-sidebar-accent";
@@ -167,23 +189,32 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
             return (
               <React.Fragment key={item.href}>
                 <Button
-                  asChild
+                  asChild={!locked}
                   variant="ghost"
                   className={cn(
                     "justify-start mb-1",
                     baseTextColor,
-                    hoverBg,
-                    isActiveParent ? cn(activeBg, activeTextColor) : ""
+                    locked ? "opacity-50 cursor-not-allowed" : hoverBg,
+                    isActiveParent && !locked ? cn(activeBg, activeTextColor) : ""
                   )}
-                  onClick={isMobile ? onClose : undefined} // Close sidebar on mobile when a nav item is clicked
+                  onClick={locked ? undefined : isMobile ? onClose : undefined}
+                  disabled={locked}
                 >
-                  <Link to={item.href}>
-                    {Icon && <Icon className="mr-3 h-5 w-5" />}
-                    {item.name}
-                    {hasChildren && (isActiveParent ? <ChevronDown className="ml-auto h-4 w-4" /> : <ChevronRight className="ml-auto h-4 w-4" />)}
-                  </Link>
+                  {locked ? (
+                    <span className="flex items-center w-full">
+                      {Icon && <Icon className="mr-3 h-5 w-5" />}
+                      {item.name}
+                      <Lock className="ml-auto h-3.5 w-3.5 opacity-60" />
+                    </span>
+                  ) : (
+                    <Link to={item.href}>
+                      {Icon && <Icon className="mr-3 h-5 w-5" />}
+                      {item.name}
+                      {hasChildren && (isActiveParent ? <ChevronDown className="ml-auto h-4 w-4" /> : <ChevronRight className="ml-auto h-4 w-4" />)}
+                    </Link>
+                  )}
                 </Button>
-                {hasChildren && isActiveParent && (
+                {hasChildren && isActiveParent && !locked && (
                   <div className="ml-6 pl-2 mb-1">
                     {item.children.map((child) => {
                       const isChildActive = location.pathname === child.href;
@@ -198,7 +229,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
                             hoverBg,
                             isChildActive ? cn(activeBg, activeTextColor) : ""
                           )}
-                          onClick={isMobile ? onClose : undefined} // Close sidebar on mobile when a nav item is clicked
+                          onClick={isMobile ? onClose : undefined}
                         >
                           <Link to={child.href}>
                             {child.name}

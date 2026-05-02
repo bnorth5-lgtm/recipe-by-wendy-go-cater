@@ -2,10 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { Sidebar } from "./Sidebar";
+import { BottomNav } from "./BottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAgentRealtime } from "@/hooks/useAgentRealtime";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ProvenanceBio } from "@/components/ProvenanceBio";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -17,6 +20,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Start the Realtime subscription once for the whole app lifetime.
+  useAgentRealtime();
+
   useEffect(() => {
     document.title = APP_DOCUMENT_TITLE;
   }, []);
@@ -26,7 +32,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div key={Date.now()} className="flex min-h-screen bg-background text-foreground max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <ProvenanceBio />
+      
       {/* Mobile Hamburger Menu Button (only visible when sidebar is closed) */}
       {isMobile && !isSidebarOpen && (
         <Button
@@ -56,13 +64,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           "overflow-auto bg-background transition-transform duration-300 ease-in-out relative z-40 min-h-screen",
           // Desktop: flex-1 to take remaining space
           !isMobile && "flex-1",
-          // Mobile:
-          isMobile && "fixed inset-0 w-full", // Make it fixed and cover the whole screen on mobile
-          isMobile && isSidebarOpen && "translate-x-64" // Push content right by sidebar width (w-64 = 256px)
+          // Mobile: full screen, extra bottom padding for the tab bar.
+          // pb-32 (128 px) clears the nav bar height + safe-area inset on
+          // tall-screen devices like the Samsung S25 Ultra.
+          isMobile && "fixed inset-0 w-full pb-32",
+          isMobile && isSidebarOpen && "translate-x-64"
         )}
       >
         {children}
       </main>
+
+      {/* Bottom tab navigation — mobile only */}
+      <BottomNav />
     </div>
   );
 };

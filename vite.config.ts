@@ -8,6 +8,28 @@ export default defineConfig(({ command }) => ({
   server: {
     host: "127.0.0.1",
     port: 3000,
+    proxy:
+      command === "serve"
+        ? {
+            // Same-origin dev proxy to Supabase REST. Avoids browser CORS/preflight "Failed to fetch".
+            "/supabase": {
+              target: "https://apikvfhdiwgjtueeblxl.supabase.co",
+              changeOrigin: true,
+              secure: true,
+              rewrite: (p) => p.replace(/^\/supabase/, ""),
+            },
+          }
+        : undefined,
+    ...(command === "serve"
+      ? {
+          headers: {
+            // Ensure browser CSP allows Supabase during local development.
+            // (Headers take precedence over meta CSP if both are present.)
+            "Content-Security-Policy":
+              "default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://apikvfhdiwgjtueeblxl.supabase.co wss://apikvfhdiwgjtueeblxl.supabase.co https://*.supabase.co wss://*.supabase.co;",
+          },
+        }
+      : {}),
   },
   plugins: [dyadComponentTagger(), react()],
   resolve: {

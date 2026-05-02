@@ -9,10 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, Wand2 } from "lucide-react";
+import { formatQuantity } from "@/store/cateringStore";
 import Tesseract from "tesseract.js";
 import { parseRecipeFromJsonLdWithLocalAi, parseRecipeWithLocalAi, type ParsedRecipeDraft } from "@/lib/localAi";
 import { fetchJsonLdRecipeFromUrl } from "@/lib/recipeScrape";
 import { renderPdfPageToBlob } from "@/lib/pdfOcr";
+import { TierGate } from "@/components/TierGate";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export type UniversalImporterResult = ParsedRecipeDraft;
 
@@ -26,6 +29,7 @@ type OcrAsset =
 
 export function UniversalRecipeImporter({ onParsed }: Props) {
   const [tab, setTab] = useState<"paste" | "ocr" | "url">("paste");
+  const { can, track } = useSubscription();
 
   // Magic Paste
   const [pasteText, setPasteText] = useState("");
@@ -40,15 +44,21 @@ export function UniversalRecipeImporter({ onParsed }: Props) {
   const [preview, setPreview] = useState<ParsedRecipeDraft | null>(null);
 
   const canRun = useMemo(() => {
+    if (!can("price_scraping")) return false;
     if (tab === "paste") return Boolean(pasteText.trim());
     if (tab === "ocr") return Boolean(ocrAsset?.file);
     if (tab === "url") return Boolean(url.trim());
     return false;
-  }, [tab, pasteText, ocrAsset, url]);
+  }, [tab, pasteText, ocrAsset, url, can]);
 
   const run = async () => {
+    if (!can("price_scraping")) {
+      toast.error("Recipe import requires a Professional or Enterprise subscription.");
+      return;
+    }
     setIsWorking(true);
     try {
+      void track("price_scraping");
       if (tab === "paste") {
         const draft = await parseRecipeWithLocalAi({
           text: pasteText,
@@ -133,6 +143,10 @@ export function UniversalRecipeImporter({ onParsed }: Props) {
       setIsWorking(false);
     }
   };
+
+  if (!can("price_scraping")) {
+    return <TierGate feature="price_scraping" />;
+  }
 
   return (
     <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-2xl border shadow-sm">
@@ -229,15 +243,15 @@ export function UniversalRecipeImporter({ onParsed }: Props) {
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             <div className="rounded-lg bg-muted/60 p-3">
               <p className="text-xs text-muted-foreground">Prep</p>
-              <p className="mt-1 font-medium">{preview?.prepTime || "—"}</p>
+              <p className="mt-1 font-medium">{preview?.prepTime ? formatQuantity(preview.prepTime) : "—"}</p>
             </div>
             <div className="rounded-lg bg-muted/60 p-3">
               <p className="text-xs text-muted-foreground">Cook</p>
-              <p className="mt-1 font-medium">{preview?.cookTime || "—"}</p>
+              <p className="mt-1 font-medium">{preview?.cookTime ? formatQuantity(preview.cookTime) : "—"}</p>
             </div>
             <div className="rounded-lg bg-muted/60 p-3">
               <p className="text-xs text-muted-foreground">Servings</p>
-              <p className="mt-1 font-medium">{preview?.servings || "—"}</p>
+              <p className="mt-1 font-medium">{preview?.servings ? formatQuantity(preview.servings) : "—"}</p>
             </div>
           </div>
         </div>

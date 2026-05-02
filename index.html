@@ -3,12 +3,896 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+    </script>
     <meta name="application-name" content="Catering By Wendy" />
+    <!-- CSP: only unlock Supabase connections (does not affect scripts/styles) -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="connect-src 'self' https://apikvfhdiwgjtueeblxl.supabase.co wss://apikvfhdiwgjtueeblxl.supabase.co;"
+    />
     <title>Catering By Wendy</title>
+
+    <style>
+      :root {
+        --nbs-chat-font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        --nbs-chat-bg: #0b1220;
+        --nbs-chat-panel: rgba(255, 255, 255, 0.08);
+        --nbs-chat-panel-2: rgba(255, 255, 255, 0.12);
+        --nbs-chat-border: rgba(255, 255, 255, 0.12);
+        --nbs-chat-text: rgba(255, 255, 255, 0.92);
+        --nbs-chat-muted: rgba(255, 255, 255, 0.72);
+        --nbs-chat-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+        --nbs-chat-radius: 18px;
+        --nbs-chat-accent: #58a6ff;
+        --nbs-chat-accent-2: #7c3aed;
+      }
+
+      /* Chat widget is standalone and should not affect app layout */
+      .nbs-chat,
+      .nbs-chat * {
+        box-sizing: border-box;
+        font-family: var(--nbs-chat-font);
+      }
+
+      .nbs-chat {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 2147483000;
+        color: var(--nbs-chat-text);
+      }
+
+      .nbs-chat__toggle {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+        padding: 0;
+        margin: -1px;
+      }
+
+      .nbs-chat__fab {
+        display: grid;
+        place-items: center;
+        inline-size: 56px;
+        block-size: 56px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: radial-gradient(
+            140% 140% at 20% 15%,
+            rgba(124, 58, 237, 0.6),
+            transparent 55%
+          ),
+          radial-gradient(
+            120% 120% at 90% 0%,
+            rgba(88, 166, 255, 0.6),
+            transparent 55%
+          ),
+          rgba(15, 23, 42, 0.92);
+        color: white;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        user-select: none;
+        transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+      }
+
+      .nbs-chat__fab:hover {
+        transform: translateY(-1px);
+        filter: saturate(1.05);
+        box-shadow: 0 22px 70px rgba(0, 0, 0, 0.56);
+      }
+
+      .nbs-chat__fab:active {
+        transform: translateY(0px) scale(0.99);
+      }
+
+      .nbs-chat__fabIcon {
+        inline-size: 22px;
+        block-size: 22px;
+        opacity: 0.95;
+      }
+
+      .nbs-chat__panel {
+        position: absolute;
+        right: 0;
+        bottom: 72px;
+        inline-size: min(390px, calc(100vw - 36px));
+        max-block-size: min(620px, calc(100vh - 120px));
+        border-radius: var(--nbs-chat-radius);
+        border: 1px solid var(--nbs-chat-border);
+        background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.05)
+          ),
+          rgba(11, 18, 32, 0.82);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: var(--nbs-chat-shadow);
+        overflow: hidden;
+        transform-origin: bottom right;
+        transform: translateY(8px) scale(0.98);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 160ms ease, transform 160ms ease;
+      }
+
+      #nbs-chat-toggle:checked ~ .nbs-chat__panel {
+        opacity: 1;
+        transform: translateY(0px) scale(1);
+        pointer-events: auto;
+      }
+
+      .nbs-chat__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 16px 16px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(
+          90deg,
+          rgba(124, 58, 237, 0.16),
+          rgba(88, 166, 255, 0.12)
+        );
+      }
+
+      .nbs-chat__brand {
+        display: grid;
+        gap: 4px;
+        min-inline-size: 0;
+      }
+
+      .nbs-chat__title {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        line-height: 1.15;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .nbs-chat__subtitle {
+        font-size: 12px;
+        line-height: 1.2;
+        color: var(--nbs-chat-muted);
+      }
+
+      .nbs-chat__close {
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.22);
+        color: rgba(255, 255, 255, 0.92);
+        border-radius: 12px;
+        padding: 8px 10px;
+        cursor: pointer;
+        transition: background 140ms ease, border-color 140ms ease;
+      }
+
+      .nbs-chat__close:hover {
+        background: rgba(0, 0, 0, 0.32);
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+
+      .nbs-chat__body {
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        max-block-size: min(620px, calc(100vh - 120px));
+      }
+
+      .nbs-chat__route {
+        padding: 12px 16px 10px;
+      }
+
+      .nbs-chat__routeLabel {
+        font-size: 12px;
+        color: var(--nbs-chat-muted);
+        margin-bottom: 8px;
+      }
+
+      .nbs-chat__segmented {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .nbs-chat__segmented input {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      .nbs-chat__chip {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.88);
+        padding: 10px 10px;
+        cursor: pointer;
+        transition: transform 140ms ease, background 140ms ease,
+          border-color 140ms ease;
+        user-select: none;
+      }
+
+      .nbs-chat__chip:hover {
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .nbs-chat__segmented input:checked + .nbs-chat__chip {
+        background: linear-gradient(
+            90deg,
+            rgba(88, 166, 255, 0.26),
+            rgba(124, 58, 237, 0.22)
+          ),
+          rgba(255, 255, 255, 0.08);
+        border-color: rgba(88, 166, 255, 0.5);
+      }
+
+      .nbs-chat__chipDot {
+        inline-size: 8px;
+        block-size: 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.6);
+      }
+
+      .nbs-chat__segmented input:checked + .nbs-chat__chip .nbs-chat__chipDot {
+        background: var(--nbs-chat-accent);
+        box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.18);
+      }
+
+      /* Quick-question chips */
+      .nbs-chat__quickq {
+        padding: 0 16px 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .nbs-chat__qq {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 11px;
+        cursor: pointer;
+        transition: background 130ms ease, border-color 130ms ease;
+        white-space: nowrap;
+      }
+
+      .nbs-chat__qq:hover {
+        background: rgba(88, 166, 255, 0.14);
+        border-color: rgba(88, 166, 255, 0.4);
+        color: rgba(255, 255, 255, 0.95);
+      }
+
+      .nbs-chat__messages {
+        padding: 8px 16px 14px;
+        overflow: auto;
+        scrollbar-gutter: stable both-edges;
+      }
+
+      .nbs-chat__bubble {
+        max-inline-size: 92%;
+        padding: 12px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.4;
+        font-size: 13px;
+      }
+
+      .nbs-chat__bubble + .nbs-chat__bubble {
+        margin-top: 10px;
+      }
+
+      .nbs-chat__bubble--assistant {
+        border-top-left-radius: 6px;
+      }
+
+      .nbs-chat__bubble--user {
+        margin-left: auto;
+        border-top-right-radius: 6px;
+        background: linear-gradient(
+            180deg,
+            rgba(88, 166, 255, 0.18),
+            rgba(88, 166, 255, 0.08)
+          ),
+          rgba(255, 255, 255, 0.06);
+        border-color: rgba(88, 166, 255, 0.22);
+      }
+
+      /* Rich bubble formatting */
+      .nbs-chat__bubble strong { font-weight: 700; color: rgba(255,255,255,0.97); }
+      .nbs-chat__bubble a { color: #58a6ff; text-decoration: underline; }
+      .nbs-chat__bubble ul {
+        margin: 8px 0 4px 16px;
+        padding: 0;
+        list-style: disc;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .nbs-chat__bubble li { line-height: 1.45; }
+
+      /* Typing indicator */
+      .nbs-chat__typing-dots {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 2px;
+      }
+
+      .nbs-chat__dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.55);
+        animation: nbsDot 1.3s infinite ease-in-out;
+      }
+
+      .nbs-chat__dot:nth-child(2) { animation-delay: 0.18s; }
+      .nbs-chat__dot:nth-child(3) { animation-delay: 0.36s; }
+
+      @keyframes nbsDot {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.55; }
+        30%            { transform: translateY(-5px); opacity: 1; }
+      }
+
+      .nbs-chat__footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 12px 16px 14px;
+        background: rgba(0, 0, 0, 0.12);
+      }
+
+      .nbs-chat__composer {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .nbs-chat__input {
+        border-radius: 14px;
+        padding: 12px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.92);
+        outline: none;
+        transition: border-color 140ms ease, background 140ms ease;
+      }
+
+      .nbs-chat__input:focus {
+        border-color: rgba(88, 166, 255, 0.55);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .nbs-chat__send {
+        border-radius: 14px;
+        padding: 12px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: linear-gradient(
+            135deg,
+            rgba(88, 166, 255, 0.28),
+            rgba(124, 58, 237, 0.22)
+          ),
+          rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.92);
+        cursor: pointer;
+        transition: transform 140ms ease, filter 140ms ease,
+          border-color 140ms ease;
+        font-weight: 650;
+        letter-spacing: 0.2px;
+      }
+
+      .nbs-chat__send:hover {
+        filter: saturate(1.06);
+        border-color: rgba(88, 166, 255, 0.45);
+      }
+
+      .nbs-chat__send:active {
+        transform: translateY(1px);
+      }
+
+      .nbs-chat__meta {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.62);
+      }
+
+      .nbs-chat__pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(88, 166, 255, 0.24);
+        background: rgba(88, 166, 255, 0.08);
+        color: rgba(88, 166, 255, 0.9);
+        white-space: nowrap;
+      }
+
+      /* KB badge in header */
+      .nbs-chat__kbBadge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        background: rgba(88, 166, 255, 0.18);
+        border: 1px solid rgba(88, 166, 255, 0.32);
+        color: rgba(88, 166, 255, 0.95);
+        white-space: nowrap;
+        vertical-align: middle;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .nbs-chat__panel,
+        .nbs-chat__fab,
+        .nbs-chat__dot {
+          transition: none;
+          animation: none;
+        }
+      }
+    </style>
   </head>
 
   <body>
     <div id="root"></div>
+
+    <!-- NBS Concierge — Educational Bank-powered chat widget -->
+    <aside class="nbs-chat" aria-label="Catering By Wendy concierge chat">
+      <input
+        class="nbs-chat__toggle"
+        type="checkbox"
+        id="nbs-chat-toggle"
+        aria-label="Open chat"
+      />
+
+      <label class="nbs-chat__fab" for="nbs-chat-toggle" aria-hidden="true">
+        <svg
+          class="nbs-chat__fabIcon"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M7.5 20.2c-1.4.6-2.7 1.1-3.7 1.4.4-1.1.9-2.4 1.4-3.8A9.1 9.1 0 0 1 3.5 12c0-5 4.1-9 9.2-9 5.1 0 9.3 4 9.3 9s-4.2 9-9.3 9c-1.7 0-3.3-.4-4.7-1.1-1 .3-2 .6-3 .9Z"
+            stroke="rgba(255,255,255,.92)"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M8.2 12.2h7.6M8.2 8.9h5.8"
+            stroke="rgba(255,255,255,.75)"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+      </label>
+
+      <section
+        class="nbs-chat__panel"
+        role="dialog"
+        aria-label="Chat with Catering By Wendy"
+      >
+        <header class="nbs-chat__header">
+          <div class="nbs-chat__brand">
+            <div class="nbs-chat__title">
+              NBS Concierge
+              <span class="nbs-chat__kbBadge">&#10022; Educational Bank</span>
+            </div>
+            <div class="nbs-chat__subtitle">
+              Catering By Wendy &middot; Ask anything or route an inquiry
+            </div>
+          </div>
+          <label class="nbs-chat__close" for="nbs-chat-toggle">Close</label>
+        </header>
+
+        <div class="nbs-chat__body" data-nbs-widget="concierge">
+
+          <!-- Route selector -->
+          <div class="nbs-chat__route">
+            <div class="nbs-chat__routeLabel">
+              Route this request (for contact / email):
+            </div>
+            <div class="nbs-chat__segmented" role="radiogroup" aria-label="Route">
+              <div>
+                <input
+                  type="radio"
+                  id="nbs-route-catering"
+                  name="nbs_route"
+                  value="catering"
+                  checked
+                />
+                <label class="nbs-chat__chip" for="nbs-route-catering">
+                  <span class="nbs-chat__chipDot"></span>
+                  Catering / Events (Wendy)
+                </label>
+              </div>
+              <div>
+                <input
+                  type="radio"
+                  id="nbs-route-business"
+                  name="nbs_route"
+                  value="business"
+                />
+                <label class="nbs-chat__chip" for="nbs-route-business">
+                  <span class="nbs-chat__chipDot"></span>
+                  Business / Merchant (Bill)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick-question chips (populated by JS) -->
+          <div class="nbs-chat__quickq" id="nbs-quickq" aria-label="Quick questions"></div>
+
+          <!-- Message thread (greeting injected by JS) -->
+          <div class="nbs-chat__messages" id="nbs-messages" aria-label="Messages"></div>
+
+          <footer class="nbs-chat__footer">
+            <form class="nbs-chat__composer" id="nbs-composer">
+              <input
+                class="nbs-chat__input"
+                type="text"
+                name="message"
+                id="nbs-msg-input"
+                placeholder="Ask about BEOs, pricing, setup times&#8230;"
+                autocomplete="off"
+              />
+              <button class="nbs-chat__send" type="submit">Send</button>
+            </form>
+            <div class="nbs-chat__meta">
+              <span class="nbs-chat__pill">&#10022; Educational Bank active</span>
+              <span>Powered by Catering By Wendy</span>
+            </div>
+          </footer>
+        </div>
+      </section>
+    </aside>
+
+    <script>
+    (function () {
+      "use strict";
+
+      // ── Educational Bank Knowledge Base ────────────────────────────────────
+      // Mirror of src/lib/educationalBank.ts — vanilla JS for the chat widget.
+
+      var NBS_KB = [
+        {
+          id: "beo-overview",
+          keywords: ["beo","banquet event order","banquet order","event order",
+            "read beo","what is a beo","what is beo","beo mean","beo document",
+            "understand beo","beo form"],
+          response: "<strong>Certainly &mdash; allow me to walk you through it.</strong><br><br>" +
+            "A <strong>Banquet Event Order (BEO)</strong> is the definitive contract governing every detail of your catering event. Our entire team operates from this single document on the day of your event.<br><br>" +
+            "<strong>Event Header</strong> &mdash; Confirms your event name, venue, date, service times, and the guaranteed guest count (locked in 48 hours prior).<br><br>" +
+            "<strong>Menu Section</strong> &mdash; Every course in service order, from passed hors d&rsquo;oeuvres through dessert, with all dietary accommodations noted. Please review this with care &mdash; changes after this point may affect pricing.<br><br>" +
+            "<strong>Run of Show / Timeline</strong> &mdash; The heartbeat of your event: kitchen prep start, each service window, bar program schedule, and final breakdown time. Our team follows this to the minute.<br><br>" +
+            "<strong>Staffing</strong> &mdash; Number and roles of all personnel assigned: event captain, servers, kitchen staff, and bar crew.<br><br>" +
+            "<strong>Special Instructions</strong> &mdash; Room layout diagram, d&eacute;cor notes, music cue handoffs, and VIP table designations.<br><br>" +
+            "<strong>Financial Summary</strong> &mdash; Subtotals, service charge, applicable tax, and balance due. We recommend reviewing this alongside your original proposal.<br><br>" +
+            "Should you have questions about any section of your BEO, I am most delighted to assist."
+        },
+        {
+          id: "beo-timeline",
+          keywords: ["run of show","beo timeline","event timeline","service window",
+            "beo schedule","beo breakdown","event schedule","guaranteed guest count",
+            "guest count","guest guarantee","beo checklist"],
+          response: "<strong>Of course &mdash; the Run of Show is at the core of every event we execute.</strong><br><br>" +
+            "A typical 6:00 PM dinner timeline proceeds as follows:<br>" +
+            "<ul><li><strong>12:00 PM</strong> &mdash; Rentals received and inventoried</li>" +
+            "<li><strong>1:00 PM</strong> &mdash; Kitchen crew arrives; prep commences</li>" +
+            "<li><strong>2:00 PM</strong> &mdash; Front-of-house crew dresses tables and place settings</li>" +
+            "<li><strong>3:30 PM</strong> &mdash; Bar program staged and fully stocked</li>" +
+            "<li><strong>5:00 PM</strong> &mdash; Walk-through with client or coordinator</li>" +
+            "<li><strong>6:00 PM</strong> &mdash; Doors open; service begins</li>" +
+            "<li><strong>10:00 PM</strong> &mdash; Service concludes; breakdown begins</li>" +
+            "<li><strong>11:30 PM</strong> &mdash; Venue cleared; rentals staged for pickup</li></ul>" +
+            "The <strong>guaranteed guest count</strong> is confirmed 48 hours prior and determines final food quantities, staffing levels, and your final invoice."
+        },
+        {
+          id: "service-tiers",
+          keywords: ["tier","service level","service plan","basic plan","professional plan",
+            "enterprise plan","basic tier","professional tier","enterprise tier",
+            "what do you offer","subscription","pricing plan","upgrade","plan difference",
+            "what is included","features","educational bank"],
+          response: "<strong>My pleasure &mdash; here is our full service level overview.</strong><br><br>" +
+            "Catering By Wendy offers three thoughtfully designed service levels:<br><br>" +
+            "<strong>Basic &mdash; Browse &amp; Explore</strong><br>" +
+            "Full read access to our menu collection, recipe library, and ingredient search. Ideal for prospective clients and new team members reviewing our offerings.<br><br>" +
+            "<strong>Professional &mdash; Price Intelligence</strong><br>" +
+            "Everything in Basic, plus recipe import from any URL, PDF, or image (OCR), live local market ingredient pricing, and full cost-per-serving analysis.<br><br>" +
+            "<strong>Enterprise &mdash; Full Agent Suite</strong><br>" +
+            "Everything in Professional, plus AI agent tools, broad market pricing analysis across regional suppliers, and exclusive access to the <em>Educational Bank</em> &mdash; the knowledge resource you are exploring right now.<br><br>" +
+            "To discuss upgrading or to arrange a brief consultation, please contact us at <a href=\"mailto:northbusinessservices@gmail.com\">northbusinessservices@gmail.com</a>."
+        },
+        {
+          id: "rentals",
+          keywords: ["rental","rent","equipment","linen","linens","chair","chairs",
+            "table","tables","tent","china","dishes","glassware","flatware","silverware",
+            "place settings","tableware","rental delivery","what do you provide",
+            "what is included","bring","rental company"],
+          response: "<strong>Certainly &mdash; rental coordination is a cornerstone of our service.</strong><br><br>" +
+            "<strong>Reservation Timeline:</strong><br>" +
+            "<ul><li><strong>Tents &amp; outdoor structures</strong> &mdash; 6&ndash;8 weeks in advance (peak season books quickly)</li>" +
+            "<li><strong>Tables, chairs &amp; linens</strong> &mdash; 2&ndash;3 weeks prior; adjustments up to one week out</li>" +
+            "<li><strong>China, glassware &amp; silverware</strong> &mdash; 1&ndash;2 weeks out; final counts adjusted at 48 hours</li>" +
+            "<li><strong>Audio/visual &amp; specialty items</strong> &mdash; Confirmed one week prior</li></ul>" +
+            "<strong>What We Bring vs. What Is Rented:</strong><br>" +
+            "Catering By Wendy arrives with all food preparation equipment, chafing dishes, serving platters, and carving stations. Guest-facing items &mdash; tables, chairs, linens, and place settings &mdash; are typically rented separately unless explicitly included in your proposal.<br><br>" +
+            "<strong>Day-of Delivery:</strong><br>" +
+            "All rentals arrive at least one hour before our crew begins setup. We receive, inventory, and stage every piece, and manage the return at event&rsquo;s end."
+        },
+        {
+          id: "setup-times",
+          keywords: ["setup time","set up","arrival time","how early","when do you arrive",
+            "setup window","how long to set up","breakdown","tear down","cleanup",
+            "when do you leave","logistics","day of","day-of","before event"],
+          response: "<strong>Excellent question &mdash; we believe in being fully prepared well before your first guest arrives.</strong><br><br>" +
+            "<strong>Setup Windows by Event Size:</strong><br>" +
+            "<ul><li><strong>Intimate (up to 50 guests)</strong> &mdash; We arrive 2 hours prior to service</li>" +
+            "<li><strong>Mid-size (51&ndash;149 guests)</strong> &mdash; We arrive 3&ndash;4 hours in advance</li>" +
+            "<li><strong>Grand events (150+ guests)</strong> &mdash; Setup begins 4&ndash;6 hours before service, with a full client walk-through one hour prior</li></ul>" +
+            "<strong>Breakdown &amp; Departure:</strong><br>" +
+            "Our crew handles all food consolidation, dishware cleaning, and waste removal. The complete breakdown typically takes 90 minutes to two hours. We leave your venue in the same &mdash; or better &mdash; condition in which we found it."
+        },
+        {
+          id: "staffing",
+          keywords: ["staff","staffing","server","servers","bartender","bartenders","crew",
+            "how many staff","workers","wait staff","waitstaff","service team",
+            "event captain","captain","kitchen staff","gratuity","tip","service charge"],
+          response: "<strong>Of course &mdash; our staffing ratios are calibrated for a gracious, unhurried experience.</strong><br><br>" +
+            "<strong>By Service Format:</strong><br>" +
+            "<ul><li><strong>Plated dinner</strong> &mdash; 1 server per 8&ndash;10 guests</li>" +
+            "<li><strong>Buffet</strong> &mdash; 1 attendant per 20&ndash;25 guests</li>" +
+            "<li><strong>Bar (beer &amp; wine)</strong> &mdash; 1 bartender per 75 guests</li>" +
+            "<li><strong>Bar (full open bar)</strong> &mdash; 1 bartender per 50 guests</li>" +
+            "<li><strong>Cocktail reception</strong> &mdash; 1 server per 15&ndash;20 guests</li></ul>" +
+            "<strong>Event Captain:</strong> Every event includes a senior captain who oversees the service team, coordinates with the kitchen, and serves as your single point of contact throughout the evening.<br><br>" +
+            "<strong>Gratuity:</strong> A 20% service charge is included in your final invoice. Any additional gratuity for exceptional service is entirely at your discretion and greatly appreciated."
+        },
+        {
+          id: "pricing",
+          keywords: ["price","pricing","cost","how much","per person","rate","quote",
+            "proposal","estimate","budget","affordable","price range","average cost",
+            "catering cost","total cost","minimum"],
+          response: "<strong>A wonderful question &mdash; here are our standard price-per-person ranges.</strong><br><br>" +
+            "Every proposal begins with a precise ingredient cost analysis built on current market pricing:<br>" +
+            "<ul><li><strong>Corporate Box Lunch</strong> &mdash; $22&ndash;$35 per person</li>" +
+            "<li><strong>Cocktail Reception (passed hors d&rsquo;oeuvres)</strong> &mdash; $18&ndash;$28 per person</li>" +
+            "<li><strong>Buffet Dinner</strong> &mdash; $42&ndash;$55 per person</li>" +
+            "<li><strong>Plated Three-Course Dinner</strong> &mdash; $58&ndash;$75 per person</li>" +
+            "<li><strong>Wedding Reception (four-course)</strong> &mdash; $75&ndash;$95 per person</li></ul>" +
+            "These ranges reflect food and labor. Rental furnishings, specialty bar programs, and florals are invoiced separately unless specified in your proposal.<br><br>" +
+            "For a fully itemized, no-obligation proposal tailored to your event, please contact us at <a href=\"mailto:northbusinessservices@gmail.com\">northbusinessservices@gmail.com</a>."
+        },
+        {
+          id: "payments",
+          keywords: ["deposit","payment","pay","invoice","balance due","when is payment",
+            "payment schedule","how much deposit","refund","cancellation","credit card",
+            "check","bank transfer","ach","final payment","down payment"],
+          response: "<strong>Certainly &mdash; our payment schedule is designed to be clear and free of surprises.</strong><br><br>" +
+            "<strong>Standard Schedule:</strong><br>" +
+            "<ul><li><strong>Deposit (25%)</strong> &mdash; Due upon signing; non-refundable; secures your event date</li>" +
+            "<li><strong>Second Payment (50%)</strong> &mdash; Due 30 days prior to your event</li>" +
+            "<li><strong>Final Balance</strong> &mdash; Due on or before event day, adjusted for the confirmed guest count</li></ul>" +
+            "<strong>Accepted Methods:</strong> Check, ACH bank transfer, and all major credit cards (2.9% processing fee applies to card transactions).<br><br>" +
+            "For payment questions or to arrange a schedule, please reach us at <a href=\"mailto:northbusinessservices@gmail.com\">northbusinessservices@gmail.com</a>."
+        },
+        {
+          id: "dietary",
+          keywords: ["dietary","allergy","allergies","gluten","gluten-free","nut","nut-free",
+            "peanut","vegan","vegetarian","dairy-free","dairy free","kosher","halal",
+            "low sodium","special diet","food restriction","accommodate","celiac"],
+          response: "<strong>My pleasure &mdash; accommodating dietary needs is a professional obligation we take very seriously.</strong><br><br>" +
+            "<strong>Needs we handle routinely:</strong><br>" +
+            "<ul><li><strong>Gluten-free</strong> &mdash; Dedicated preparation area; clearly labeled on the BEO and day-of</li>" +
+            "<li><strong>Nut-free</strong> &mdash; Full kitchen protocol; allergen-controlled environment available upon request</li>" +
+            "<li><strong>Vegan &amp; vegetarian</strong> &mdash; Full alternative courses for every menu stage</li>" +
+            "<li><strong>Dairy-free</strong> &mdash; Sourcing and preparation adjustments throughout</li>" +
+            "<li><strong>Kosher-style</strong> &mdash; Advance coordination required (please submit 2+ weeks prior)</li>" +
+            "<li><strong>Low-sodium</strong> &mdash; Available with advance notice</li></ul>" +
+            "<strong>Submission Deadline:</strong> All dietary restrictions must be submitted no later than 72 hours prior to your event so we may source appropriate ingredients and prepare dedicated portions."
+        }
+      ];
+
+      // ── KB Matching ─────────────────────────────────────────────────────────
+
+      function queryKB(message) {
+        var lower = message.toLowerCase().trim();
+        if (!lower) return null;
+
+        var best = null;
+        var bestScore = 0;
+
+        for (var i = 0; i < NBS_KB.length; i++) {
+          var entry = NBS_KB[i];
+          var score = 0;
+          for (var j = 0; j < entry.keywords.length; j++) {
+            var kw = entry.keywords[j].toLowerCase();
+            if (lower.indexOf(kw) !== -1) {
+              score += (kw.indexOf(" ") !== -1) ? 3 : 1;
+            }
+          }
+          if (score > bestScore) {
+            bestScore = score;
+            best = entry;
+          }
+        }
+
+        return bestScore > 0 ? best : null;
+      }
+
+      // ── Concierge greeting (time-aware) ─────────────────────────────────────
+
+      function conciergeGreeting() {
+        var h = new Date().getHours();
+        var period = h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
+        return "Good " + period + ". I am your <strong>Catering By Wendy</strong> concierge &mdash; at your service.<br><br>" +
+          "You may ask me about <strong>BEOs</strong>, <strong>service tiers</strong>, <strong>rental logistics</strong>, " +
+          "<strong>setup timelines</strong>, <strong>staffing</strong>, <strong>pricing</strong>, or " +
+          "<strong>dietary accommodations</strong>. I am here to assist.";
+      }
+
+      // ── Escalation message ──────────────────────────────────────────────────
+
+      function escalationResponse() {
+        return "Thank you for your inquiry. While our knowledge base does not have a prepared answer for this particular question at this time, " +
+          "our team would be most delighted to assist you personally.<br><br>" +
+          "Please reach out directly to our events team at " +
+          "<a href=\"mailto:northbusinessservices@gmail.com\">northbusinessservices@gmail.com</a> " +
+          "&mdash; we endeavor to respond within one business day.<br><br>" +
+          "Is there anything else I may clarify for you today?";
+      }
+
+      // ── DOM helpers ─────────────────────────────────────────────────────────
+
+      var messagesEl = document.getElementById("nbs-messages");
+      var quickqEl   = document.getElementById("nbs-quickq");
+      var composer   = document.getElementById("nbs-composer");
+      var msgInput   = document.getElementById("nbs-msg-input");
+
+      if (!messagesEl || !composer) return;
+
+      function addBubble(role, html) {
+        var div = document.createElement("div");
+        div.className = "nbs-chat__bubble nbs-chat__bubble--" + role;
+        div.innerHTML = html;
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return div;
+      }
+
+      function addTypingIndicator() {
+        var div = document.createElement("div");
+        div.className = "nbs-chat__bubble nbs-chat__bubble--assistant";
+        div.innerHTML = "<span class=\"nbs-chat__typing-dots\">" +
+          "<span class=\"nbs-chat__dot\"></span>" +
+          "<span class=\"nbs-chat__dot\"></span>" +
+          "<span class=\"nbs-chat__dot\"></span>" +
+          "</span>";
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return div;
+      }
+
+      // ── Quick-question chips ─────────────────────────────────────────────────
+
+      var QUICK_Q = [
+        "How do I read a BEO?",
+        "What are your service levels?",
+        "Setup times?",
+        "How do rentals work?",
+        "Staffing ratios?",
+        "How much does catering cost?"
+      ];
+
+      function buildQuickQ() {
+        if (!quickqEl) return;
+        QUICK_Q.forEach(function(q) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "nbs-chat__qq";
+          btn.textContent = q;
+          btn.addEventListener("click", function() {
+            handleMessage(q);
+          });
+          quickqEl.appendChild(btn);
+        });
+      }
+
+      // ── Message handling ────────────────────────────────────────────────────
+
+      function handleMessage(message) {
+        if (!message || !message.trim()) return;
+
+        addBubble("user", escapeHtml(message));
+
+        var typing = addTypingIndicator();
+        var delay  = 850 + Math.floor(Math.random() * 400);
+
+        setTimeout(function() {
+          typing.remove();
+
+          var match = queryKB(message);
+          if (match) {
+            addBubble("assistant", match.response);
+          } else {
+            addBubble("assistant", escalationResponse());
+            // Log routing payload for OpenClaw mailer integration
+            var route = (document.querySelector("input[name=\"nbs_route\"]:checked") || {}).value || "catering";
+            console.log("NBS Routing Payload:", {
+              to: "northbusinessservices@gmail.com",
+              subject: "NBS Lead: " + route.toUpperCase() + " Inquiry",
+              body: message,
+              assigned_to: route === "catering" ? "Wendy" : "Bill"
+            });
+          }
+
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        }, delay);
+      }
+
+      function escapeHtml(str) {
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      // ── Init ────────────────────────────────────────────────────────────────
+
+      addBubble("assistant", conciergeGreeting());
+      buildQuickQ();
+
+      composer.addEventListener("submit", function(e) {
+        e.preventDefault();
+        var message = (msgInput ? msgInput.value : "").trim();
+        if (!message) return;
+        if (msgInput) msgInput.value = "";
+        handleMessage(message);
+      });
+
+    })();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

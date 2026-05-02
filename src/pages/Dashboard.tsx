@@ -19,8 +19,10 @@ import {
   Trash2,
   PlusCircle,
   Printer, // Added Printer icon for BEOs card
+  Lock,
 } from "lucide-react";
 import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore";
+import { getVaultStatus } from "@/lib/cloudVault";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +44,8 @@ import { TwoMonthCalendar } from "@/components/TwoMonthCalendar";
 import { OverdueSidebar } from "@/components/OverdueSidebar";
 import { VendorsCard } from "@/components/VendorsCard";
 import { YouTubePlayerCard } from "@/components/YouTubePlayerCard";
+import { SEED_PROSPECTS } from "@/logic/ProspectingEngine";
+import { ProspectCard } from "@/components/ProspectCard";
 import { format, isPast, differenceInDays, parseISO, isFuture } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -181,6 +185,8 @@ const Dashboard = () => {
     toast.info("Task status updated!");
   };
 
+  const vaultStatus = getVaultStatus();
+
   return (
     <div
       className="space-y-3 p-3 relative min-h-screen flex flex-col"
@@ -191,6 +197,16 @@ const Dashboard = () => {
         backgroundRepeat: 'no-repeat',
       }}
     >
+      {/* Global Status Badges */}
+      {vaultStatus.isLocalOnly && (
+        <div className="relative z-10 flex justify-end">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-600 dark:text-amber-400 backdrop-blur-sm shadow-sm">
+            <Lock className="h-3.5 w-3.5" />
+            <span>Secure: Local Only</span>
+          </div>
+        </div>
+      )}
+
       <div className="relative z-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4 flex-1">
         {/* Row 1: Daily Action Items & Notes */}
         <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[550px] p-3">
@@ -471,6 +487,22 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </Link>
+
+        {/* NEW: Prospecting WEAPONIZATION Section */}
+        <div className="lg:col-span-4 mt-6 mb-2">
+          <h2 className="text-xl font-bold text-primary flex items-center gap-2">
+            <Lock className="h-5 w-5 text-amber-500" />
+            NBS Prospecting Targets (Encrypted at Rest)
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Top New England targets. Generate value-prop pitches powered by local AI.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-4">
+            {SEED_PROSPECTS.map(prospect => (
+              <ProspectCard key={prospect.id} prospect={prospect} />
+            ))}
+          </div>
+        </div>
 
         {/* Row 4 (formerly Row 5): Core Management */}
         <Link to="/menu/inventory" className="block">

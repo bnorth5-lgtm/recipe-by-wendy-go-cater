@@ -1,3 +1,4 @@
+import { parseTimeQuantity, parseServingQuantity } from "@/store/cateringStore";
 import type { Recipe } from "@/store/cateringStore";
 
 type OllamaChatMessage = { role: "system" | "user" | "assistant"; content: string };
@@ -37,9 +38,9 @@ function coerceDraft(raw: any): ParsedRecipeDraft {
   return {
     name: String(raw?.name ?? "").trim(),
     description: String(raw?.description ?? "").trim(),
-    prepTime: String(raw?.prepTime ?? "").trim(),
-    cookTime: String(raw?.cookTime ?? "").trim(),
-    servings: String(raw?.servings ?? "").trim(),
+    prepTime: parseTimeQuantity(String(raw?.prepTime ?? "").trim()),
+    cookTime: parseTimeQuantity(String(raw?.cookTime ?? "").trim()),
+    servings: parseServingQuantity(String(raw?.servings ?? "").trim()),
     category: (raw?.category ?? "Other") as ParsedRecipeDraft["category"],
     sourceUrl: raw?.sourceUrl ? String(raw.sourceUrl) : "",
     sourceType: raw?.sourceType ? String(raw.sourceType) : undefined,
@@ -158,5 +159,68 @@ export async function parseRecipeFromJsonLdWithLocalAi(input: { json: any; meta?
 
   const parsed = await ollamaChatToJson([system, user]);
   return coerceDraft(parsed);
+}
+
+export async function generatePitchWithLocalAi(catererName: string, techStack: string): Promise<string> {
+  const system: OllamaChatMessage = {
+    role: "system",
+    content: "You are a top-tier sales agent for North Business Services. Keep it to exactly one punchy, persuasive sentence. Do not include quotes."
+  };
+
+  const user: OllamaChatMessage = {
+    role: "user",
+    content: `Write a one-sentence value proposition to replace the ${techStack} system used by ${catererName} with the local-first NBS Catering Engine.`
+  };
+
+  const res = await fetch(`${DEFAULT_BASE_URL}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: DEFAULT_MODEL,
+      stream: false,
+      messages: [system, user],
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Local AI pitch generation failed.");
+  }
+
+  const data = (await res.json()) as OllamaChatResponse;
+  return (data.message?.content ?? data.response ?? "").trim();
+}
+
+/**
+ * Synthetic Load Generator for BEO Templates
+ * Generates a 10-page BEO template filled with placeholder data,
+ * encrypts it via the Victus-Bound protocol, and logs generation time to Dash.
+ */
+export async function generateSyntheticLoad(): Promise<void> {
+  console.log("[Dash Console] Initiating Synthetic Load Generation...");
+  const startTime = performance.now();
+
+  // Generate 10-page placeholder BEO
+  const pages = Array.from({ length: 10 }).map((_, i) => ({
+    pageNumber: i + 1,
+    title: `Synthetic BEO Page ${i + 1}`,
+    content: "PLACEHOLDER_BEO_DATA_".repeat(500),
+  }));
+
+  const payload = {
+    type: "BEO_10_PAGE_TEMPLATE",
+    timestamp: new Date().toISOString(),
+    pages,
+  };
+
+  // Dynamically import to avoid circular dependencies if any
+  const { encryptData } = await import("@/lib/cloudVault");
+  
+  // Adhere to Victus-Bound Encryption Protocol
+  const encryptedPayload = await encryptData(JSON.stringify(payload));
+
+  const endTime = performance.now();
+  const generationTime = (endTime - startTime).toFixed(2);
+
+  console.log(`[Dash Console] Synthetic Load Complete. Generation Time: ${generationTime}ms (Encrypted Size: ${encryptedPayload.length} bytes)`);
 }
 

@@ -1,6 +1,66 @@
 import initSqlJs, { type Database } from "sql.js";
 import { get as idbGet, set as idbSet } from "idb-keyval";
-import type { Recipe } from "@/store/cateringStore";
+import {
+  type Recipe,
+  type Quantity,
+  type LegacyMetadata,
+  ensureUUID,
+  parseTimeQuantity,
+  parseServingQuantity,
+} from "@/store/cateringStore";
+
+// ---------------------------------------------------------------------------
+// Quantity serialization helpers
+// ---------------------------------------------------------------------------
+
+function serializeQuantity(q: Quantity): string {
+  return JSON.stringify(q);
+}
+
+/**
+ * Deserialize a Quantity stored as JSON in SQLite.
+ * Falls back to parsing old plain-string values (e.g. "30 mins", "8 servings")
+ * left in existing local vaults before this schema migration.
+ */
+function deserializeTimeQuantity(raw: unknown): Quantity {
+  if (!raw) return { value: 0, unit: "min" };
+  const s = String(raw);
+  try {
+    const parsed = JSON.parse(s);
+    if (typeof parsed?.value === "number" && typeof parsed?.unit === "string") {
+      return parsed as Quantity;
+    }
+  } catch { /* fall through to legacy parse */ }
+  return parseTimeQuantity(s);
+}
+
+function deserializeServingQuantity(raw: unknown): Quantity {
+  if (!raw) return { value: 4, unit: "servings" };
+  const s = String(raw);
+  try {
+    const parsed = JSON.parse(s);
+    if (typeof parsed?.value === "number" && typeof parsed?.unit === "string") {
+      return parsed as Quantity;
+    }
+  } catch { /* fall through to legacy parse */ }
+  return parseServingQuantity(s);
+}
+
+function serializeLegacyMetadata(meta: LegacyMetadata | undefined): string | null {
+  return meta ? JSON.stringify(meta) : null;
+}
+
+function deserializeLegacyMetadata(raw: unknown): LegacyMetadata | undefined {
+  if (!raw) return undefined;
+  try {
+    const parsed = JSON.parse(String(raw));
+    return typeof parsed === "object" && parsed !== null
+      ? (parsed as LegacyMetadata)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 const DB_IDB_KEY = "catering-by-wendy.sqlite";
 
@@ -86,6 +146,32 @@ function ensureSchema(db: Database) {
   addCol("importedBaseCost", "importedBaseCost REAL");
   addCol("source", "source TEXT");
   addCol("comments", "comments TEXT");
+  addCol("legacyMetadata", "legacyMetadata TEXT");
+
+  // Subscriber usage tracking (local mirror of cloud table)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS subscriber_usage (
+      id TEXT PRIMARY KEY,
+      userId TEXT NOT NULL,
+      feature TEXT NOT NULL,
+      tierAtTime TEXT NOT NULL,
+      accessedAt TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_sub_usage_user ON subscriber_usage(userId);
+    CREATE INDEX IF NOT EXISTS idx_sub_usage_at ON subscriber_usage(accessedAt);
+  `);
+
+  // Subscriber profiles (local cache of cloud subscriber_profiles)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS subscriber_profiles (
+      userId TEXT PRIMARY KEY,
+      email TEXT,
+      tier TEXT NOT NULL DEFAULT 'basic',
+      subscribedAt TEXT,
+      isActive INTEGER NOT NULL DEFAULT 1,
+      updatedAt TEXT NOT NULL
+    );
+  `);
 }
 
 async function getDb(): Promise<Database> {
@@ -118,9 +204,10 @@ export async function upsertRecipe(recipe: Recipe): Promise<void> {
          id, name, description, prepTime, cookTime, servings, category,
          sourceUrl, sourceType, sourceSite, sourceTitle, sourceAuthor,
          importMethod, importedAt, sourceJson,
-       currency, costPerServing, importedBaseCost, baseCost, source, comments
+         currency, costPerServing, importedBaseCost, baseCost, source, comments,
+         legacyMetadata
        )
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          name=excluded.name,
          description=excluded.description,
@@ -141,14 +228,15 @@ export async function upsertRecipe(recipe: Recipe): Promise<void> {
          importedBaseCost=excluded.importedBaseCost,
          baseCost=excluded.baseCost,
          source=excluded.source,
-         comments=excluded.comments`,
+         comments=excluded.comments,
+         legacyMetadata=excluded.legacyMetadata`,
       [
-        recipe.id,
+        ensureUUID(recipe.id),
         recipe.name,
         recipe.description,
-        recipe.prepTime,
-        recipe.cookTime,
-        recipe.servings,
+        serializeQuantity(recipe.prepTime),
+        serializeQuantity(recipe.cookTime),
+        serializeQuantity(recipe.servings),
         recipe.category,
         recipe.sourceUrl ?? null,
         recipe.sourceType ?? null,
@@ -164,6 +252,7 @@ export async function upsertRecipe(recipe: Recipe): Promise<void> {
         recipe.baseCost ?? 0,
         recipe.source ?? null,
         recipe.comments ?? null,
+        serializeLegacyMetadata(recipe.legacyMetadata),
       ]
     );
 
@@ -198,6 +287,103 @@ export async function deleteRecipeById(id: string): Promise<void> {
   await persistDb(db);
 }
 
+// ---------- Subscriber usage ----------
+
+export interface UsageLog {
+  id: string;
+  userId: string;
+  feature: string;
+  tierAtTime: string;
+  accessedAt: string;
+}
+
+export async function logUsage(
+  userId: string,
+  feature: string,
+  tierAtTime: string
+): Promise<void> {
+  const db = await getDb();
+  db.run(
+    "INSERT INTO subscriber_usage (id, userId, feature, tierAtTime, accessedAt) VALUES (?, ?, ?, ?, ?)",
+    [crypto.randomUUID(), userId, feature, tierAtTime, new Date().toISOString()]
+  );
+  await persistDb(db);
+}
+
+export async function getUsageLogs(userId?: string): Promise<UsageLog[]> {
+  const db = await getDb();
+  const res = userId
+    ? db.exec(
+        "SELECT id, userId, feature, tierAtTime, accessedAt FROM subscriber_usage WHERE userId = ? ORDER BY accessedAt DESC LIMIT 200",
+        [userId]
+      )
+    : db.exec(
+        "SELECT id, userId, feature, tierAtTime, accessedAt FROM subscriber_usage ORDER BY accessedAt DESC LIMIT 200"
+      );
+  if (!res.length) return [];
+  return res[0].values.map((v) => ({
+    id: String(v[0]),
+    userId: String(v[1]),
+    feature: String(v[2]),
+    tierAtTime: String(v[3]),
+    accessedAt: String(v[4]),
+  }));
+}
+
+// ---------- Subscriber profiles ----------
+
+export interface SubscriberProfile {
+  userId: string;
+  email: string | null;
+  tier: string;
+  subscribedAt: string | null;
+  isActive: boolean;
+  updatedAt: string;
+}
+
+export async function upsertSubscriberProfile(profile: Omit<SubscriberProfile, "updatedAt">): Promise<void> {
+  const db = await getDb();
+  db.run(
+    `INSERT INTO subscriber_profiles (userId, email, tier, subscribedAt, isActive, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(userId) DO UPDATE SET
+       email=excluded.email,
+       tier=excluded.tier,
+       subscribedAt=excluded.subscribedAt,
+       isActive=excluded.isActive,
+       updatedAt=excluded.updatedAt`,
+    [
+      profile.userId,
+      profile.email ?? null,
+      profile.tier,
+      profile.subscribedAt ?? null,
+      profile.isActive ? 1 : 0,
+      new Date().toISOString(),
+    ]
+  );
+  await persistDb(db);
+}
+
+export async function getSubscriberProfile(userId: string): Promise<SubscriberProfile | null> {
+  const db = await getDb();
+  const res = db.exec(
+    "SELECT userId, email, tier, subscribedAt, isActive, updatedAt FROM subscriber_profiles WHERE userId = ?",
+    [userId]
+  );
+  if (!res.length || !res[0].values.length) return null;
+  const v = res[0].values[0];
+  return {
+    userId: String(v[0]),
+    email: v[1] ? String(v[1]) : null,
+    tier: String(v[2]),
+    subscribedAt: v[3] ? String(v[3]) : null,
+    isActive: v[4] === 1 || v[4] === "1",
+    updatedAt: String(v[5]),
+  };
+}
+
+// ---------- Recipes ----------
+
 export async function getAllRecipes(): Promise<Recipe[]> {
   const db = await getDb();
   const recipesRes = db.exec("SELECT * FROM recipes ORDER BY name COLLATE NOCASE ASC");
@@ -226,6 +412,7 @@ export async function getAllRecipes(): Promise<Recipe[]> {
   const baseIdx = cols.indexOf("baseCost");
   const citationSourceIdx = cols.indexOf("source");
   const familyCommentsIdx = cols.indexOf("comments");
+  const legacyMetaIdx = cols.indexOf("legacyMetadata");
 
   const recipeIds = rows.values.map((v) => String(v[idIdx]));
   const ingredientsById = new Map<string, Recipe["ingredients"]>();
@@ -265,12 +452,12 @@ export async function getAllRecipes(): Promise<Recipe[]> {
   }
 
   return rows.values.map((v) => ({
-    id: String(v[idIdx]),
+    id: ensureUUID(String(v[idIdx])),
     name: String(v[nameIdx]),
     description: String(v[descIdx]),
-    prepTime: String(v[prepIdx]),
-    cookTime: String(v[cookIdx]),
-    servings: String(v[servingsIdx]),
+    prepTime: deserializeTimeQuantity(v[prepIdx]),
+    cookTime: deserializeTimeQuantity(v[cookIdx]),
+    servings: deserializeServingQuantity(v[servingsIdx]),
     category: v[catIdx] as Recipe["category"],
     sourceUrl: v[sourceIdx] ? String(v[sourceIdx]) : undefined,
     sourceType: sourceTypeIdx >= 0 && v[sourceTypeIdx] ? String(v[sourceTypeIdx]) : undefined,
@@ -296,6 +483,7 @@ export async function getAllRecipes(): Promise<Recipe[]> {
     baseCost: Number(v[baseIdx] ?? 0),
     source: citationSourceIdx >= 0 && v[citationSourceIdx] ? String(v[citationSourceIdx]) : undefined,
     comments: familyCommentsIdx >= 0 && v[familyCommentsIdx] ? String(v[familyCommentsIdx]) : undefined,
+    legacyMetadata: legacyMetaIdx >= 0 ? deserializeLegacyMetadata(v[legacyMetaIdx]) : undefined,
     ingredients: ingredientsById.get(String(v[idIdx])) ?? [],
     instructions: instructionsById.get(String(v[idIdx])) ?? [],
   }));
