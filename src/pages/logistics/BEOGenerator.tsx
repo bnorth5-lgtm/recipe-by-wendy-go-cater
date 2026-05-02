@@ -74,6 +74,7 @@ import {
   type EventOrderRow,
   type EquipmentCategory,
 } from "@/lib/beoGenerator";
+import { getMarginHealth } from "@/logic/pricingEngine";
 import {
   getRegionalSourcing,
   type RegionalSourcing,
@@ -119,17 +120,23 @@ interface BEODocumentViewProps {
 }
 
 function BEODocumentView({ doc }: BEODocumentViewProps) {
+  const marginHealth = getMarginHealth(doc.total, doc.totalCOGS);
+
   return (
     <div
       id="beo-print-root"
-      className="bg-white text-gray-900 border shadow-sm overflow-hidden print:shadow-none print:border-0 font-sans"
-      style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}
+      className={cn(
+        "bg-white text-gray-900 overflow-hidden print:shadow-none print:border-0 font-sans rounded-xl transition-all duration-500",
+        marginHealth.isHealthy 
+          ? "border-2 border-[#fbbf24] shadow-[0_0_20px_rgba(234,179,8,0.2)]" 
+          : "border-2 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)]"
+      )}
     >
       {/* ── Header ── */}
       <div className="px-8 py-6 border-b-2 border-gray-900 mb-6">
         <div className="flex items-start justify-between gap-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
               {NBS_COMPANY_CONFIG.legalName}
             </h1>
             <p className="text-sm mt-0.5">{NBS_COMPANY_CONFIG.mailingAddress}</p>
@@ -566,9 +573,12 @@ function BEODocumentView({ doc }: BEODocumentViewProps) {
           );
         })()}
 
-        <div className="border-t pt-6 mt-2 text-center text-xs text-muted-foreground print:block">
+        <div className="border-t pt-6 mt-2 text-center text-xs text-muted-foreground print:block space-y-4">
           <p>
             {NBS_COMPANY_CONFIG.customizableFooter}
+          </p>
+          <p className="text-[#fbbf24] italic font-serif text-sm tracking-wide">
+            Legacy Preserved — {fmtDate(doc.generatedAt)}
           </p>
         </div>
       </div>
@@ -586,7 +596,7 @@ function SectionHeading({
   children: React.ReactNode;
 }) {
   return (
-    <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight">
+    <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
       <span className="text-primary">{icon}</span>
       {children}
     </h2>
@@ -856,7 +866,7 @@ const BEOGenerator = () => {
     eventName.trim() && guestCount >= 1 && selectedRecipeIds.size > 0;
 
   return (
-    <div className="min-h-full bg-background text-foreground">
+    <div className="min-h-full bg-slate-950 text-slate-50 pb-12">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* Page header */}
         <div className="flex items-start justify-between gap-4">
@@ -1110,7 +1120,7 @@ const BEOGenerator = () => {
                 <Button
                   onClick={handleGenerate}
                   disabled={!isReady || generating}
-                  className="w-full h-12 text-base font-semibold"
+                  className="w-full h-12 text-base font-semibold bg-[#fbbf24] text-slate-900 hover:bg-[#fbbf24]/90 shadow-[0_0_15px_rgba(234,179,8,0.5)] border-none"
                 >
                   {generating ? (
                     <>
@@ -1162,6 +1172,22 @@ const BEOGenerator = () => {
                         <Badge variant="secondary" className="font-mono text-xs">
                           {generatedDoc.beoNumber}
                         </Badge>
+                        {(() => {
+                          const marginHealth = getMarginHealth(generatedDoc.total, generatedDoc.totalCOGS);
+                          return (
+                            <Badge 
+                              variant="outline" 
+                              className={cn(
+                                "gap-1",
+                                marginHealth.isHealthy 
+                                  ? "border-emerald-300 text-emerald-700 bg-emerald-50" 
+                                  : "border-amber-500 text-amber-700 bg-amber-50"
+                              )}
+                            >
+                              Margin: {(marginHealth.margin * 100).toFixed(1)}% ({marginHealth.statusText})
+                            </Badge>
+                          );
+                        })()}
                       </div>
                       <div className="flex gap-2">
                         <Button

@@ -14,6 +14,7 @@
  * Generated documents are saved to the `event_orders` Supabase table.
  */
 
+import { get, set } from 'idb-keyval';
 import { scaleAndConvertQuantity } from "@/store/cateringStore";
 import type { Recipe, InventoryItem } from "@/store/cateringStore";
 import {
@@ -666,9 +667,11 @@ export function generateBEODocument(
   };
 }
 
-// ── 5. Supabase persistence ───────────────────────────────────────────────────
+// ── 5. Local persistence ───────────────────────────────────────────────────
 
-/** Saves a generated BEO document to the `event_orders` table. */
+const BEO_HISTORY_KEY = 'nbs_beo_history';
+
+/** Saves a generated BEO document to the local database. */
 export async function saveBEOToSupabase(
   doc: BEODocument,
   competitorDataSnapshot: CompetitorPrice[]
@@ -707,29 +710,19 @@ export async function saveBEOToSupabase(
       captured_at: c.captured_at,
     })),
     generated_by: doc.generatedBy,
+    created_at: new Date().toISOString(),
   };
 
-  const res = await sbFetch("/rest/v1/event_orders", {
-    method: "POST",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify([row]),
-  });
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`Failed to save BEO (${res.status}). ${body}`.trim());
-  }
+  const history = await get<EventOrderRow[]>(BEO_HISTORY_KEY) || [];
+  history.unshift(row as any);
+  await set(BEO_HISTORY_KEY, history.slice(0, 200));
 }
 
-/** Fetches BEO history (most recent 200) from `event_orders`. */
+/** Fetches BEO history (most recent 200) from local db. */
 export async function fetchBEOHistory(): Promise<EventOrderRow[]> {
   try {
-    const res = await sbFetch(
-      "/rest/v1/event_orders?select=id,beo_number,event_name,event_date,service_time,venue_name,venue_zip,service_style,guest_count,cogs_total,total,per_person_rate,status,recipe_names,created_at&order=created_at.desc&limit=200"
-    );
-    if (!res.ok) return [];
-    const rows = await res.json();
-    return (rows as EventOrderRow[]).map((r) => ({
+    const rows = await get<EventOrderRow[]>(BEO_HISTORY_KEY) || [];
+    return rows.map((r) => ({
       ...r,
       cogs_total: Number(r.cogs_total ?? 0),
       total: Number(r.total ?? 0),
@@ -742,17 +735,12 @@ export async function fetchBEOHistory(): Promise<EventOrderRow[]> {
 
 /**
  * Fetches a single full event_order row by id and reconstructs a BEODocument.
- * Used by the Client Portal to render the signed proposal.
  */
 export async function fetchBEOById(id: string): Promise<BEODocument | null> {
   try {
-    const res = await sbFetch(
-      `/rest/v1/event_orders?id=eq.${encodeURIComponent(id)}&select=*&limit=1`
-    );
-    if (!res.ok) return null;
-    const rows = await res.json();
-    if (!Array.isArray(rows) || rows.length === 0) return null;
-    const r = rows[0] as Record<string, unknown>;
+    const rows = await get<any[]>(BEO_HISTORY_KEY) || [];
+    const r = rows.find(row => row.id === id);
+    if (!r) return null;
 
     return {
       id: r["id"] as string,
@@ -800,23 +788,15 @@ export async function signBEO(
   signatureData: string,
   signerName: string
 ): Promise<void> {
-  const res = await sbFetch(
-    `/rest/v1/event_orders?id=eq.${encodeURIComponent(id)}`,
-    {
-      method: "PATCH",
-      headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({
-        status: "Signed",
-        signature_data: signatureData,
-        signer_name: signerName || null,
-        signed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`Failed to sign BEO (${res.status}). ${body}`.trim());
+  const history = await get<any[]>(BEO_HISTORY_KEY) || [];
+  const idx = history.findIndex(r => r.id === id);
+  if (idx !== -1) {
+    history[idx].status = "Signed";
+    history[idx].signature_data = signatureData;
+    history[idx].signer_name = signerName || null;
+    history[idx].signed_at = new Date().toISOString();
+    history[idx].updated_at = new Date().toISOString();
+    await set(BEO_HISTORY_KEY, history);
   }
 }
 

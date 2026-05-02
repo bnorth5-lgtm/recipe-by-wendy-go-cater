@@ -32,6 +32,8 @@ import { useMarketRates } from "@/hooks/useMarketRates";
 import { calculateTotalWithFees, prepareStripePayload, type PaymentPlan } from "@/logic/PaymentOrchestrator";
 import { usePaymentGate } from "@/hooks/usePaymentGate";
 import { LiveMarketBadge } from "@/components/LiveMarketBadge";
+import { ScrollStory } from "@/components/ScrollStory";
+import { RecipeNarrativeView } from "@/components/recipes/RecipeNarrativeView";
 
 // Define the main schema for a recipe
 const recipeFormSchema = z.object({
@@ -181,6 +183,7 @@ const Recipes = () => {
   const bulkParseDebounceRef = useRef<number | null>(null);
   const lastParsedTextRef = useRef<string>("");
   const saveLockRef = useRef(false);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     void hydrateRecipesFromDb();
@@ -685,227 +688,27 @@ const Recipes = () => {
           if (!open) setSelectedRecipeId(null);
         }}
       >
-        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+        <DialogContent className="max-w-4xl p-0 overflow-hidden h-[90vh] flex flex-col bg-background/50 border-none shadow-2xl">
           {selectedRecipe ? (
-            <div className="bg-background">
-              <div className="p-8 space-y-6">
-                <div className="flex items-start justify-between gap-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-3xl font-semibold tracking-tight">{selectedRecipe.name}</h2>
-                      <Badge variant="secondary">{selectedRecipe.category}</Badge>
-                    </div>
-                    <p className="text-muted-foreground text-base leading-relaxed max-w-2xl">
-                      {selectedRecipe.description}
-                    </p>
-                    {selectedRecipe.source ? (
-                      <p className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">Citation: </span>
-                        {selectedRecipe.source}
-                      </p>
-                    ) : null}
-                    {selectedRecipe.comments ? (
-                      <div className="max-w-2xl rounded-2xl border bg-muted/30 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Family notes</p>
-                        <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap">{selectedRecipe.comments}</p>
-                      </div>
-                    ) : null}
-                    <div className="text-sm text-muted-foreground">
-                      {selectedRecipe.prepTime.value > 0 ? <span>Prep {formatQuantity(selectedRecipe.prepTime)}</span> : null}
-                      {selectedRecipe.prepTime.value > 0 && selectedRecipe.cookTime.value > 0 ? <span> · </span> : null}
-                      {selectedRecipe.cookTime.value > 0 ? <span>Cook {formatQuantity(selectedRecipe.cookTime)}</span> : null}
-                      <span> · Yield {formatQuantity(selectedRecipe.servings)}</span>
-                    </div>
-                    {selectedRecipe.sourceUrl ? (
-                      <a
-                        href={selectedRecipe.sourceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Source
-                      </a>
-                    ) : null}
-                  </div>
-
-                  <div className="min-w-[320px] rounded-2xl border bg-card/40 backdrop-blur supports-[backdrop-filter]:bg-card/30 p-6 space-y-5">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-muted-foreground">Victus Scaling & Costing</p>
-                      <p className="text-4xl font-semibold tracking-tight">
-                        {formatMoney(totalWithFees, selectedRecipe.currency ?? "USD")}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Base Estimated Cost · {formatMoney(totalEstimatedCost, selectedRecipe.currency ?? "USD")}
-                      </p>
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-3">
-                      <p className="text-sm font-medium">Payment Strategy</p>
-                      <div className="flex gap-2">
-                        <Button
-                          variant={paymentMethod === 'CHECK' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setPaymentMethod('CHECK')}
-                        >
-                          Certified Check
-                        </Button>
-                        <Button
-                          variant={paymentMethod === 'STRIPE' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setPaymentMethod('STRIPE')}
-                        >
-                          Stripe Pay (3.5% Fee)
-                        </Button>
-                      </div>
-
-                      {paymentGate.status.requiresManualApproval && (
-                        <div className="mt-2 rounded-md bg-amber-500/10 p-3 border border-amber-500/20">
-                          <div className="flex items-start gap-2">
-                            <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-amber-800 dark:text-amber-400">
-                                Manual Approval Required
-                              </p>
-                              <p className="text-xs text-amber-700/80 dark:text-amber-400/80">
-                                Orders over $5,000 require manual sign-off before payment collection.
-                              </p>
-                              <div className="pt-2">
-                                <Button
-                                  variant={paymentGate.status.isApproved ? "default" : "secondary"}
-                                  size="sm"
-                                  onClick={paymentGate.toggleApproval}
-                                  className="h-7 text-xs"
-                                >
-                                  {paymentGate.status.isApproved ? "Approved" : "Approve Order"}
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {paymentMethod === 'STRIPE' && (
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          <p>Stripe Payload (Warm-Standby):</p>
-                          <pre className="mt-1 p-2 bg-muted/50 rounded overflow-auto max-h-32 text-[10px]">
-                            {JSON.stringify(
-                              prepareStripePayload(paymentGate.status.orderID, totalWithFees),
-                              null,
-                              2
-                            )}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-3">
-                      <div className="flex items-end justify-between gap-4">
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">Guest count</p>
-                          <p className="text-xs text-muted-foreground">
-                            Factor \(CurrentServings / OriginalYield\) = {Number.isFinite(factor) ? factor.toFixed(2) : "—"}
-                          </p>
-                        </div>
-                        <div className="w-[120px]">
-                          <Input
-                            inputMode="numeric"
-                            type="number"
-                            min={1}
-                            value={Number.isFinite(currentServings) ? currentServings : 1}
-                            onChange={(e) => {
-                              const n = Number.parseFloat(e.target.value);
-                              if (!Number.isFinite(n) || n <= 0) return;
-                              setCurrentServings(n);
-                            }}
-                            className="h-11 text-base"
-                          />
-                        </div>
-                      </div>
-
-                      <Slider
-                        value={[Math.max(1, Math.round(currentServings || 1))]}
-                        min={1}
-                        max={Math.max(10, Math.round(originalYield * 10))}
-                        step={1}
-                        onValueChange={(v) => setCurrentServings(v[0] ?? 1)}
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>1</span>
-                        <span>{Math.max(10, Math.round(originalYield * 10))}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-8 md:grid-cols-2">
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold tracking-tight">Ingredients (scaled)</h3>
-                    <div className="rounded-2xl border bg-background/50">
-                      <div className="p-4 space-y-2">
-                        {selectedRecipe.ingredients.map((ing, idx) => {
-                          const { quantity: convertedQty, unit: convertedUnit } = scaleAndConvertQuantity(
-                            ing.quantity, 
-                            ing.unit, 
-                            Number.isFinite(factor) ? factor : 1
-                          );
-                          const scaledQty = convertedQty;
-                          
-                          // Inventory check still checks against the base unit
-                          const isIngredientInInventory = inventory.some(
-                            (item) =>
-                              item.name.toLowerCase() === ing.name.toLowerCase() &&
-                              item.unit.toLowerCase() === ing.unit.toLowerCase()
-                          );
-                          const marketRate = getIngredientRate(ing.name);
-                          return (
-                            <div key={idx} className="flex items-center justify-between gap-3 py-2 border-b border-border/30 last:border-0">
-                              <div className="min-w-0">
-                                <p className="font-medium truncate">{ing.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {scaledQty.toFixed(scaledQty < 10 ? 2 : 1)} {convertedUnit}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                                {marketRate && (
-                                  <LiveMarketBadge rate={marketRate} />
-                                )}
-                                {!isIngredientInInventory ? (
-                                  <Badge variant="destructive" className="shrink-0 text-[10px]">
-                                    <AlertCircle className="h-3 w-3 mr-1" /> Missing
-                                  </Badge>
-                                ) : (
-                                  <span className="text-[11px] text-muted-foreground shrink-0">✓ Stock</span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold tracking-tight">Instructions</h3>
-                    <div className="rounded-2xl border bg-background/50 p-4">
-                      <ol className="list-decimal pl-5 space-y-2 text-sm leading-relaxed">
-                        {selectedRecipe.instructions.map((inst, idx) => (
-                          <li key={idx} className="text-foreground/90">
-                            {inst.step}
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <RecipeNarrativeView
+              recipe={selectedRecipe}
+              onClose={() => setSelectedRecipeId(null)}
+              currentServings={currentServings}
+              setCurrentServings={setCurrentServings}
+              originalYield={originalYield}
+              factor={factor}
+              totalEstimatedCost={totalEstimatedCost}
+              paymentMethod={paymentMethod}
+              setPaymentMethod={setPaymentMethod}
+              paymentGate={paymentGate}
+              totalWithFees={totalWithFees}
+              inventory={inventory}
+              getIngredientRate={getIngredientRate}
+              formatMoney={formatMoney}
+              scrollRef={scrollRef}
+            />
           ) : (
-            <div className="p-6">Loading…</div>
+            <div className="p-6 bg-background">Loading…</div>
           )}
         </DialogContent>
       </Dialog>
