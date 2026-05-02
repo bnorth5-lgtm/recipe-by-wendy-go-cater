@@ -37,6 +37,7 @@ import BEOGenerator from "./pages/logistics/BEOGenerator.tsx";
 import ExecutiveFeed from "./pages/ExecutiveFeed.tsx";
 import ClientPortal from "./pages/portal/ClientPortal.tsx";
 import SignBEO from "./pages/public/SignBEO.tsx";
+import Welcome from "./pages/public/Welcome.tsx"; // NEW Import
 
 // ── App shell (authenticated, with sidebar + bottom nav) ─────────────────────
 
@@ -111,6 +112,11 @@ const App = () => {
            * Must be declared BEFORE the catch-all AppShell route.
            */}
           <Route path="/portal/:proposalId" element={<ClientPortal />} />
+
+          {/*
+           * Welcome Page — Landing page for the app
+           */}
+          <Route path="/welcome" element={<Welcome />} />
 
           {/*
            * SignBEO — lightweight public signing page.

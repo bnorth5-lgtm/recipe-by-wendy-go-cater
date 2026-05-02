@@ -75,6 +75,7 @@ import {
   type EquipmentCategory,
 } from "@/lib/beoGenerator";
 import { getMarginHealth } from "@/logic/pricingEngine";
+import { checkEquipmentConflict, type EquipmentConflict } from "@/logic/inventoryEngine";
 import {
   getRegionalSourcing,
   type RegionalSourcing,
@@ -789,6 +790,7 @@ const BEOGenerator = () => {
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<"generator" | "history">("generator");
+  const [equipmentConflicts, setEquipmentConflicts] = useState<EquipmentConflict[]>([]);
 
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -836,6 +838,10 @@ const BEOGenerator = () => {
 
       const doc = generateBEODocument(input, recipes, competitorData, inventory);
       setGeneratedDoc(doc);
+
+      // Check for equipment conflicts
+      const conflicts = await checkEquipmentConflict(eventDate, doc.equipmentNeeds);
+      setEquipmentConflicts(conflicts);
 
       // Auto-save to Supabase
       setSaving(true);
@@ -1184,7 +1190,7 @@ const BEOGenerator = () => {
                                   : "border-amber-500 text-amber-700 bg-amber-50"
                               )}
                             >
-                              Margin: {(marginHealth.margin * 100).toFixed(1)}% ({marginHealth.statusText})
+                              {marginHealth.isHealthy ? `Margin: ${(marginHealth.margin * 100).toFixed(1)}%` : 'Profit Warning'}
                             </Badge>
                           );
                         })()}
@@ -1222,6 +1228,25 @@ const BEOGenerator = () => {
                         </Button>
                       </div>
                     </div>
+
+                    {equipmentConflicts.length > 0 && (
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 print-hide">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
+                          <div>
+                            <h4 className="text-red-500 font-semibold mb-1">Crash Insurance: Equipment Conflict</h4>
+                            <p className="text-sm text-red-400/90 mb-2">The following legacy items are already booked on {generatedDoc.eventDate}:</p>
+                            <ul className="list-disc pl-5 space-y-1 text-sm text-red-300">
+                              {equipmentConflicts.map((conflict, i) => (
+                                <li key={i}>
+                                  <strong>{conflict.item}</strong> — Assigned to <span className="font-mono text-xs">{conflict.conflictingBeoNumber}</span> ({conflict.conflictingEventName})
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     <BEODocumentView doc={generatedDoc} />
                   </div>
