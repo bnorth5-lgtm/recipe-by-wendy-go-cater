@@ -21,6 +21,8 @@ import {
   PlusCircle,
   Printer, // Added Printer icon for BEOs card
   Lock,
+  Sparkles,
+  BookText,
 } from "lucide-react";
 import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore";
 import { getVaultStatus } from "@/lib/cloudVault";
