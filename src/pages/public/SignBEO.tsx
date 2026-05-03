@@ -35,7 +35,7 @@ import {
   styleLabel,
   type BEODocument,
 } from "@/lib/beoGenerator";
-import SignaturePad from "@/components/events/SignaturePad";
+import { SignaturePad } from "@/components/events/SignaturePad";
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
