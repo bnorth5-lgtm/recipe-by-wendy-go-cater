@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from 'react-i18next';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
@@ -186,16 +187,11 @@ const Dashboard = () => {
   };
 
   const vaultStatus = getVaultStatus();
+  const { t } = useTranslation();
 
   return (
     <div
-      className="space-y-3 p-3 relative min-h-screen flex flex-col"
-      style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
+      className="space-y-6 p-6 relative min-h-screen flex flex-col bg-slate-950 text-slate-50"
     >
       {/* Global Status Badges */}
       {vaultStatus.isLocalOnly && (
@@ -207,361 +203,122 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="relative z-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4 flex-1">
-        {/* Row 1: Daily Action Items & Notes */}
-        <Card className="lg:col-span-2 hover:shadow-lg transition-shadow bg-card/90 min-h-[550px] p-3">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-2xl font-semibold text-primary">
-              Daily Action Items
-            </CardTitle>
-            <ClipboardList className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex flex-col justify-between h-full">
-            <div className="space-y-2">
-              {/* Overdue Proposals */}
-              {overdueProposals.length > 0 && (
-                <div className="space-y-1">
-                  <h3 className="text-sm font-semibold text-destructive flex items-center gap-1">
-                    <AlertCircle className="h-4 w-4" /> Overdue Proposals:
-                  </h3>
-                  <ul className="list-disc list-inside text-xs text-destructive ml-4">
-                    {overdueProposals.map(p => (
-                      <li key={p.id}>
-                        <Link to={`/quoting/proposals/${p.id}`} className="hover:underline">
-                          {p.eventName} ({format(parseISO(p.createdAt), "MMM d")})
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+      <div className="text-center space-y-4 mb-8">
+        <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-md" style={{ fontFamily: "'Playfair Display', serif" }}>
+          {t('dashboard.title')}
+        </h1>
+        <p className="text-xl text-amber-200/80 font-medium italic font-serif">
+          {t('dashboard.subtitle')}
+        </p>
+      </div>
 
-              {/* Overdue Estimates */}
-              {overdueEstimates.length > 0 && (
-                <div className="space-y-1">
-                  <h3 className="text-sm font-semibold text-destructive flex items-center gap-1">
-                    <AlertCircle className="h-4 w-4" /> Overdue Estimates:
-                  </h3>
-                  <ul className="list-disc list-inside text-xs text-destructive ml-4">
-                    {overdueEstimates.map(e => (
-                      <li key={e.id}>
-                        <Link to={`/quoting/estimates/${e.id}`} className="hover:underline">
-                          {e.eventName} ({format(parseISO(e.createdAt), "MMM d")})
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Upcoming Events */}
-              {upcomingEvents.length > 0 && (
-                <div className="space-y-1">
-                  <h3 className="text-sm font-semibold text-primary flex items-center gap-1">
-                    <CalendarCheck className="h-4 w-4" /> Upcoming Events (Next {upcomingEventsThresholdDays} Days):
-                  </h3>
-                  <ul className="list-disc list-inside text-xs text-muted-foreground ml-4">
-                    {upcomingEvents.map(b => (
-                      <li key={b.id}>
-                        <Link to={`/events/calendar/${b.id}`} className="hover:underline">
-                          {b.eventName} on {format(parseISO(b.eventDate), "MMM d")}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Critical Path Tasks */}
-              <div className="space-y-1">
-                <ScrollArea className="h-[400px] pr-4"> {/* Adjusted height for scroll */}
-                  <div className="space-y-1">
-                    {criticalTasks.length === 0 ? (
-                      <p className="text-muted-foreground text-sm text-center py-2">No critical tasks defined. Add one below!</p>
-                    ) : (
-                      criticalTasks.map((task) => (
-                        <div key={task.id} className="flex items-center justify-between p-1 border rounded-md bg-secondary/20">
-                          <div className="flex items-center gap-2 flex-1 cursor-pointer" onClick={() => handleEditTask(task)}>
-                            <Checkbox
-                              checked={task.completed}
-                              onCheckedChange={() => handleToggleTaskCompletion(task.id)}
-                              id={`task-${task.id}`}
-                            />
-                            <label
-                              htmlFor={`task-${task.id}`}
-                              className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${task.completed ? "line-through text-muted-foreground" : ""}`}
-                            >
-                              {task.content}
-                            </label>
-                          </div>
-                          <Button variant="destructive" size="icon" className="h-7 w-7 shrink-0" onClick={() => handleDeleteTask(task.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-                <div className="flex items-center space-x-2 mt-3">
-                  <Input
-                    id="newTask"
-                    placeholder="Add new task..."
-                    value={currentTaskContent}
-                    onChange={(e) => setCurrentTaskContent(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddTask();
-                      }
-                    }}
-                  />
-                  <Button onClick={handleAddTask}>
-                    <PlusCircle className="h-4 w-4" />
-                  </Button>
-                </div>
+      <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto flex-1 w-full">
+        {/* Door 1: Quick Drop-Off */}
+        <Link to="/events/bookings" className="block group">
+          <Card className="h-full bg-slate-900/50 border border-amber-900/30 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-sm">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto bg-slate-800/50 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_25px_rgba(234,179,8,0.3)]">
+                <Utensils className="w-10 h-10 text-[#fbbf24]" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="lg:col-span-2">
-          <NotesCard />
-        </div>
-
-        {/* Row 2: Calendar - now full width */}
-        <div className="lg:col-span-4">
-          <TwoMonthCalendar proposals={proposals} estimates={estimates} bookings={bookings} />
-        </div>
-
-        {/* NEW Row for full-width VendorsCard */}
-        <div className="lg:col-span-4"> {/* This will make it full width */}
-          <VendorsCard />
-        </div>
-
-        {/* Row 3 (formerly Row 4): Quick Actions */}
-        <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-              <CardTitle className="text-sm font-medium">
-                Proposal Pipeline
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-2xl font-serif text-white">{t('dashboard.quickDropOff')}</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="space-y-1">
-                <div className="text-2xl font-bold">{draftProposalsCount} Drafts</div>
-                <div className="text-2xl font-bold">{sentProposalsCount} Sent</div>
-                <div className="text-2xl font-bold text-green-500">{acceptedProposalsCount} Accepted</div>
+            <CardContent className="text-center">
+              <p className="text-slate-400 leading-relaxed">
+                {t('dashboard.quickDropOffDesc')}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        {/* Door 2: Staffed Buffet */}
+        <Link to="/events/calendar" className="block group">
+          <Card className="h-full bg-slate-900/50 border border-amber-900/30 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-sm">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto bg-slate-800/50 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_25px_rgba(234,179,8,0.3)]">
+                <UserPlus className="w-10 h-10 text-[#fbbf24]" />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Overview of your current proposal pipeline.
+              <CardTitle className="text-2xl font-serif text-white">{t('dashboard.staffedBuffet')}</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-slate-400 leading-relaxed">
+                {t('dashboard.staffedBuffetDesc')}
               </p>
             </CardContent>
           </Card>
         </Link>
 
+        {/* Door 3: Full Production */}
+        <Link to="/logistics/venue-architect" className="block group">
+          <Card className="h-full bg-slate-900/50 border border-amber-900/30 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-sm">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto bg-slate-800/50 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_25px_rgba(234,179,8,0.3)]">
+                <Sparkles className="w-10 h-10 text-[#fbbf24]" />
+              </div>
+              <CardTitle className="text-2xl font-serif text-white">{t('dashboard.fullProduction')}</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-slate-400 leading-relaxed">
+                {t('dashboard.fullProductionDesc')}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
+      <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto w-full">
+        {/* Quick Actions (Smaller Cards) */}
         <Link to="/quoting/proposals" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-              <CardTitle className="text-sm font-medium">
-                Build Proposal
-              </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+          <Card className="bg-slate-900/80 border-slate-800 hover:border-slate-700 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-300">Proposals</CardTitle>
+              <DollarSign className="h-4 w-4 text-slate-500" />
             </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-lg font-bold">Create a new client proposal</div>
-              <p className="text-xs text-muted-foreground">
-                Generate detailed proposals for upcoming events.
-              </p>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">{draftProposalsCount + sentProposalsCount}</div>
+              <p className="text-xs text-slate-500">Active in pipeline</p>
             </CardContent>
           </Card>
         </Link>
-
-        <Link to="/events/bookings" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-              <CardTitle className="text-sm font-medium">
-                Build Event
-              </CardTitle>
-              <CalendarPlus className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-lg font-bold">Schedule a new event booking</div>
-              <p className="text-xs text-muted-foreground">
-                Add confirmed events to your calendar and manage details.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-sm font-medium">
-              Create New Client
-            </CardTitle>
-            <UserPlus className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex flex-col">
-            <div className="text-lg font-bold mb-2">Add a new client to your database</div>
-            <p className="text-xs text-muted-foreground mb-3">
-              Quickly add contact and company information for a new client.
-            </p>
-            <Dialog open={isClientFormDialogOpen} onOpenChange={setIsClientFormDialogOpen}>
-              <DialogTrigger>
-                <Button
-                  size="sm"
-                  className="bg-blue-500 text-white hover:bg-blue-600"
-                >
-                  <UserPlus className="mr-2 h-4 w-4" /> Add Client
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Client</DialogTitle>
-                  <DialogDescription>
-                    Fill in the details to add a new client to your database.
-                  </DialogDescription>
-                </DialogHeader>
-                <ClientForm
-                  onSubmit={handleAddClientSubmit}
-                  onCancel={() => setIsClientFormDialogOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-            <CardTitle className="text-sm font-medium">
-              Catering Intake Form
-            </CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex flex-col">
-            <div className="text-lg font-bold mb-2">Capture a new catering request</div>
-            <p className="text-xs text-muted-foreground mb-3">
-              Great for <span className="font-medium">Corporate Lunch</span>,{" "}
-              <span className="font-medium">Private Dinners</span>, and{" "}
-              <span className="font-medium">Event Trays</span>.
-            </p>
-            <Dialog open={isCateringIntakeDialogOpen} onOpenChange={setIsCateringIntakeDialogOpen}>
-              <DialogTrigger>
-                <Button size="sm" className="bg-blue-500 text-white hover:bg-blue-600">
-                  <PlusCircle className="mr-2 h-4 w-4" /> New Intake
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Catering Intake Form</DialogTitle>
-                  <DialogDescription>
-                    Capture the essentials for{" "}
-                    <span className="font-medium">Corporate Lunch</span>,{" "}
-                    <span className="font-medium">Private Dinners</span>, or{" "}
-                    <span className="font-medium">Event Trays</span>.
-                  </DialogDescription>
-                </DialogHeader>
-                <CateringIntakeForm
-                  onSubmit={handleCateringIntakeSubmit}
-                  onCancel={() => setIsCateringIntakeDialogOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </Card>
-
-        {/* NEW: View BEOs Card */}
-        <Link to="/events/beos" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-              <CardTitle className="text-sm font-medium">
-                View BEOs
-              </CardTitle>
-              <Printer className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-lg font-bold">Generate & review Banquet Event Orders</div>
-              <p className="text-xs text-muted-foreground">
-                Detailed operational plans for your catering staff.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* NEW: Prospecting WEAPONIZATION Section */}
-        <div className="lg:col-span-4 mt-6 mb-2">
-          <h2 className="text-xl font-bold text-primary flex items-center gap-2">
-            <Lock className="h-5 w-5 text-amber-500" />
-            NBS Prospecting Targets (Encrypted at Rest)
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Top New England targets. Generate value-prop pitches powered by local AI.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-4">
-            {SEED_PROSPECTS.map(prospect => (
-              <ProspectCard key={prospect.id} prospect={prospect} />
-            ))}
-          </div>
-        </div>
-
-        {/* Row 4 (formerly Row 5): Core Management */}
         <Link to="/menu/inventory" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-              <CardTitle className="text-sm font-medium">
-                Manage Inventory
-              </CardTitle>
-              <Warehouse className="h-4 w-4 text-muted-foreground" />
+          <Card className="bg-slate-900/80 border-slate-800 hover:border-slate-700 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-300">Inventory</CardTitle>
+              <Warehouse className="h-4 w-4 text-slate-500" />
             </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-lg font-bold">Add or update stock levels</div>
-              <p className="text-xs text-muted-foreground">
-                Keep track of all your ingredients and equipment.
-              </p>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">Manage</div>
+              <p className="text-xs text-slate-500">Stock levels & equipment</p>
             </CardContent>
           </Card>
         </Link>
-
         <Link to="/menu/recipes" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-              <CardTitle className="text-sm font-medium">
-                Build Recipes
-              </CardTitle>
-              <Utensils className="h-4 w-4 text-muted-foreground" />
+          <Card className="bg-slate-900/80 border-slate-800 hover:border-slate-700 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-300">Recipes</CardTitle>
+              <BookText className="h-4 w-4 text-slate-500" />
             </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-lg font-bold">Create or modify recipes</div>
-              <p className="text-xs text-muted-foreground">
-                Manage ingredients and instructions for all your dishes.
-              </p>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">Build</div>
+              <p className="text-xs text-slate-500">Create & modify dishes</p>
             </CardContent>
           </Card>
         </Link>
-
         <Link to="/menu/menus" className="block">
-          <Card className="hover:shadow-lg transition-shadow bg-card/90 min-h-[240px] p-3">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
-              <CardTitle className="text-sm font-medium">
-                Build Menu
-              </CardTitle>
-              <MenuSquare className="h-4 w-4 text-muted-foreground" />
+          <Card className="bg-slate-900/80 border-slate-800 hover:border-slate-700 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-300">Menus</CardTitle>
+              <MenuSquare className="h-4 w-4 text-slate-500" />
             </CardHeader>
-            <CardContent className="flex flex-col justify-between h-full">
-              <div className="text-lg font-bold">Design new event menus</div>
-              <p className="text-xs text-muted-foreground">
-                Combine recipes into curated offerings for clients.
-              </p>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">Design</div>
+              <p className="text-xs text-slate-500">Curated event offerings</p>
             </CardContent>
           </Card>
         </Link>
       </div>
-      {/* Overdue Sidebar moved to the bottom */}
-      <div className="relative z-10 lg:col-span-4 mt-3">
-        <OverdueSidebar />
-      </div>
+
       {/* Footer for Date, MadeWithDyad, and Time */}
-      <div className="relative z-10 flex justify-between items-center mt-6 p-3 bg-card/90 rounded-lg shadow-md">
+      <div className="relative z-10 flex justify-between items-center mt-auto pt-8 border-t border-slate-800/50">
         <DateDisplay />
         <MadeWithDyad />
         <TimeDisplay />

@@ -1,13 +1,15 @@
 export interface CompanyConfig {
   legalName: string;
   mailingAddress: string;
+  businessZip?: string;
   customizableFooter: string;
   provenanceBio?: string;
 }
 
 export const NBS_COMPANY_CONFIG: CompanyConfig = {
-  legalName: "Catering By Wendy",
+  legalName: "Delicious Catering & Events by Wendy",
   mailingAddress: "PO Box 123, North Conway, NH",
+  businessZip: "03860", // North Conway zip
   customizableFooter: "Professional Catering Services",
   provenanceBio: `From Legal Pad to Logic.
 

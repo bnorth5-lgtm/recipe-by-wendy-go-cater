@@ -76,6 +76,8 @@ import {
 } from "@/lib/beoGenerator";
 import { getMarginHealth } from "@/logic/pricingEngine";
 import { checkEquipmentConflict, type EquipmentConflict } from "@/logic/inventoryEngine";
+import { calculateSimulatedDistance, calculateLogisticsFee } from "@/logic/LogisticsCalculator";
+import { generatePrepSheetPDF, generateVendorOrders } from "@/logic/ExportEngine";
 import {
   getRegionalSourcing,
   type RegionalSourcing,
@@ -458,8 +460,12 @@ function BEODocumentView({ doc }: BEODocumentViewProps) {
                 value={fmt$(doc.equipmentCost)}
               />
               <FinRow
+                label="Logistics &amp; Transport"
+                value={fmt$(doc.overheadCost - (doc.totalCOGS * 0.1))} // Extracting logistics from overhead
+              />
+              <FinRow
                 label="Overhead &amp; Misc. (10%)"
-                value={fmt$(doc.overheadCost)}
+                value={fmt$(doc.totalCOGS * 0.1)}
               />
               <FinRow
                 label="Subtotal"
@@ -789,8 +795,10 @@ const BEOGenerator = () => {
   const [generatedDoc, setGeneratedDoc] = useState<BEODocument | null>(null);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [firingOrders, setFiringOrders] = useState(false);
   const [tab, setTab] = useState<"generator" | "history">("generator");
   const [equipmentConflicts, setEquipmentConflicts] = useState<EquipmentConflict[]>([]);
+  const [lockStatus, setLockStatus] = useState<"pending" | "signed_locked">("pending");
 
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -837,6 +845,21 @@ const BEOGenerator = () => {
       };
 
       const doc = generateBEODocument(input, recipes, competitorData, inventory);
+      
+      // Calculate Logistics
+      const distance = calculateSimulatedDistance(NBS_COMPANY_CONFIG.businessZip || "00000", venueZip.trim());
+      const vehicles = 1; // Simplified
+      const travelHours = distance / 40; // 40mph avg
+      const logisticsFee = calculateLogisticsFee(distance, vehicles, 2, travelHours); // 2 staff for travel
+      
+      // Inject logistics fee into doc (for this local implementation, we'll add it to overhead or as a new field)
+      // Since BEODocument type might not have logisticsFee, we'll add it to overheadCost for now and recalculate total
+      doc.overheadCost += logisticsFee;
+      doc.subtotal += logisticsFee;
+      doc.taxAmount = doc.subtotal * doc.taxRate;
+      doc.total = doc.subtotal + doc.taxAmount;
+      doc.perPersonRate = doc.total / doc.guestCount;
+
       setGeneratedDoc(doc);
 
       // Check for equipment conflicts
@@ -866,6 +889,34 @@ const BEOGenerator = () => {
 
   function handlePrint() {
     window.print();
+  }
+
+  async function handleFireOrders() {
+    if (!generatedDoc) return;
+    setFiringOrders(true);
+    try {
+      // Simulate getting staff language from settings/i18n
+      const staffLanguage = localStorage.getItem("i18nextLng") || "en";
+      
+      // Generate Prep Sheet in Staff Language
+      const prepSheetResult = await generatePrepSheetPDF(generatedDoc, staffLanguage);
+      toast.success(prepSheetResult.message);
+
+      // Simulate getting starred vendors from HUD/Store
+      const mockStarredVendors = [
+        { id: "v1", name: "Stonington Blooms", price: 450, distance: 12, isStarred: true },
+        { id: "v6", name: "Party Rentals Plus", price: 18, distance: 10, isStarred: true }
+      ];
+
+      // Generate Vendor Orders
+      const orderResult = await generateVendorOrders(generatedDoc, mockStarredVendors);
+      toast.success(orderResult.message);
+      
+    } catch (e) {
+      toast.error("Failed to fire orders.");
+    } finally {
+      setFiringOrders(false);
+    }
   }
 
   const isReady =
@@ -1196,19 +1247,37 @@ const BEOGenerator = () => {
                         })()}
                       </div>
                       <div className="flex gap-2">
+                        {lockStatus === "pending" ? (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white"
+                            onClick={() => setLockStatus("signed_locked")}
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                            Sign & Lock
+                          </Button>
+                        ) : (
+                          <Badge variant="default" className="bg-slate-800 text-emerald-400 border-emerald-500/30 gap-1.5 px-3">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Signed & Locked
+                          </Badge>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={handlePrint}
                           className="gap-1.5"
+                          disabled={lockStatus === "pending"}
                         >
                           <Printer className="h-4 w-4" />
-                          Print
+                          Print Orders
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           className="gap-1.5"
+                          disabled={lockStatus === "pending"}
                           onClick={async () => {
                             const json = JSON.stringify(generatedDoc, null, 2);
                             const encryptedData = await encryptData(json);
@@ -1226,6 +1295,18 @@ const BEOGenerator = () => {
                           <Download className="h-4 w-4" />
                           Export Encrypted
                         </Button>
+                        {lockStatus === "signed_locked" && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="gap-1.5 bg-[#fbbf24] text-slate-900 hover:bg-[#fbbf24]/90 font-bold shadow-[0_0_15px_rgba(234,179,8,0.4)]"
+                            onClick={handleFireOrders}
+                            disabled={firingOrders}
+                          >
+                            {firingOrders ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                            Fire All Orders
+                          </Button>
+                        )}
                       </div>
                     </div>
 

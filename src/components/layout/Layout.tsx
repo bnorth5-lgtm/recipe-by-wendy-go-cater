@@ -9,12 +9,13 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ProvenanceBio } from "@/components/ProvenanceBio";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-const APP_DOCUMENT_TITLE = "Catering By Wendy";
+const APP_DOCUMENT_TITLE = "Delicious Catering & Events by Wendy";
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
@@ -35,6 +36,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div key={Date.now()} className="flex min-h-screen bg-background text-foreground max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 relative">
       <ProvenanceBio />
       
+      <div className="absolute top-4 right-4 z-50">
+        <LanguageToggle />
+      </div>
+
       {/* Mobile Hamburger Menu Button (only visible when sidebar is closed) */}
       {isMobile && !isSidebarOpen && (
         <Button

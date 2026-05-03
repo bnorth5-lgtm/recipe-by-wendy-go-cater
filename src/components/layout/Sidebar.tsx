@@ -106,6 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
         { name: "Bookings", href: "/events/bookings" },
         { name: "BEOs", href: "/events/beos" },
         { name: "BEO Generator", href: "/logistics/beo-generator" },
+        { name: "Venue Architect", href: "/logistics/venue-architect" },
       ],
     },
     {
@@ -150,7 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
         <Link to="/" className="flex w-full items-center justify-start gap-3 px-3 py-4 sm:px-4 sm:py-5 relative group cursor-pointer transition-colors duration-300 hover:text-[#fbbf24]">
           <img
             src="/wendylogo.jpg"
-            alt="Catering By Wendy Logo"
+            alt="Delicious Catering & Events by Wendy Logo"
             className="max-h-12 w-auto drop-shadow-sm object-contain"
             fetchPriority="high"
           />
@@ -158,7 +159,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
             className="font-serif font-bold text-slate-800 dark:text-slate-200 transition-colors duration-300 group-hover:text-[#fbbf24] text-xl md:text-2xl lg:text-3xl"
             style={{ fontSize: "clamp(1.125rem, 4vw, 1.875rem)" }}
           >
-            Catering by Wendy
+            Delicious Catering & Events by Wendy
           </h1>
         </Link>
         {isMobile && (

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { BrandingInjector } from "./components/BrandingInjector"; // Import BrandingInjector
+import "./i18n"; // Import i18n configuration
 
 // Import your page components
 import Dashboard from "./pages/Dashboard";
@@ -32,10 +33,13 @@ import MarketExpansion from "./pages/settings/MarketExpansion.tsx";
 import LegalEquity from "./pages/settings/LegalEquity.tsx";
 import EducationalBank from "./pages/EducationalBank.tsx";
 import MarketIntelligence from "./pages/MarketIntelligence.tsx"; // NEW Import
+import { VenueArchitect } from "./components/VenueMap/VenueArchitect.tsx";
 import LiveStory from "./pages/LiveStory.tsx";
 import BEOGenerator from "./pages/logistics/BEOGenerator.tsx";
 import ExecutiveFeed from "./pages/ExecutiveFeed.tsx";
 import ClientPortal from "./pages/portal/ClientPortal.tsx";
+import { CrewPortal } from "./pages/portal/CrewPortal.tsx";
+import { ClientQuote } from "./pages/portal/ClientQuote.tsx";
 import SignBEO from "./pages/public/SignBEO.tsx";
 import Welcome from "./pages/public/Welcome.tsx"; // NEW Import
 
@@ -87,6 +91,7 @@ function AppShell() {
         <Route path="/educational-bank" element={<EducationalBank />} />
         <Route path="/market-pulse" element={<MarketIntelligence />} />
         <Route path="/logistics/beo-generator" element={<BEOGenerator />} />
+        <Route path="/logistics/venue-architect" element={<VenueArchitect />} />
 
         <Route path="/live-story" element={<LiveStory />} />
         <Route path="/executive" element={<ExecutiveFeed />} />
@@ -112,6 +117,16 @@ const App = () => {
            * Must be declared BEFORE the catch-all AppShell route.
            */}
           <Route path="/portal/:proposalId" element={<ClientPortal />} />
+          
+          {/*
+           * Client Quote View — High-end client presentation
+           */}
+          <Route path="/quote/:eventId" element={<ClientQuote />} />
+
+          {/*
+           * Crew Portal — Worker-view HUD
+           */}
+          <Route path="/crew/:eventId" element={<CrewPortal />} />
 
           {/*
            * Welcome Page — Landing page for the app
