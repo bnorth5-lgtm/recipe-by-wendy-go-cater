@@ -5,21 +5,49 @@ import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAgentRealtime } from "@/hooks/useAgentRealtime";
-import { Menu } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ProvenanceBio } from "@/components/ProvenanceBio";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { Lock } from "lucide-react";
+import { saveToVault } from "@/logic/persistence";
+import { toast } from "sonner";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
+
+import { useEventContext } from "@/context/EventContext";
 
 const APP_DOCUMENT_TITLE = "Delicious Catering & Events by Wendy";
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { eventState } = useEventContext();
+
+  // Watch for new kitchen notifications
+  useEffect(() => {
+    if (eventState.kitchenNotifications && eventState.kitchenNotifications.length > 0) {
+      const latest = eventState.kitchenNotifications[eventState.kitchenNotifications.length - 1];
+      // Only show if it's recent (within last 10 seconds) to avoid stale toasts on reload
+      if (Date.now() - latest.timestamp < 10000) {
+        toast(latest.message, {
+          icon: '🛎️',
+          style: {
+            background: '#fbbf24',
+            color: '#0f172a',
+            fontWeight: 'bold',
+            border: 'none',
+            fontSize: '1.1rem'
+          },
+          duration: 10000,
+        });
+      }
+    }
+  }, [eventState.kitchenNotifications]);
 
   // Start the Realtime subscription once for the whole app lifetime.
   useAgentRealtime();
@@ -32,11 +60,40 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
+  const handleLockAndSave = async () => {
+    // In a real app, this would gather the global state. 
+    // Here we simulate saving the current master state.
+    const masterState = {
+      timestamp: new Date().toISOString(),
+      appVersion: "1.0.0",
+      status: "LOCKED",
+      // Add more global state here if needed
+    };
+    
+    const success = await saveToVault(`MasterState_${Date.now()}.json`, masterState);
+    if (success) {
+      toast.success("Master state locked and saved to Vault!");
+    } else {
+      toast.error("Failed to save to Vault.");
+    }
+  };
+
   return (
     <div key={Date.now()} className="flex min-h-screen bg-background text-foreground max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 relative">
       <ProvenanceBio />
       
-      <div className="absolute top-4 right-4 z-50">
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
+        <Button 
+          onClick={handleLockAndSave}
+          className="bg-[#fbbf24] text-slate-900 hover:bg-[#fbbf24]/90 font-bold shadow-[0_0_15px_rgba(234,179,8,0.4)] gap-2"
+        >
+          <Lock className="w-4 h-4" />
+          Lock & Save
+        </Button>
         <LanguageToggle />
       </div>
 
@@ -52,8 +109,26 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Button>
       )}
 
+      {/* Desktop Floating Toggle Button (visible when sidebar is collapsed) */}
+      {!isMobile && isSidebarCollapsed && (
+        <Button
+          variant="secondary"
+          size="icon"
+          className="fixed top-4 left-4 z-[60] shadow-md bg-slate-900 border-slate-700 hover:bg-slate-800 text-slate-300 hover:text-[#fbbf24] transition-colors"
+          onClick={toggleSidebarCollapse}
+          aria-label="Open sidebar"
+        >
+          <PanelLeftOpen className="h-5 w-5" />
+        </Button>
+      )}
+
       {/* Sidebar */}
-      <Sidebar isSidebarOpen={isSidebarOpen} onClose={toggleSidebar} />
+      <Sidebar 
+        isSidebarOpen={isSidebarOpen} 
+        onClose={toggleSidebar} 
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={toggleSidebarCollapse}
+      />
 
       {/* Click-to-close overlay for mobile when sidebar is open */}
       {isMobile && isSidebarOpen && (

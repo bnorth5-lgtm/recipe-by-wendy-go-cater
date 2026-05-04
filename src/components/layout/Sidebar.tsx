@@ -23,6 +23,7 @@ import {
   Lock,
   FileText,
   Radar,
+  PanelLeftClose,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -30,9 +31,11 @@ import { useSubscription } from "@/hooks/useSubscription";
 interface SidebarProps {
   isSidebarOpen: boolean;
   onClose: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isCollapsed, onToggleCollapse }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
   const { can, isExec } = useSubscription();
@@ -138,10 +141,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
   return (
     <aside
       className={cn(
-        "flex flex-col h-screen w-64 bg-sidebar-background text-sidebar-foreground transition-transform duration-300 ease-in-out",
+        "flex flex-col h-screen bg-sidebar-background text-sidebar-foreground transition-all duration-300 ease-in-out z-50",
         isMobile
-          ? "fixed inset-y-0 left-0 z-50 transform"
-          : "relative",
+          ? "fixed inset-y-0 left-0 transform w-64"
+          : cn("relative", isCollapsed ? "w-0 overflow-hidden" : "w-64"),
         isMobile && !isSidebarOpen && "-translate-x-full", // Hide on mobile when closed
         isMobile && isSidebarOpen && "translate-x-0", // Show on mobile when open
         !isMobile && "translate-x-0" // Always show on desktop
@@ -162,6 +165,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose }) => {
             Delicious Catering & Events by Wendy
           </h1>
         </Link>
+        {/* Desktop Collapse Toggle */}
+        {!isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-1/2 -translate-y-1/2 right-2 z-20 h-8 w-8 text-slate-500 hover:text-[#fbbf24] transition-colors"
+            onClick={onToggleCollapse}
+            aria-label="Collapse menu"
+          >
+            <PanelLeftClose className="h-5 w-5" />
+          </Button>
+        )}
         {isMobile && (
           <Button
             variant="secondary"

@@ -39,16 +39,23 @@ import BEOGenerator from "./pages/logistics/BEOGenerator.tsx";
 import ExecutiveFeed from "./pages/ExecutiveFeed.tsx";
 import ClientPortal from "./pages/portal/ClientPortal.tsx";
 import { CrewPortal } from "./pages/portal/CrewPortal.tsx";
+import { ChefView } from "./pages/portal/ChefView.tsx";
 import { ClientQuote } from "./pages/portal/ClientQuote.tsx";
 import SignBEO from "./pages/public/SignBEO.tsx";
 import Welcome from "./pages/public/Welcome.tsx"; // NEW Import
+import { Onboarding } from "./pages/Onboarding.tsx";
+
+import { EventProvider } from "./context/EventContext";
+import { BrandProvider } from "./context/BrandContext";
 
 // ── App shell (authenticated, with sidebar + bottom nav) ─────────────────────
 
 function AppShell() {
   return (
-    <Layout>
-      <Routes>
+    <BrandProvider>
+      <EventProvider>
+        <Layout>
+          <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/notes/:noteId" element={<Dashboard />} /> {/* NEW: Route for individual notes */}
@@ -96,9 +103,11 @@ function AppShell() {
         <Route path="/live-story" element={<LiveStory />} />
         <Route path="/executive" element={<ExecutiveFeed />} />
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Layout>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Layout>
+      </EventProvider>
+    </BrandProvider>
   );
 }
 
@@ -124,6 +133,11 @@ const App = () => {
           <Route path="/quote/:eventId" element={<ClientQuote />} />
 
           {/*
+           * Chef View — Kitchen Sync
+           */}
+          <Route path="/chef/:eventId" element={<ChefView />} />
+
+          {/*
            * Crew Portal — Worker-view HUD
            */}
           <Route path="/crew/:eventId" element={<CrewPortal />} />
@@ -132,6 +146,18 @@ const App = () => {
            * Welcome Page — Landing page for the app
            */}
           <Route path="/welcome" element={<Welcome />} />
+
+          {/*
+           * Onboarding Wizard — SaaS setup
+           */}
+          <Route 
+            path="/onboarding" 
+            element={
+              <BrandProvider>
+                <Onboarding />
+              </BrandProvider>
+            } 
+          />
 
           {/*
            * SignBEO — lightweight public signing page.

@@ -24,62 +24,53 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { useCateringStore } from "@/store/cateringStore";
-import { Palette, Type, Image as ImageIcon } from "lucide-react";
+import { useBrand } from "@/context/BrandContext";
+import { Palette, Type, Image as ImageIcon, Building, Phone, Mail } from "lucide-react";
 
 // Define the schema for branding settings form
 const brandingSettingsSchema = z.object({
+  companyName: z.string().min(1, "Company name is required"),
   logoUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
-  primaryColor: z.string().min(1, "Primary color is required (HSL format)"),
-  secondaryColor: z.string().min(1, "Secondary color is required (HSL format)"),
-  fontFamilyPrimary: z.string().min(1, "Primary font family is required"),
-  fontFamilySecondary: z.string().min(1, "Secondary font family is required"),
+  primaryColor: z.string().min(1, "Primary color is required (Hex format)"),
+  contactPhone: z.string().min(1, "Phone number is required"),
+  contactEmail: z.string().email("Must be a valid email"),
 });
 
 type BrandingSettingsFormData = z.infer<typeof brandingSettingsSchema>;
 
 const BrandingSettings = () => {
-  const {
-    logoUrl,
-    primaryColor,
-    secondaryColor,
-    fontFamilyPrimary,
-    fontFamilySecondary,
-    setLogoUrl,
-    setPrimaryColor,
-    setSecondaryColor,
-    setFontFamilyPrimary,
-    setFontFamilySecondary,
-  } = useCateringStore();
+  const { brand, updateBrand } = useBrand();
 
   const form = useForm<BrandingSettingsFormData>({
     resolver: zodResolver(brandingSettingsSchema),
     defaultValues: {
-      logoUrl: logoUrl,
-      primaryColor: primaryColor,
-      secondaryColor: secondaryColor,
-      fontFamilyPrimary: fontFamilyPrimary,
-      fontFamilySecondary: fontFamilySecondary,
+      companyName: brand.companyName,
+      logoUrl: brand.logoUrl || "",
+      primaryColor: brand.primaryColor,
+      contactPhone: brand.contactPhone,
+      contactEmail: brand.contactEmail,
     },
   });
 
   // Reset form values when store values change
   useEffect(() => {
     form.reset({
-      logoUrl: logoUrl,
-      primaryColor: primaryColor,
-      secondaryColor: secondaryColor,
-      fontFamilyPrimary: fontFamilyPrimary,
-      fontFamilySecondary: fontFamilySecondary,
+      companyName: brand.companyName,
+      logoUrl: brand.logoUrl || "",
+      primaryColor: brand.primaryColor,
+      contactPhone: brand.contactPhone,
+      contactEmail: brand.contactEmail,
     });
-  }, [logoUrl, primaryColor, secondaryColor, fontFamilyPrimary, fontFamilySecondary, form]);
+  }, [brand, form]);
 
   const onSubmit = (data: BrandingSettingsFormData) => {
-    setLogoUrl(data.logoUrl || "");
-    setPrimaryColor(data.primaryColor);
-    setSecondaryColor(data.secondaryColor);
-    setFontFamilyPrimary(data.fontFamilyPrimary);
-    setFontFamilySecondary(data.fontFamilySecondary);
+    updateBrand({
+      companyName: data.companyName,
+      logoUrl: data.logoUrl || null,
+      primaryColor: data.primaryColor,
+      contactPhone: data.contactPhone,
+      contactEmail: data.contactEmail,
+    });
     toast.success("Branding settings updated successfully!");
   };
 
@@ -117,6 +108,21 @@ const BrandingSettings = () => {
               <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3 py-3">
                 <FormField
                   control={form.control}
+                  name="companyName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Building className="h-4 w-4" /> Company Name
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Delicious Catering" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="logoUrl"
                   render={({ field }) => (
                     <FormItem>
@@ -142,91 +148,46 @@ const BrandingSettings = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
-                        <Palette className="h-4 w-4" /> Primary Color (HSL)
+                        <Palette className="h-4 w-4" /> Primary Color (Hex)
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., 10 70% 50%" {...field} />
+                        <Input type="color" className="h-10 w-24 p-1 cursor-pointer" {...field} />
                       </FormControl>
                       <FormMessage />
-                      <div className="h-6 w-full rounded-md border mt-2" style={{ backgroundColor: `hsl(${field.value})` }}></div>
                     </FormItem>
                   )}
                 />
                 <FormField
                   control={form.control}
-                  name="secondaryColor"
+                  name="contactPhone"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
-                        <Palette className="h-4 w-4" /> Secondary Color (HSL)
+                        <Phone className="h-4 w-4" /> Contact Phone
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., 20 40% 96.1%" {...field} />
+                        <Input placeholder="(555) 123-4567" {...field} />
                       </FormControl>
                       <FormMessage />
-                      <div className="h-6 w-full rounded-md border mt-2" style={{ backgroundColor: `hsl(${field.value})` }}></div>
                     </FormItem>
                   )}
                 />
                 <FormField
                   control={form.control}
-                  name="fontFamilyPrimary"
+                  name="contactEmail"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
-                        <Type className="h-4 w-4" /> Primary Font Family
+                        <Mail className="h-4 w-4" /> Contact Email
                       </FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a primary font" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {fontOptions.map((font) => (
-                            <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                              {font.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Input type="email" placeholder="events@domain.com" {...field} />
+                      </FormControl>
                       <FormMessage />
-                      <p className="text-sm text-muted-foreground mt-2" style={{ fontFamily: field.value }}>
-                        Preview: The quick brown fox jumps over the lazy dog.
-                      </p>
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="fontFamilySecondary"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Type className="h-4 w-4" /> Secondary Font Family
-                      </FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a secondary font" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {fontOptions.map((font) => (
-                            <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                              {font.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                      <p className="text-sm text-muted-foreground mt-2" style={{ fontFamily: field.value }}>
-                        Preview: The quick brown fox jumps over the lazy dog.
-                      </p>
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full">Save Branding Settings</Button>
+                <Button type="submit" className="w-full mt-4">Save Branding Settings</Button>
               </form>
             </Form>
           </CardContent>

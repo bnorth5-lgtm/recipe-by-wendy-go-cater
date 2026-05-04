@@ -19,10 +19,12 @@ import {
   Edit,
   Trash2,
   PlusCircle,
-  Printer, // Added Printer icon for BEOs card
+  Printer,
   Lock,
   Sparkles,
   BookText,
+  Share2,
+  Download
 } from "lucide-react";
 import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore";
 import { getVaultStatus } from "@/lib/cloudVault";
@@ -55,12 +57,22 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
+import { useBrand } from "@/context/BrandContext";
+import { useEventContext } from "@/context/EventContext";
+import { generateProposalPDF } from "@/logic/PDFGenerator";
+import { saveToVault } from "@/logic/persistence";
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
 
   const { noteId } = useParams<{ noteId?: string }>();
   const navigate = useNavigate();
+  const { brand } = useBrand();
+  const { eventState, updateEventState } = useEventContext();
+
+  const [isAuditDialogOpen, setIsAuditDialogOpen] = useState(false);
+  const [actualCostsInput, setActualCostsInput] = useState<number>(0);
+  const [lessonsLearnedInput, setLessonsLearnedInput] = useState<string>("");
 
   const proposals = useCateringStore((state) => state.proposals);
   const bookings = useCateringStore((state) => state.bookings);
@@ -188,6 +200,31 @@ const Dashboard = () => {
     toast.info("Task status updated!");
   };
 
+  const handleSealMasterpiece = async () => {
+    const finalEventState = {
+      ...eventState,
+      actualCosts: actualCostsInput,
+      lessonsLearned: lessonsLearnedInput,
+      isLegacy: true,
+      archivedAt: new Date().toISOString()
+    };
+    
+    updateEventState(finalEventState);
+    
+    // Save to local JSON vault
+    const fileName = `Legacy_Masterpiece_${eventState.eventName.replace(/\s+/g, '_')}_${Date.now()}.json`;
+    const success = await saveToVault(fileName, finalEventState);
+    
+    if (success) {
+      toast.success("Masterpiece Sealed in Legacy Vault!", {
+        description: "You can now duplicate this exact setup for next year."
+      });
+      setIsAuditDialogOpen(false);
+    } else {
+      toast.error("Failed to seal Masterpiece.");
+    }
+  };
+
   const vaultStatus = getVaultStatus();
   const { t } = useTranslation();
 
@@ -207,22 +244,145 @@ const Dashboard = () => {
 
       <div className="text-center space-y-4 mb-8">
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-md" style={{ fontFamily: "'Playfair Display', serif" }}>
-          {t('dashboard.title')}
+          {brand.companyName}
         </h1>
         <p className="text-xl text-amber-200/80 font-medium italic font-serif">
-          {t('dashboard.subtitle')}
+          {brand.contactPhone} | {brand.contactEmail}
         </p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto flex-1 w-full">
+        {/* Client Proposal Portal Card */}
+        <Card className="md:col-span-3 bg-slate-900/50 border border-[#fbbf24]/30 backdrop-blur-xl shadow-[0_0_30px_rgba(251,191,36,0.1)] rounded-2xl overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-1 h-full bg-[#fbbf24]"></div>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="text-2xl font-serif text-white flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-[#fbbf24]" />
+                Client Proposal Portal
+              </CardTitle>
+              <CardDescription className="text-slate-400 mt-1">
+                Active Event: <span className="text-[#fbbf24] font-medium">{eventState.eventName || "Untitled Event"}</span>
+              </CardDescription>
+            </div>
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => {
+                  const url = `${window.location.origin}/quote/${eventState.eventId || 'current'}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success("Read-Only Link Copied!", {
+                    description: "Share this URL with your client."
+                  });
+                }}
+                variant="outline" 
+                className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white"
+              >
+                <Share2 className="w-4 h-4 mr-2 text-[#fbbf24]" /> Share Link
+              </Button>
+              <Button 
+                onClick={async () => {
+                  toast.loading("Compiling Proposal PDF...");
+                  try {
+                    // We pass a dummy ID or the actual map ID if it were on the page. 
+                    // Since the map isn't on the dashboard, the PDF generator will skip the map snapshot gracefully
+                    // or we could redirect them to the Venue Architect to print. For now, we generate the data-driven PDF.
+                    await generateProposalPDF(eventState, "venue-map-canvas", brand);
+                    toast.dismiss();
+                    toast.success("Proposal PDF Generated!");
+                  } catch (error) {
+                    toast.dismiss();
+                    toast.error("Failed to generate PDF.");
+                  }
+                }}
+                className="bg-[#fbbf24] hover:bg-amber-500 text-slate-950 font-bold shadow-[0_0_15px_rgba(251,191,36,0.4)]"
+              >
+                <Download className="w-4 h-4 mr-2" /> Generate PDF Proposal
+              </Button>
+              <Button 
+                onClick={() => setIsAuditDialogOpen(true)}
+                variant="destructive"
+                className="bg-red-950 hover:bg-red-900 text-red-400 border border-red-900/50 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
+              >
+                <Lock className="w-4 h-4 mr-2" /> Close Event
+              </Button>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Post-Event Audit Dialog */}
+        <Dialog open={isAuditDialogOpen} onOpenChange={setIsAuditDialogOpen}>
+          <DialogContent className="bg-slate-950 border-slate-800 text-slate-50 sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-serif text-[#fbbf24] flex items-center gap-2">
+                <Lock className="w-6 h-6" /> Post-Event Audit
+              </DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Close out <strong className="text-white">{eventState.eventName}</strong> and seal it into the Legacy Vault.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid gap-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg">
+                  <div className="text-sm text-slate-400 mb-1">MarketWatch Estimate</div>
+                  <div className="text-2xl font-bold text-white">
+                    ${(eventState.estimatedTotalValue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 p-4 rounded-lg relative">
+                  <div className="text-sm text-slate-400 mb-1">Actual Costs</div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                    <Input 
+                      type="number" 
+                      value={actualCostsInput || ""}
+                      onChange={(e) => setActualCostsInput(parseFloat(e.target.value) || 0)}
+                      className="pl-7 bg-slate-950 border-slate-700 text-white text-xl font-bold h-auto py-1"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {actualCostsInput > 0 && (
+                <div className={`p-4 rounded-lg border ${actualCostsInput > (eventState.estimatedTotalValue || 0) ? 'bg-red-950/30 border-red-900/50 text-red-400' : 'bg-emerald-950/30 border-emerald-900/50 text-emerald-400'}`}>
+                  Variance: <strong className="text-lg">
+                    ${Math.abs((eventState.estimatedTotalValue || 0) - actualCostsInput).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </strong> 
+                  {actualCostsInput > (eventState.estimatedTotalValue || 0) ? ' Over Budget' : ' Under Budget (Extra Profit)'}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="lessons" className="text-slate-300">Lessons Learned (e.g., "1:10 server ratio was perfect for Harrison layout")</Label>
+                <Textarea 
+                  id="lessons"
+                  value={lessonsLearnedInput}
+                  onChange={(e) => setLessonsLearnedInput(e.target.value)}
+                  placeholder="Record layout adjustments, vendor performance, or staffing notes for next year..."
+                  className="bg-slate-900 border-slate-700 text-white min-h-[100px]"
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setIsAuditDialogOpen(false)} className="text-slate-400 hover:text-white">Cancel</Button>
+              <Button onClick={handleSealMasterpiece} className="bg-[#fbbf24] hover:bg-amber-500 text-slate-950 font-bold">
+                <Lock className="w-4 h-4 mr-2" /> Seal Masterpiece to Vault
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Door 1: Quick Drop-Off */}
         <Link to="/events/bookings" className="block group">
-          <Card className="h-full bg-slate-900/50 border border-amber-900/30 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-sm">
+          <Card className="h-full bg-slate-900/30 border border-slate-700/50 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] rounded-2xl">
             <CardHeader className="text-center pb-4">
               <div className="mx-auto bg-slate-800/50 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_25px_rgba(234,179,8,0.3)]">
-                <Utensils className="w-10 h-10 text-[#fbbf24]" />
+                <Utensils className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
-              <CardTitle className="text-2xl font-serif text-white">{t('dashboard.quickDropOff')}</CardTitle>
+              <CardTitle className="text-2xl font-serif text-white">
+                <span style={{ color: brand.primaryColor }}>RBW ~ </span>Delicious Express & Setup
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-slate-400 leading-relaxed">
@@ -234,12 +394,14 @@ const Dashboard = () => {
 
         {/* Door 2: Staffed Buffet */}
         <Link to="/events/calendar" className="block group">
-          <Card className="h-full bg-slate-900/50 border border-amber-900/30 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-sm">
+          <Card className="h-full bg-slate-900/30 border border-slate-700/50 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] rounded-2xl">
             <CardHeader className="text-center pb-4">
               <div className="mx-auto bg-slate-800/50 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_25px_rgba(234,179,8,0.3)]">
-                <UserPlus className="w-10 h-10 text-[#fbbf24]" />
+                <UserPlus className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
-              <CardTitle className="text-2xl font-serif text-white">{t('dashboard.staffedBuffet')}</CardTitle>
+              <CardTitle className="text-2xl font-serif text-white">
+                <span style={{ color: brand.primaryColor }}>RBW ~ </span>Delicious Staffed Events
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-slate-400 leading-relaxed">
@@ -251,12 +413,14 @@ const Dashboard = () => {
 
         {/* Door 3: Full Production */}
         <Link to="/logistics/venue-architect" className="block group">
-          <Card className="h-full bg-slate-900/50 border border-amber-900/30 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-sm">
+          <Card className="h-full bg-slate-900/30 border border-slate-700/50 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] rounded-2xl">
             <CardHeader className="text-center pb-4">
               <div className="mx-auto bg-slate-800/50 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_25px_rgba(234,179,8,0.3)]">
-                <Sparkles className="w-10 h-10 text-[#fbbf24]" />
+                <Sparkles className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
-              <CardTitle className="text-2xl font-serif text-white">{t('dashboard.fullProduction')}</CardTitle>
+              <CardTitle className="text-2xl font-serif text-white">
+                <span style={{ color: brand.primaryColor }}>RBW ~ </span>MainVision Productions
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-slate-400 leading-relaxed">
