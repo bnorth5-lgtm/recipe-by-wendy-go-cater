@@ -82,6 +82,17 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
+  // Force Service Worker Update
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (let registration of registrations) {
+          registration.update();
+        }
+      });
+    }
+  }, []);
+
   return (
     <div key={Date.now()} className="flex min-h-screen bg-background text-foreground max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 relative">
       <ProvenanceBio />

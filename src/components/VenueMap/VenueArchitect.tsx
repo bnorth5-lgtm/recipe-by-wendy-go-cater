@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send } from "lucide-react";
+import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -17,7 +17,7 @@ import { BEOSidebar } from "@/components/BEOSidebar";
 import { useEventContext } from "@/context/EventContext";
 import { cn } from "@/lib/utils";
 
-export type ElementType = "table_round_60" | "table_rect" | "high_top" | "deuce" | "dance_floor" | "bar" | "buffet" | "cake" | "stage" | "pipe_drape" | "floral_arch" | "tent_40x60" | "string_lights" | "staging_kitchen" | "power_drop";
+export type ElementType = "table_round_60" | "table_rect" | "high_top" | "deuce" | "dance_floor" | "bar" | "buffet" | "cake" | "stage" | "pipe_drape" | "floral_arch" | "tent_40x60" | "string_lights" | "staging_kitchen" | "power_drop" | "exit_sign";
 
 export interface MapElementData {
   id: string;
@@ -60,6 +60,7 @@ const ELEMENT_CONFIG: Record<ElementType, { label: string; icon: React.ElementTy
   string_lights: { label: "String Lights", icon: Lightbulb, width: 400, height: 20, shape: "line", color: "bg-transparent border border-dashed border-amber-500/20" },
   staging_kitchen: { label: "Staging Kitchen", icon: Flame, width: 200, height: 100, shape: "rect", color: "bg-red-950/80 border-red-500/50" },
   power_drop: { label: "Power Drop", icon: Zap, width: 40, height: 40, shape: "circle", color: "bg-yellow-500 text-slate-900 border-yellow-400" },
+  exit_sign: { label: "EXIT", icon: DoorOpen, width: 60, height: 30, shape: "rect", color: "bg-red-600 text-white font-bold border-red-400" },
 };
 
 export const VenueArchitect = () => {
@@ -256,6 +257,45 @@ export const VenueArchitect = () => {
 
           {/* Power Drop Connections */}
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: '100%', height: '100%' }}>
+            {/* Draw Red Gap Lines */}
+            {elements.map((el1, i) => {
+              return elements.slice(i + 1).map(el2 => {
+                // Skip tents and string lights for gap check
+                if (el1.type === "tent_40x60" || el2.type === "tent_40x60" || el1.type === "string_lights" || el2.type === "string_lights") return null;
+
+                const c1 = ELEMENT_CONFIG[el1.type];
+                const c2 = ELEMENT_CONFIG[el2.type];
+
+                const rect1 = { left: el1.x, right: el1.x + c1.width, top: el1.y, bottom: el1.y + c1.height };
+                const rect2 = { left: el2.x, right: el2.x + c2.width, top: el2.y, bottom: el2.y + c2.height };
+
+                const hGap = Math.max(0, Math.max(rect1.left - rect2.right, rect2.left - rect1.right));
+                const vGap = Math.max(0, Math.max(rect1.top - rect2.bottom, rect2.top - rect1.bottom));
+                
+                const dist = Math.sqrt(hGap * hGap + vGap * vGap);
+
+                // If gap is less than 36 inches (60px) and they are not intersecting
+                if (dist > 0 && dist < 60) {
+                  // Find closest points for the line
+                  const x1 = el1.x + c1.width / 2;
+                  const y1 = el1.y + c1.height / 2;
+                  const x2 = el2.x + c2.width / 2;
+                  const y2 = el2.y + c2.height / 2;
+
+                  return (
+                    <g key={`gap-${el1.id}-${el2.id}`}>
+                      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#ef4444" strokeWidth="2" strokeDasharray="4,4" opacity="0.8" />
+                      <text x={(x1+x2)/2} y={(y1+y2)/2 - 5} fill="#ef4444" fontSize="10" fontWeight="bold" textAnchor="middle">
+                        &lt; 36"
+                      </text>
+                    </g>
+                  );
+                }
+                return null;
+              });
+            })}
+
+            {/* Draw Power Drop Lines */}
             {elements.filter(e => e.type === "power_drop").map(drop => {
               const targets = elements.filter(e => e.type === "stage" || e.type === "string_lights");
               if (targets.length === 0) return null;
@@ -380,6 +420,33 @@ export const VenueArchitect = () => {
             </div>
           )}
 
+          {/* Worker Dots (Yellow) Animation */}
+          {elements.find(e => e.type === "staging_kitchen") && elements.filter(e => e.type.startsWith("table") || e.type === "high_top" || e.type === "deuce").map((table, index) => {
+            const kitchen = elements.find(e => e.type === "staging_kitchen")!;
+            const kX = kitchen.x + ELEMENT_CONFIG[kitchen.type].width / 2;
+            const kY = kitchen.y + ELEMENT_CONFIG[kitchen.type].height / 2;
+            const tX = table.x + ELEMENT_CONFIG[table.type].width / 2;
+            const tY = table.y + ELEMENT_CONFIG[table.type].height / 2;
+            
+            // Only show 1 worker dot per table for visual clarity
+            return (
+              <motion.div
+                key={`worker-${table.id}`}
+                className="absolute w-3 h-3 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)] z-40 pointer-events-none"
+                animate={{
+                  x: [kX, tX, kX],
+                  y: [kY, tY, kY],
+                }}
+                transition={{
+                  duration: 8 + (index % 4) * 2, // Randomize speed a bit
+                  repeat: Infinity,
+                  ease: "linear",
+                  delay: index * 0.5 // Stagger starts
+                }}
+              />
+            );
+          })}
+
           {/* Render Elements */}
           {elements.map((el) => {
             const config = ELEMENT_CONFIG[el.type];
@@ -419,7 +486,7 @@ export const VenueArchitect = () => {
               >
                 <div className={cn(
                   "w-full h-full flex items-center justify-center transition-colors relative",
-                  el.type !== "tent_40x60" && el.type !== "string_lights" && "border-2 border-slate-600",
+                  el.type !== "tent_40x60" && el.type !== "string_lights" && el.type !== "exit_sign" && "border-2 border-slate-600",
                   el.type === "tent_40x60" && el.hasSidewalls ? "bg-amber-50/5 border-4 border-solid border-white backdrop-blur-[2px]" : config.color,
                   config.shape === "circle" ? "rounded-full" : "rounded-md",
                   isSelected && "border-[#fbbf24] border-solid border-2"
@@ -452,14 +519,43 @@ export const VenueArchitect = () => {
                   </div>
                 )}
 
+                {/* Exit Sign Animation */}
+                {el.type === "exit_sign" && (
+                  <div className="absolute inset-0 rounded-md animate-pulse shadow-[0_0_15px_rgba(220,38,38,0.8)] border-2 border-red-400 pointer-events-none" />
+                )}
+
                 {/* Guest Dots */}
                 {el.guests > 0 && (
                   <div className="absolute inset-[-15px] pointer-events-none">
                     {Array.from({ length: el.guests }).map((_, i) => {
-                      const angle = (i / el.guests) * Math.PI * 2;
-                      const radius = config.shape === "circle" ? config.width / 2 + 10 : config.width / 2 + 10; // Simplified for rect
-                      const dotX = config.width / 2 + Math.cos(angle) * radius - 4;
-                      const dotY = config.height / 2 + Math.sin(angle) * radius - 4;
+                      let dotX, dotY;
+                      if (config.shape === "circle") {
+                        const angle = (i / el.guests) * Math.PI * 2;
+                        const radius = config.width / 2 + 10;
+                        dotX = config.width / 2 + Math.cos(angle) * radius - 4;
+                        dotY = config.height / 2 + Math.sin(angle) * radius - 4;
+                      } else {
+                        // Rectangular perimeter distribution
+                        const w = config.width + 20;
+                        const h = config.height + 20;
+                        const perimeter = 2 * w + 2 * h;
+                        const d = (i / el.guests) * perimeter;
+                        
+                        if (d < w) { // Top edge
+                          dotX = d - 10;
+                          dotY = -10 - 4;
+                        } else if (d < w + h) { // Right edge
+                          dotX = w - 10 - 4;
+                          dotY = (d - w) - 10;
+                        } else if (d < 2 * w + h) { // Bottom edge
+                          dotX = w - (d - (w + h)) - 10;
+                          dotY = h - 10 - 4;
+                        } else { // Left edge
+                          dotX = -10 - 4;
+                          dotY = h - (d - (2 * w + h)) - 10;
+                        }
+                      }
+                      
                       return (
                         <div 
                           key={i} 
