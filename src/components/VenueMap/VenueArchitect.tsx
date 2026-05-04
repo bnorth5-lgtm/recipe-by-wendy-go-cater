@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen, Volume2, Droplets, Bath, HardHat } from "lucide-react";
+import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen, Volume2, Droplets, Bath, HardHat, CloudRain, Wind } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -73,6 +73,8 @@ export const VenueArchitect = () => {
   const [isHoveringMap, setIsHoveringMap] = useState(false);
   const [isOutdoorMode, setIsOutdoorMode] = useState(false);
   const [showInfraOverlay, setShowInfraOverlay] = useState(false);
+  const [isRaining, setIsRaining] = useState(false);
+  const [windDirection, setWindDirection] = useState<string>("SE"); // Default blowing SE
   const [globalTime, setGlobalTime] = useState<number>(16); // 16.0 = 4:00 PM, 22.0 = 10:00 PM
   const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "timeline" | "logistics">("properties");
   const [selectedSignatureDish, setSelectedSignatureDish] = useState<string>("Blueberry Cranberry Bread");
@@ -202,6 +204,97 @@ export const VenueArchitect = () => {
     navigate(`/chef/${eventState.eventId || 'current'}`);
   };
 
+  // Weather Math Helpers
+  const getWindAngle = (dir: string) => {
+    const map: Record<string, number> = {
+      "N": -Math.PI / 2,
+      "NE": -Math.PI / 4,
+      "E": 0,
+      "SE": Math.PI / 4,
+      "S": Math.PI / 2,
+      "SW": 3 * Math.PI / 4,
+      "W": Math.PI,
+      "NW": -3 * Math.PI / 4
+    };
+    return map[dir] || 0;
+  };
+
+  const isPointInTriangle = (p: {x:number, y:number}, p0: {x:number, y:number}, p1: {x:number, y:number}, p2: {x:number, y:number}) => {
+    const A = 0.5 * (-p1.y * p2.x + p0.y * (-p1.x + p2.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y);
+    const sign = A < 0 ? -1 : 1;
+    const s = (p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * p.x + (p0.x - p2.x) * p.y) * sign;
+    const t = (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y) * sign;
+    return s > 0 && t > 0 && (s + t) < 2 * A * sign;
+  };
+
+  const doLineSegmentsIntersect = (p1: any, p2: any, p3: any, p4: any) => {
+    const ccw = (A: any, B: any, C: any) => (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+    return ccw(p1, p3, p4) !== ccw(p2, p3, p4) && ccw(p1, p2, p3) !== ccw(p1, p2, p4);
+  };
+
+  const doesLineIntersectRect = (p1: any, p2: any, rect: {left:number, right:number, top:number, bottom:number}) => {
+    const tl = {x: rect.left, y: rect.top};
+    const tr = {x: rect.right, y: rect.top};
+    const bl = {x: rect.left, y: rect.bottom};
+    const br = {x: rect.right, y: rect.bottom};
+    return doLineSegmentsIntersect(p1, p2, tl, tr) ||
+           doLineSegmentsIntersect(p1, p2, tr, br) ||
+           doLineSegmentsIntersect(p1, p2, br, bl) ||
+           doLineSegmentsIntersect(p1, p2, bl, tl) ||
+           (p1.x >= rect.left && p1.x <= rect.right && p1.y >= rect.top && p1.y <= rect.bottom); // point inside
+  };
+
+  // Pre-calculate weather effects
+  const smokedElementIds = new Set<string>();
+  const muddyPathTableIds = new Set<string>();
+  let smokeTriangle: {p1: any, p2: any, p3: any} | null = null;
+
+  const kitchen = elements.find(e => e.type === "staging_kitchen");
+  const tents = elements.filter(e => e.type === "tent_40x60");
+
+  if (kitchen) {
+    const kX = kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2;
+    const kY = kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2;
+    
+    // Smoke
+    const angle = getWindAngle(windDirection);
+    const L = 800; // 40ft plume
+    const spread = Math.PI / 6; // 30 deg half-spread
+    smokeTriangle = {
+      p1: { x: kX, y: kY },
+      p2: { x: kX + L * Math.cos(angle - spread), y: kY + L * Math.sin(angle - spread) },
+      p3: { x: kX + L * Math.cos(angle + spread), y: kY + L * Math.sin(angle + spread) }
+    };
+
+    elements.forEach(el => {
+      if (el.type.startsWith("table") || el.type === "bar" || el.type === "high_top" || el.type === "deuce") {
+        const cX = el.x + ELEMENT_CONFIG[el.type].width / 2;
+        const cY = el.y + ELEMENT_CONFIG[el.type].height / 2;
+        if (isPointInTriangle({x: cX, y: cY}, smokeTriangle!.p1, smokeTriangle!.p2, smokeTriangle!.p3)) {
+          smokedElementIds.add(el.id);
+        }
+
+        // Muddy Paths
+        if (isRaining) {
+          let isMuddy = false;
+          for (const tent of tents) {
+            const rect = {
+              left: tent.x - 40,
+              right: tent.x + ELEMENT_CONFIG.tent_40x60.width + 40,
+              top: tent.y - 40,
+              bottom: tent.y + ELEMENT_CONFIG.tent_40x60.height + 40
+            };
+            if (doesLineIntersectRect({x: kX, y: kY}, {x: cX, y: cY}, rect)) {
+              isMuddy = true;
+              break;
+            }
+          }
+          if (isMuddy) muddyPathTableIds.add(el.id);
+        }
+      }
+    });
+  }
+
   // Sync to global context whenever these values change
   useEffect(() => {
     updateEventState({
@@ -287,6 +380,50 @@ export const VenueArchitect = () => {
             backgroundSize: '100px 100px, 100px 100px, 20px 20px, 20px 20px',
             backgroundPosition: '-1px -1px, -1px -1px, -1px -1px, -1px -1px'
           }} />
+
+          {/* Weather Overlay SVG */}
+          <svg className="absolute inset-0 pointer-events-none z-10" style={{ width: '100%', height: '100%' }}>
+            {/* Drip Zones */}
+            {isRaining && tents.map(tent => (
+              <rect 
+                key={`drip-${tent.id}`}
+                x={tent.x - 40} y={tent.y - 40} 
+                width={ELEMENT_CONFIG.tent_40x60.width + 80} 
+                height={ELEMENT_CONFIG.tent_40x60.height + 80}
+                fill="rgba(51, 65, 85, 0.5)" // slate-700/50
+                stroke="#3b82f6" // blue-500
+                strokeWidth="2"
+                strokeDasharray="4,4"
+              />
+            ))}
+
+            {/* Muddy Paths */}
+            {isRaining && kitchen && elements.filter(e => muddyPathTableIds.has(e.id)).map(table => {
+              const kX = kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2;
+              const kY = kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2;
+              const tX = table.x + ELEMENT_CONFIG[table.type].width / 2;
+              const tY = table.y + ELEMENT_CONFIG[table.type].height / 2;
+              return (
+                <line 
+                  key={`mud-${table.id}`}
+                  x1={kX} y1={kY} x2={tX} y2={tY}
+                  stroke="#78350f" // amber-900 (mud brown)
+                  strokeWidth="4"
+                  strokeDasharray="8,4"
+                  opacity="0.8"
+                />
+              );
+            })}
+
+            {/* Smoke Plume */}
+            {smokeTriangle && (
+              <polygon 
+                points={`${smokeTriangle.p1.x},${smokeTriangle.p1.y} ${smokeTriangle.p2.x},${smokeTriangle.p2.y} ${smokeTriangle.p3.x},${smokeTriangle.p3.y}`}
+                fill="rgba(148, 163, 184, 0.5)" // slate-400/50
+                className="mix-blend-screen"
+              />
+            )}
+          </svg>
 
           {/* Power Drop Connections */}
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: '100%', height: '100%' }}>
@@ -502,6 +639,32 @@ export const VenueArchitect = () => {
             </div>
 
             <Separator className="bg-slate-700 my-1" />
+
+            <div className="flex flex-col gap-2 bg-slate-800/50 p-2 rounded-lg border border-slate-700">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-slate-300 cursor-pointer flex items-center gap-1" htmlFor="rain-mode">
+                  <CloudRain className="w-3 h-3 text-blue-400" /> Rain Sim
+                </Label>
+                <Switch id="rain-mode" checked={isRaining} onCheckedChange={setIsRaining} />
+              </div>
+              <div className="flex items-center justify-between mt-1">
+                <Label className="text-xs text-slate-300 flex items-center gap-1">
+                  <Wind className="w-3 h-3 text-slate-400" /> Wind Dir
+                </Label>
+                <Select value={windDirection} onValueChange={setWindDirection}>
+                  <SelectTrigger className="w-[70px] h-6 text-[10px] bg-slate-900 border-slate-700 text-white px-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700 text-white min-w-[70px]">
+                    {["N", "NE", "E", "SE", "S", "SW", "W", "NW"].map(d => (
+                      <SelectItem key={d} value={d} className="text-[10px]">{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Separator className="bg-slate-700 my-1" />
             
             <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700 cursor-default" onPointerDown={(e) => e.stopPropagation()}>
               <h4 className="font-serif text-[#fbbf24] mb-2 text-sm">Staffing</h4>
@@ -560,6 +723,7 @@ export const VenueArchitect = () => {
             const config = ELEMENT_CONFIG[el.type];
             const isSelected = el.id === selectedId;
             const isActiveEvent = el.timeEventTime !== undefined && globalTime >= el.timeEventTime && globalTime < el.timeEventTime + 1; // Active for 1 hour
+            const isSmoked = smokedElementIds.has(el.id);
             
             return (
               <motion.div
@@ -597,7 +761,8 @@ export const VenueArchitect = () => {
                   el.type !== "tent_40x60" && el.type !== "string_lights" && el.type !== "exit_sign" && "border-2 border-slate-600",
                   el.type === "tent_40x60" && el.hasSidewalls ? "bg-amber-50/5 border-4 border-solid border-white backdrop-blur-[2px]" : config.color,
                   config.shape === "circle" ? "rounded-full" : "rounded-md",
-                  isSelected && "border-[#fbbf24] border-solid border-2"
+                  isSelected && "border-[#fbbf24] border-solid border-2",
+                  isSmoked && "border-orange-500 border-4 shadow-[0_0_20px_rgba(249,115,22,0.6)] bg-orange-900/50"
                 )}>
                   {el.type === "staging_kitchen" && el.showSafetyRadius && (
                     <div 
