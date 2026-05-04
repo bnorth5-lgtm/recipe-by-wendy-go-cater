@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,6 +72,7 @@ const Inventory = () => {
 
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<InventoryFormData>({
     resolver: zodResolver(inventoryItemSchema),
@@ -87,16 +88,20 @@ const Inventory = () => {
   });
 
   const onSubmit = (data: InventoryFormData) => {
-    if (editingItem) {
-      updateInventoryItem({ ...data, id: editingItem.id } as InventoryItem);
-      toast.success("Inventory item updated successfully!");
-    } else {
-      addInventoryItem(data as Omit<InventoryItem, 'id'>);
-      toast.success("Inventory item added successfully!");
-    }
-    form.reset();
-    setEditingItem(null);
+    // Close dialog immediately for instant feedback
     setIsDialogOpen(false);
+    
+    startTransition(() => {
+      if (editingItem) {
+        updateInventoryItem({ ...data, id: editingItem.id } as InventoryItem);
+        toast.success("Inventory item updated successfully!");
+      } else {
+        addInventoryItem(data as Omit<InventoryItem, 'id'>);
+        toast.success("Inventory item added successfully!");
+      }
+      form.reset();
+      setEditingItem(null);
+    });
   };
 
   const handleEdit = (item: InventoryItem) => {
@@ -106,15 +111,19 @@ const Inventory = () => {
   };
 
   const handleDelete = (id: string) => {
-    deleteInventoryItem(id);
-    toast.info("Inventory item deleted.");
+    startTransition(() => {
+      deleteInventoryItem(id);
+      toast.info("Inventory item deleted.");
+    });
   };
 
   const handleStockChange = (itemId: string, newStock: number) => {
-    const itemToUpdate = inventory.find(item => item.id === itemId);
-    if (itemToUpdate) {
-      updateInventoryItem({ ...itemToUpdate, currentStock: newStock });
-    }
+    startTransition(() => {
+      const itemToUpdate = inventory.find(item => item.id === itemId);
+      if (itemToUpdate) {
+        updateInventoryItem({ ...itemToUpdate, currentStock: newStock });
+      }
+    });
   };
 
   return (

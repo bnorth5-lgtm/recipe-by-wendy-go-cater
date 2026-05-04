@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -27,6 +27,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { eventState } = useEventContext();
+  const [isPending, startTransition] = useTransition();
 
   // Watch for new kitchen notifications
   useEffect(() => {
@@ -65,21 +66,31 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const handleLockAndSave = async () => {
-    // In a real app, this would gather the global state. 
-    // Here we simulate saving the current master state.
-    const masterState = {
-      timestamp: new Date().toISOString(),
-      appVersion: "1.0.0",
-      status: "LOCKED",
-      // Add more global state here if needed
-    };
+    // Fire the toast instantly so the UI feels responsive
+    toast.loading("Locking Masterpiece...", { id: "lock-save" });
     
-    const success = await saveToVault(`MasterState_${Date.now()}.json`, masterState);
-    if (success) {
-      toast.success("Master state locked and saved to Vault!");
-    } else {
-      toast.error("Failed to save to Vault.");
-    }
+    // Use requestAnimationFrame to yield to the browser's paint cycle
+    // before doing the heavy JSON serialization
+    requestAnimationFrame(async () => {
+      try {
+        const masterState = {
+          timestamp: new Date().toISOString(),
+          appVersion: "1.0.0",
+          status: "LOCKED",
+          // Add more global state here if needed
+        };
+        
+        const success = await saveToVault(`MasterState_${Date.now()}.json`, masterState);
+        
+        if (success) {
+          toast.success("Master state locked and saved to Vault!", { id: "lock-save" });
+        } else {
+          toast.error("Failed to save to Vault.", { id: "lock-save" });
+        }
+      } catch (error) {
+        toast.error("Error saving to Vault.", { id: "lock-save" });
+      }
+    });
   };
 
   // Force Service Worker Update
