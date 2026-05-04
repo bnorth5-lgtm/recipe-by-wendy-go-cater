@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen } from "lucide-react";
+import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen, Volume2, Droplets, Bath, HardHat } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -17,7 +17,7 @@ import { useEventContext } from "@/context/EventContext";
 import { useCateringStore } from "@/store/cateringStore";
 import { cn } from "@/lib/utils";
 
-export type ElementType = "table_round_60" | "table_rect" | "high_top" | "deuce" | "dance_floor" | "bar" | "buffet" | "cake" | "stage" | "pipe_drape" | "floral_arch" | "tent_40x60" | "string_lights" | "staging_kitchen" | "power_drop" | "exit_sign";
+export type ElementType = "table_round_60" | "table_rect" | "high_top" | "deuce" | "dance_floor" | "bar" | "buffet" | "cake" | "stage" | "pipe_drape" | "floral_arch" | "tent_40x60" | "string_lights" | "staging_kitchen" | "power_drop" | "exit_sign" | "audio_hub" | "water_access" | "bathroom";
 
 export interface MapElementData {
   id: string;
@@ -60,6 +60,9 @@ const ELEMENT_CONFIG: Record<ElementType, { label: string; icon: React.ElementTy
   string_lights: { label: "String Lights", icon: Lightbulb, width: 400, height: 20, shape: "line", color: "bg-transparent border border-dashed border-amber-500/20" },
   staging_kitchen: { label: "Staging Kitchen", icon: Flame, width: 200, height: 100, shape: "rect", color: "bg-red-950/80 border-red-500/50" },
   power_drop: { label: "Power Drop", icon: Zap, width: 40, height: 40, shape: "circle", color: "bg-yellow-500 text-slate-900 border-yellow-400" },
+  audio_hub: { label: "Audio Hub", icon: Volume2, width: 40, height: 40, shape: "circle", color: "bg-blue-500 text-white border-blue-400" },
+  water_access: { label: "Water Access", icon: Droplets, width: 40, height: 40, shape: "circle", color: "bg-cyan-500 text-slate-900 border-cyan-400" },
+  bathroom: { label: "Bathroom", icon: Bath, width: 120, height: 120, shape: "rect", color: "bg-slate-200 text-slate-800 border-slate-400" },
   exit_sign: { label: "EXIT", icon: DoorOpen, width: 60, height: 30, shape: "rect", color: "bg-red-600 text-white font-bold border-red-400" },
 };
 
@@ -69,6 +72,7 @@ export const VenueArchitect = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHoveringMap, setIsHoveringMap] = useState(false);
   const [isOutdoorMode, setIsOutdoorMode] = useState(false);
+  const [showInfraOverlay, setShowInfraOverlay] = useState(false);
   const [globalTime, setGlobalTime] = useState<number>(16); // 16.0 = 4:00 PM, 22.0 = 10:00 PM
   const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "timeline" | "logistics">("properties");
   const [selectedSignatureDish, setSelectedSignatureDish] = useState<string>("Blueberry Cranberry Bread");
@@ -359,7 +363,75 @@ export const VenueArchitect = () => {
                 />
               );
             })}
+
+            {/* Draw Safety Lines (Infrastructure Overlay) */}
+            {showInfraOverlay && (() => {
+              // Helper for line intersection
+              const ccw = (A: {x:number,y:number}, B: {x:number,y:number}, C: {x:number,y:number}) => (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+              const intersect = (A: {x:number,y:number}, B: {x:number,y:number}, C: {x:number,y:number}, D: {x:number,y:number}) => ccw(A, C, D) !== ccw(B, C, D) && ccw(A, B, C) !== ccw(A, B, D);
+
+              const hubs = elements.filter(e => ["power_drop", "audio_hub", "water_access"].includes(e.type));
+              const kitchen = elements.find(e => e.type === "staging_kitchen");
+              const tables = elements.filter(e => e.type.startsWith("table") || e.type === "high_top" || e.type === "deuce");
+
+              const safetyLines: any[] = [];
+              hubs.forEach((hub, i) => {
+                let nearest = null;
+                let minDist = Infinity;
+                hubs.forEach((other, j) => {
+                  if (i === j) return;
+                  const d = Math.hypot(hub.x - other.x, hub.y - other.y);
+                  if (d < minDist) { minDist = d; nearest = other; }
+                });
+                if (nearest) {
+                  const exists = safetyLines.find(l => (l.h1.id === hub.id && l.h2.id === nearest.id) || (l.h1.id === nearest.id && l.h2.id === hub.id));
+                  if (!exists) safetyLines.push({ h1: hub, h2: nearest });
+                }
+              });
+
+              return safetyLines.map((line, i) => {
+                const c1 = ELEMENT_CONFIG[line.h1.type as ElementType];
+                const c2 = ELEMENT_CONFIG[line.h2.type as ElementType];
+                const A = { x: line.h1.x + c1.width / 2, y: line.h1.y + c1.height / 2 };
+                const B = { x: line.h2.x + c2.width / 2, y: line.h2.y + c2.height / 2 };
+
+                let isHazard = false;
+                if (kitchen) {
+                  const K = { x: kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2, y: kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2 };
+                  tables.forEach(t => {
+                    const T = { x: t.x + ELEMENT_CONFIG[t.type as ElementType].width / 2, y: t.y + ELEMENT_CONFIG[t.type as ElementType].height / 2 };
+                    if (intersect(A, B, K, T)) isHazard = true;
+                  });
+                }
+
+                return (
+                  <line 
+                    key={`safety-${i}`}
+                    x1={A.x} y1={A.y} x2={B.x} y2={B.y}
+                    stroke="#f97316" // Orange-500
+                    strokeWidth={isHazard ? "4" : "2"}
+                    strokeDasharray="8,4"
+                    className={isHazard ? "animate-pulse" : ""}
+                    opacity="0.8"
+                  />
+                );
+              });
+            })()}
           </svg>
+
+          {/* Bathroom Heatmap (Infrastructure Overlay) */}
+          {showInfraOverlay && elements.filter(e => e.type === "bathroom").map(b => (
+            <svg key={`heatmap-${b.id}`} className="absolute inset-0 pointer-events-none z-0" style={{ width: '100%', height: '100%' }}>
+              <defs>
+                <radialGradient id={`heat-${b.id}`}>
+                  <stop offset="0%" stopColor="#22c55e" stopOpacity="0.4" />
+                  <stop offset="50%" stopColor="#eab308" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="#ef4444" stopOpacity="0.0" />
+                </radialGradient>
+              </defs>
+              <circle cx={b.x + ELEMENT_CONFIG.bathroom.width / 2} cy={b.y + ELEMENT_CONFIG.bathroom.height / 2} r={600} fill={`url(#heat-${b.id})`} />
+            </svg>
+          ))}
 
           {/* Precision Crosshair */}
           {isHoveringMap && (
@@ -420,6 +492,13 @@ export const VenueArchitect = () => {
             <div className="flex items-center justify-between bg-slate-800/50 p-2 rounded-lg border border-slate-700">
               <Label className="text-xs text-slate-300 cursor-pointer" htmlFor="outdoor-mode">Outdoor Mode</Label>
               <Switch id="outdoor-mode" checked={isOutdoorMode} onCheckedChange={setIsOutdoorMode} />
+            </div>
+
+            <Separator className="bg-slate-700 my-1" />
+
+            <div className="flex items-center justify-between bg-slate-800/50 p-2 rounded-lg border border-slate-700">
+              <Label className="text-xs text-slate-300 cursor-pointer" htmlFor="infra-mode">Safety & Infra Overlay</Label>
+              <Switch id="infra-mode" checked={showInfraOverlay} onCheckedChange={setShowInfraOverlay} />
             </div>
 
             <Separator className="bg-slate-700 my-1" />
