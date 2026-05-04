@@ -14,6 +14,7 @@ import { ExecutionProgress } from "../ExecutionProgress";
 import { ProcurementHUD } from "../ProcurementHUD";
 import { BEOSidebar } from "@/components/BEOSidebar";
 import { useEventContext } from "@/context/EventContext";
+import { useCateringStore } from "@/store/cateringStore";
 import { cn } from "@/lib/utils";
 
 export type ElementType = "table_round_60" | "table_rect" | "high_top" | "deuce" | "dance_floor" | "bar" | "buffet" | "cake" | "stage" | "pipe_drape" | "floral_arch" | "tent_40x60" | "string_lights" | "staging_kitchen" | "power_drop" | "exit_sign";
@@ -159,6 +160,9 @@ export const VenueArchitect = () => {
   }, 0);
 
   const { eventState, updateEventState } = useEventContext();
+  const inventory = useCateringStore((state) => state.inventory);
+  const updateInventoryItem = useCateringStore((state) => state.updateInventoryItem);
+  const addInventoryItem = useCateringStore((state) => state.addInventoryItem);
 
   // Timeline & Logistics Data
   const timelineEvents = elements.filter(e => e.timeEventTime !== undefined && e.timeEventName).sort((a, b) => a.timeEventTime! - b.timeEventTime!);
@@ -209,7 +213,33 @@ export const VenueArchitect = () => {
         type: e.timeEventType || "general"
       }))
     });
-  }, [totalGuests, requiredStaff, simulatedInventoryCost, globalTime, totalEstimatedValue, elements, updateEventState]);
+
+    // Sync to Inventory Vault
+    if (eventState.menuItems && eventState.menuItems.length > 0) {
+      eventState.menuItems.forEach(menuItem => {
+        const existingItem = inventory.find(i => i.name === menuItem.name);
+        const requiredPortions = totalGuests * (menuItem.quantity || 1);
+        
+        if (existingItem) {
+          if (existingItem.requiredPortions !== requiredPortions) {
+            updateInventoryItem({ ...existingItem, requiredPortions });
+          }
+        } else {
+          // Auto-create the menu item in inventory if it doesn't exist
+          addInventoryItem({
+            name: menuItem.name,
+            category: "Food Ingredient",
+            currentStock: 0,
+            unit: "portions",
+            lowStockThreshold: 10,
+            costPerUnit: menuItem.price || 0,
+            markupPercentage: 0.20,
+            requiredPortions
+          });
+        }
+      });
+    }
+  }, [totalGuests, requiredStaff, simulatedInventoryCost, globalTime, totalEstimatedValue, elements, updateEventState, eventState.menuItems, inventory, updateInventoryItem, addInventoryItem]);
 
   return (
     <div className="flex flex-col h-full bg-slate-950 text-slate-50 min-h-screen">

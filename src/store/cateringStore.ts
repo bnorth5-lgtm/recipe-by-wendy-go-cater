@@ -300,6 +300,7 @@ export interface InventoryItem {
   lowStockThreshold: number;
   costPerUnit: number; // Cost per unit for inventory tracking
   markupPercentage: number; // NEW: Markup percentage for profit (e.g., 0.20 for 20%)
+  requiredPortions?: number; // NEW: Dynamically synced from Venue Architect
 }
 
 // Define the schema for a client

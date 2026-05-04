@@ -320,6 +320,7 @@ const Inventory = () => {
                       <TableHead className="min-w-[120px] px-3 py-2">Item Name</TableHead>
                       <TableHead className="min-w-[80px] text-xs px-3 py-2">Category</TableHead>
                       <TableHead className="min-w-[120px] px-3 py-2">Current Stock</TableHead>
+                      <TableHead className="min-w-[120px] px-3 py-2 text-amber-400">Event Portions</TableHead>
                       <TableHead className="min-w-[120px] px-3 py-2">Cost per Unit</TableHead>
                       <TableHead className="min-w-[120px] px-3 py-2">Selling Price</TableHead>
                       <TableHead className="min-w-[100px] px-3 py-2">Low Stock Threshold</TableHead>
@@ -361,6 +362,9 @@ const Inventory = () => {
                               <Plus className="h-4 w-4" />
                             </Button>
                           </div>
+                        </TableCell>
+                        <TableCell className="px-3 py-2 min-w-[120px] font-bold text-amber-400">
+                          {item.requiredPortions ? `${item.requiredPortions} needed` : "-"}
                         </TableCell>
                         <TableCell className="px-3 py-2 min-w-[120px]">{currencySymbol}{item.costPerUnit.toFixed(2)} / {item.unit}</TableCell>
                         <TableCell className="px-3 py-2 min-w-[120px]">{currencySymbol}{(item.costPerUnit * (1 + item.markupPercentage)).toFixed(2)} / {item.unit}</TableCell>
