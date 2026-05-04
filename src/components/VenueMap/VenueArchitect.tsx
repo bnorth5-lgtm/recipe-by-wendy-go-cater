@@ -295,6 +295,81 @@ export const VenueArchitect = () => {
     });
   }
 
+  // Logistics & Setup Timer Math
+  const hubsCount = elements.filter(e => ["power_drop", "audio_hub", "water_access"].includes(e.type)).length;
+  const setupMins = (tablesCount * 5) + (chairsCount * 1) + (tentsCount * 60) + (kitchen ? 30 : 0) + (hubsCount * 10) + (elements.filter(e => e.type === "dance_floor").length * 5);
+  const loadOutMins = Math.round(setupMins * 0.7);
+
+  const formatDuration = (mins: number) => {
+    const h = Math.floor(mins / 60);
+    const m = Math.round(mins % 60);
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  };
+
+  // Travel Distance Math
+  let totalServiceFeet = 0;
+  let totalLoops = 0;
+  if (kitchen) {
+    const K = { x: kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2, y: kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2 };
+    elements.filter(e => e.type.startsWith("table") || e.type === "high_top" || e.type === "deuce").forEach(t => {
+      const T = { x: t.x + ELEMENT_CONFIG[t.type as ElementType].width / 2, y: t.y + ELEMENT_CONFIG[t.type as ElementType].height / 2 };
+      const distPx = Math.hypot(T.x - K.x, T.y - K.y);
+      const distFt = distPx / PIXELS_PER_FOOT;
+      const loops = t.guests * 3; // Assume 3 trips per guest (drinks, main, clear)
+      totalServiceFeet += (distFt * 2) * loops; // round trip
+      totalLoops += loops;
+    });
+  }
+  const serviceMileage = totalServiceFeet / 5280;
+  const avgDistanceFt = totalLoops > 0 ? (totalServiceFeet / 2) / totalLoops : 0;
+
+  // Efficiency Score Math
+  let safetyHazardsCount = 0;
+  const ccw = (A: {x:number,y:number}, B: {x:number,y:number}, C: {x:number,y:number}) => (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+  const intersect = (A: {x:number,y:number}, B: {x:number,y:number}, C: {x:number,y:number}, D: {x:number,y:number}) => ccw(A, C, D) !== ccw(B, C, D) && ccw(A, B, C) !== ccw(A, B, D);
+  
+  const hubs = elements.filter(e => ["power_drop", "audio_hub", "water_access"].includes(e.type));
+  const safetyLines: any[] = [];
+  hubs.forEach((hub, i) => {
+    let nearest = null;
+    let minDist = Infinity;
+    hubs.forEach((other, j) => {
+      if (i === j) return;
+      const d = Math.hypot(hub.x - other.x, hub.y - other.y);
+      if (d < minDist) { minDist = d; nearest = other; }
+    });
+    if (nearest) {
+      const exists = safetyLines.find(l => (l.h1.id === hub.id && l.h2.id === nearest.id) || (l.h1.id === nearest.id && l.h2.id === hub.id));
+      if (!exists) safetyLines.push({ h1: hub, h2: nearest });
+    }
+  });
+
+  if (kitchen) {
+    const K = { x: kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2, y: kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2 };
+    safetyLines.forEach(line => {
+      const c1 = ELEMENT_CONFIG[line.h1.type as ElementType];
+      const c2 = ELEMENT_CONFIG[line.h2.type as ElementType];
+      const A = { x: line.h1.x + c1.width / 2, y: line.h1.y + c1.height / 2 };
+      const B = { x: line.h2.x + c2.width / 2, y: line.h2.y + c2.height / 2 };
+      let isHazard = false;
+      elements.filter(e => e.type.startsWith("table") || e.type === "high_top" || e.type === "deuce").forEach(t => {
+        const T = { x: t.x + ELEMENT_CONFIG[t.type as ElementType].width / 2, y: t.y + ELEMENT_CONFIG[t.type as ElementType].height / 2 };
+        if (intersect(A, B, K, T)) isHazard = true;
+      });
+      if (isHazard) safetyHazardsCount++;
+    });
+  }
+
+  let efficiencyScore = 100;
+  if (avgDistanceFt > 30) efficiencyScore -= (avgDistanceFt - 30) * 0.5;
+  efficiencyScore -= safetyHazardsCount * 5;
+  efficiencyScore -= muddyPathTableIds.size * 2;
+  efficiencyScore = Math.max(1, Math.min(100, Math.round(efficiencyScore)));
+
+  let scoreColor = "text-emerald-400";
+  if (efficiencyScore < 70) scoreColor = "text-amber-400";
+  if (efficiencyScore < 50) scoreColor = "text-red-400";
+
   // Sync to global context whenever these values change
   useEffect(() => {
     updateEventState({
@@ -1108,24 +1183,51 @@ export const VenueArchitect = () => {
           <TabsContent value="logistics" className="flex-1 overflow-y-auto pr-2 flex flex-col">
             <h3 className="font-serif text-xl text-white font-bold mb-4 flex items-center gap-2">
               <ListChecks className="w-5 h-5 text-[#fbbf24]" />
-              Load-In Checklist
+              Logistics & Setup Timer
             </h3>
             
             <div className="space-y-4 flex-1">
+              {/* Wendy Efficiency Score */}
+              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm text-slate-300 font-bold">Wendy Efficiency Score</h4>
+                  <p className="text-xs text-slate-500">Based on travel distance & hazards</p>
+                </div>
+                <div className={`text-4xl font-black font-serif ${scoreColor}`}>
+                  {efficiencyScore}
+                </div>
+              </div>
+
+              {/* Setup Clock */}
               <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
-                <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2">Furniture & Structures</h4>
+                <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-blue-400" /> Setup & Load-Out Clock
+                </h4>
                 <div className="space-y-2 text-sm text-slate-400">
-                  <div className="flex justify-between"><span className="flex items-center gap-2"><Users className="w-4 h-4" /> Tables</span> <span className="font-bold text-white">{tablesCount}</span></div>
-                  <div className="flex justify-between"><span className="flex items-center gap-2"><Users className="w-4 h-4" /> Chairs (Guests)</span> <span className="font-bold text-white">{chairsCount}</span></div>
-                  <div className="flex justify-between"><span className="flex items-center gap-2"><Tent className="w-4 h-4" /> Tents</span> <span className="font-bold text-white">{tentsCount}</span></div>
+                  <div className="flex justify-between"><span>Estimated Setup</span> <span className="font-bold text-white">{formatDuration(setupMins)}</span></div>
+                  <div className="flex justify-between"><span>Estimated Load-Out</span> <span className="font-bold text-white">{formatDuration(loadOutMins)}</span></div>
+                </div>
+              </div>
+
+              {/* Travel Distance Math */}
+              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
+                <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2 flex items-center gap-2">
+                  <HardHat className="w-4 h-4 text-orange-400" /> Travel Distance Math
+                </h4>
+                <div className="space-y-2 text-sm text-slate-400">
+                  <div className="flex justify-between"><span>Total Service Mileage</span> <span className="font-bold text-white">{serviceMileage.toFixed(2)} mi</span></div>
+                  <div className="flex justify-between"><span>Avg Table Distance</span> <span className="font-bold text-white">{Math.round(avgDistanceFt)} ft</span></div>
+                  <div className="flex justify-between"><span>Worker Loops</span> <span className="font-bold text-white">{totalLoops}</span></div>
                 </div>
               </div>
 
               <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
-                <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2">Power & Lighting</h4>
+                <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2">Asset Count</h4>
                 <div className="space-y-2 text-sm text-slate-400">
-                  <div className="flex justify-between"><span className="flex items-center gap-2"><Zap className="w-4 h-4 text-yellow-500" /> Power Drops</span> <span className="font-bold text-white">{powerDropsCount}</span></div>
-                  <div className="flex justify-between"><span className="flex items-center gap-2"><Lightbulb className="w-4 h-4 text-amber-200" /> String Lights</span> <span className="font-bold text-white">{elements.filter(e => e.type === "string_lights").length}</span></div>
+                  <div className="flex justify-between"><span className="flex items-center gap-2"><Users className="w-4 h-4" /> Tables</span> <span className="font-bold text-white">{tablesCount}x</span></div>
+                  <div className="flex justify-between"><span className="flex items-center gap-2"><Users className="w-4 h-4" /> Chairs (Guests)</span> <span className="font-bold text-white">{chairsCount}x</span></div>
+                  <div className="flex justify-between"><span className="flex items-center gap-2"><Tent className="w-4 h-4" /> Tents</span> <span className="font-bold text-white">{tentsCount}x</span></div>
+                  <div className="flex justify-between"><span className="flex items-center gap-2"><Zap className="w-4 h-4 text-yellow-500" /> Hubs (Power/Audio/Water)</span> <span className="font-bold text-white">{hubsCount}x</span></div>
                 </div>
               </div>
 
