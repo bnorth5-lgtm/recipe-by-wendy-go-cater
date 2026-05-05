@@ -98,7 +98,7 @@ function AppShell() {
         <Route path="/educational-bank" element={<EducationalBank />} />
         <Route path="/market-pulse" element={<MarketIntelligence />} />
         <Route path="/logistics/beo-generator" element={<BEOGenerator />} />
-        <Route path="/logistics/venue-architect" element={<VenueArchitect />} />
+        <Route path="/venue-architect" element={<VenueArchitect />} />
 
         <Route path="/live-story" element={<LiveStory />} />
         <Route path="/executive" element={<ExecutiveFeed />} />

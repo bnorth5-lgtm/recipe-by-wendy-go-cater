@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isColl
         { name: "Bookings", href: "/events/bookings" },
         { name: "BEOs", href: "/events/beos" },
         { name: "BEO Generator", href: "/logistics/beo-generator" },
-        { name: "Venue Architect", href: "/logistics/venue-architect" },
+        { name: "Venue Architect", href: "/venue-architect" },
       ],
     },
     {
