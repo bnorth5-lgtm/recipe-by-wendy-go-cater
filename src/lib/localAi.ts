@@ -9,7 +9,7 @@ type OllamaChatResponse = {
 };
 
 const DEFAULT_MODEL = import.meta.env.VITE_OLLAMA_MODEL || "llama3.1";
-const DEFAULT_BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || "http://127.0.0.1:11434";
+const DEFAULT_BASE_URL = import.meta.env.VITE_OLLAMA_BASE_URL || "http://127.0.0.1:18789";
 
 export type ParsedRecipeDraft = Omit<Recipe, "id" | "baseCost">;
 export type ParsedRecipeMeta = Partial<

@@ -251,6 +251,58 @@ const Dashboard = () => {
         </p>
       </div>
 
+      {/* THREE DOORS UI */}
+      <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto w-full mb-8">
+        {/* Door 1: Quick Drop-Off */}
+        <Card 
+          className="bg-slate-900/60 border border-slate-800 hover:border-[#fbbf24]/50 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] transition-all cursor-pointer group"
+          onClick={() => navigate('/menu/recipes')}
+        >
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto bg-slate-800 p-4 rounded-full mb-4 group-hover:bg-[#fbbf24]/20 transition-colors">
+              <Utensils className="w-8 h-8 text-slate-400 group-hover:text-[#fbbf24] transition-colors" />
+            </div>
+            <CardTitle className="text-xl font-serif text-white group-hover:text-[#fbbf24] transition-colors">Quick Drop-Off</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center text-slate-400 text-sm">
+            Minimalist view for simple deliveries. Access recipes and basic BEOs without the heavy logistics.
+          </CardContent>
+        </Card>
+
+        {/* Door 2: Staffed Buffet */}
+        <Card 
+          className="bg-slate-900/60 border border-slate-800 hover:border-[#fbbf24]/50 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] transition-all cursor-pointer group"
+          onClick={() => navigate('/logistics/beo-generator')}
+        >
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto bg-slate-800 p-4 rounded-full mb-4 group-hover:bg-[#fbbf24]/20 transition-colors">
+              <UserPlus className="w-8 h-8 text-slate-400 group-hover:text-[#fbbf24] transition-colors" />
+            </div>
+            <CardTitle className="text-xl font-serif text-white group-hover:text-[#fbbf24] transition-colors">Staffed Buffet</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center text-slate-400 text-sm">
+            Adds labor, bartenders, and inventory toggles. Generate comprehensive BEOs with profit shields.
+          </CardContent>
+        </Card>
+
+        {/* Door 3: Visionary */}
+        <Card 
+          className="bg-slate-900/80 border border-[#fbbf24]/40 hover:border-[#fbbf24] hover:shadow-[0_0_30px_rgba(251,191,36,0.3)] transition-all cursor-pointer group relative overflow-hidden"
+          onClick={() => navigate('/venue-architect')}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-[#fbbf24]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <CardHeader className="text-center pb-2 relative z-10">
+            <div className="mx-auto bg-amber-500/20 p-4 rounded-full mb-4 group-hover:bg-[#fbbf24]/30 transition-colors shadow-[0_0_15px_rgba(251,191,36,0.2)]">
+              <Sparkles className="w-8 h-8 text-[#fbbf24]" />
+            </div>
+            <CardTitle className="text-xl font-serif text-[#fbbf24]">RBW Visionary</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center text-slate-300 text-sm relative z-10">
+            Full Production. Unlocks the Bird's-Eye Command Map, magnetic snap-to-grid, and safety hazard zones.
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto flex-1 w-full">
         {/* Client Proposal Portal Card */}
         <Card className="md:col-span-3 bg-slate-900/50 border border-[#fbbf24]/30 backdrop-blur-xl shadow-[0_0_30px_rgba(251,191,36,0.1)] rounded-2xl overflow-hidden relative">

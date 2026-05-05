@@ -26,7 +26,7 @@ export default defineConfig(({ command }) => ({
             // Ensure browser CSP allows Supabase during local development.
             // (Headers take precedence over meta CSP if both are present.)
             "Content-Security-Policy":
-              "default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googletagmanager.com; connect-src 'self' https://apikvfhdiwgjtueeblxl.supabase.co wss://apikvfhdiwgjtueeblxl.supabase.co https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://googletagmanager.com https://www.googletagmanager.com;",
+              "default-src 'self'; base-uri 'self'; object-src 'none'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googletagmanager.com; connect-src 'self' https://apikvfhdiwgjtueeblxl.supabase.co wss://apikvfhdiwgjtueeblxl.supabase.co https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://googletagmanager.com https://www.googletagmanager.com http://127.0.0.1:18789 http://localhost:18789;",
           },
         }
       : {}),

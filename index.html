@@ -14,10 +14,10 @@
       }
     </script>
     <meta name="application-name" content="Delicious Catering & Events by Wendy" />
-    <!-- CSP: only unlock Supabase connections and Google Analytics/Tag Manager -->
+    <!-- CSP: only unlock Supabase connections, Google Analytics/Tag Manager, and local OpenClaw -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="connect-src 'self' https://apikvfhdiwgjtueeblxl.supabase.co wss://apikvfhdiwgjtueeblxl.supabase.co https://www.google-analytics.com https://analytics.google.com https://googletagmanager.com https://www.googletagmanager.com;"
+      content="connect-src 'self' https://apikvfhdiwgjtueeblxl.supabase.co wss://apikvfhdiwgjtueeblxl.supabase.co https://www.google-analytics.com https://analytics.google.com https://googletagmanager.com https://www.googletagmanager.com http://127.0.0.1:18789 http://localhost:18789;"
     />
     <title>Delicious Catering & Events by Wendy</title>
 
@@ -845,28 +845,57 @@
         addBubble("user", escapeHtml(message));
 
         var typing = addTypingIndicator();
-        var delay  = 850 + Math.floor(Math.random() * 400);
 
-        setTimeout(function() {
+        // Prepare context from NBS_KB
+        var kbContext = NBS_KB.map(function(k) { return k.response; }).join("\n\n");
+
+        fetch("http://127.0.0.1:18789/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "llama3.1",
+            stream: false,
+            messages: [
+              {
+                role: "system",
+                content: "You are the RBW Concierge for Delicious Catering & Events by Wendy. Answer the user's question using ONLY the following knowledge base information. If the answer is not in the knowledge base, politely offer to connect them with the events team at northbusinessservices@gmail.com.\n\nKNOWLEDGE BASE:\n" + kbContext
+              },
+              {
+                role: "user",
+                content: message
+              }
+            ]
+          })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
           typing.remove();
-
+          var content = data.message && data.message.content ? data.message.content : (data.response || escalationResponse());
+          addBubble("assistant", content.replace(/\n/g, "<br>"));
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        })
+        .catch(function(err) {
+          console.error("Local AI Concierge Error:", err);
+          typing.remove();
+          
+          // Fallback to basic keyword match if AI is down
           var match = queryKB(message);
           if (match) {
             addBubble("assistant", match.response);
           } else {
             addBubble("assistant", escalationResponse());
-            // Log routing payload for OpenClaw mailer integration
-            var route = (document.querySelector("input[name=\"nbs_route\"]:checked") || {}).value || "catering";
-            console.log("NBS Routing Payload:", {
-              to: "northbusinessservices@gmail.com",
-              subject: "NBS Lead: " + route.toUpperCase() + " Inquiry",
-              body: message,
-              assigned_to: route === "catering" ? "Wendy" : "Bill"
-            });
           }
-
           messagesEl.scrollTop = messagesEl.scrollHeight;
-        }, delay);
+        });
+
+        // Log routing payload for OpenClaw mailer integration
+        var route = (document.querySelector("input[name=\"nbs_route\"]:checked") || {}).value || "catering";
+        console.log("NBS Routing Payload:", {
+          to: "northbusinessservices@gmail.com",
+          subject: "NBS Lead: " + route.toUpperCase() + " Inquiry",
+          body: message,
+          assigned_to: route === "catering" ? "Wendy" : "Bill"
+        });
       }
 
       function escapeHtml(str) {
