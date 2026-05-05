@@ -77,13 +77,28 @@ export const VenueArchitect = () => {
   const [globalTime, setGlobalTime] = useState<number>(16); // 16.0 = 4:00 PM, 22.0 = 10:00 PM
   const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "timeline" | "logistics">("properties");
   const [selectedSignatureDish, setSelectedSignatureDish] = useState<string>("Blueberry Cranberry Bread");
+  const [hasRenderError, setHasRenderError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const crosshairXRef = useRef<HTMLDivElement>(null);
   const crosshairYRef = useRef<HTMLDivElement>(null);
   const crosshairLabelRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const formatTime = (decimalTime: number) => {
+  // Reset map if we crash
+  if (hasRenderError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full w-full bg-slate-950 text-white p-8">
+        <h2 className="text-2xl font-bold text-red-400 mb-4">Map Render Error</h2>
+        <p className="text-slate-400 mb-6">The Venue Architect encountered an unexpected error loading the map data.</p>
+        <Button onClick={() => { setElements([]); setHasRenderError(false); }} className="bg-[#fbbf24] text-slate-900 hover:bg-[#f59e0b]">
+          Reset Map to Default Grid
+        </Button>
+      </div>
+    );
+  }
+
+  try {
+    const formatTime = (decimalTime: number) => {
     const hours = Math.floor(decimalTime);
     const mins = Math.round((decimalTime - hours) * 60);
     const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -1348,4 +1363,11 @@ export const VenueArchitect = () => {
       </div>
     </div>
   );
+  } catch (error) {
+    console.error("VenueArchitect render error:", error);
+    if (!hasRenderError) {
+      setHasRenderError(true);
+    }
+    return null; // Will trigger the fallback UI on next render
+  }
 };
