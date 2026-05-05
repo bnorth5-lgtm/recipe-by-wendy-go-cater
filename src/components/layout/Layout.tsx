@@ -93,12 +93,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     });
   };
 
-  // Force Service Worker Update
+  // Purge Service Worker to prevent caching issues
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then((registrations) => {
         for (let registration of registrations) {
-          registration.update();
+          registration.unregister();
         }
       });
     }

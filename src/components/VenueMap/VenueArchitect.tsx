@@ -69,7 +69,6 @@ const ELEMENT_CONFIG: Record<ElementType, { label: string; icon: React.ElementTy
 export const VenueArchitect = () => {
   const [elements, setElements] = useState<MapElementData[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHoveringMap, setIsHoveringMap] = useState(false);
   const [isOutdoorMode, setIsOutdoorMode] = useState(false);
   const [showInfraOverlay, setShowInfraOverlay] = useState(false);
@@ -79,6 +78,9 @@ export const VenueArchitect = () => {
   const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "timeline" | "logistics">("properties");
   const [selectedSignatureDish, setSelectedSignatureDish] = useState<string>("Blueberry Cranberry Bread");
   const containerRef = useRef<HTMLDivElement>(null);
+  const crosshairXRef = useRef<HTMLDivElement>(null);
+  const crosshairYRef = useRef<HTMLDivElement>(null);
+  const crosshairLabelRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const formatTime = (decimalTime: number) => {
@@ -245,130 +247,162 @@ export const VenueArchitect = () => {
   };
 
   // Pre-calculate weather effects
-  const smokedElementIds = new Set<string>();
-  const muddyPathTableIds = new Set<string>();
-  let smokeTriangle: {p1: any, p2: any, p3: any} | null = null;
+  const { smokedElementIds, muddyPathTableIds, smokeTriangle } = useMemo(() => {
+    const smoked = new Set<string>();
+    const muddy = new Set<string>();
+    let triangle: {p1: any, p2: any, p3: any} | null = null;
 
-  const kitchen = elements.find(e => e.type === "staging_kitchen");
-  const tents = elements.filter(e => e.type === "tent_40x60");
+    const kitchen = elements.find(e => e.type === "staging_kitchen");
+    const tents = elements.filter(e => e.type === "tent_40x60");
 
-  if (kitchen) {
-    const kX = kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2;
-    const kY = kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2;
-    
-    // Smoke
-    const angle = getWindAngle(windDirection);
-    const L = 800; // 40ft plume
-    const spread = Math.PI / 6; // 30 deg half-spread
-    smokeTriangle = {
-      p1: { x: kX, y: kY },
-      p2: { x: kX + L * Math.cos(angle - spread), y: kY + L * Math.sin(angle - spread) },
-      p3: { x: kX + L * Math.cos(angle + spread), y: kY + L * Math.sin(angle + spread) }
-    };
+    if (kitchen) {
+      const kX = kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2;
+      const kY = kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2;
+      
+      // Smoke
+      const angle = getWindAngle(windDirection);
+      const L = 800; // 40ft plume
+      const spread = Math.PI / 6; // 30 deg half-spread
+      triangle = {
+        p1: { x: kX, y: kY },
+        p2: { x: kX + L * Math.cos(angle - spread), y: kY + L * Math.sin(angle - spread) },
+        p3: { x: kX + L * Math.cos(angle + spread), y: kY + L * Math.sin(angle + spread) }
+      };
 
-    elements.forEach(el => {
-      if (el.type.startsWith("table") || el.type === "bar" || el.type === "high_top" || el.type === "deuce") {
-        const cX = el.x + ELEMENT_CONFIG[el.type].width / 2;
-        const cY = el.y + ELEMENT_CONFIG[el.type].height / 2;
-        if (isPointInTriangle({x: cX, y: cY}, smokeTriangle!.p1, smokeTriangle!.p2, smokeTriangle!.p3)) {
-          smokedElementIds.add(el.id);
-        }
-
-        // Muddy Paths
-        if (isRaining) {
-          let isMuddy = false;
-          for (const tent of tents) {
-            const rect = {
-              left: tent.x - 40,
-              right: tent.x + ELEMENT_CONFIG.tent_40x60.width + 40,
-              top: tent.y - 40,
-              bottom: tent.y + ELEMENT_CONFIG.tent_40x60.height + 40
-            };
-            if (doesLineIntersectRect({x: kX, y: kY}, {x: cX, y: cY}, rect)) {
-              isMuddy = true;
-              break;
-            }
+      elements.forEach(el => {
+        if (el.type.startsWith("table") || el.type === "bar" || el.type === "high_top" || el.type === "deuce") {
+          const cX = el.x + ELEMENT_CONFIG[el.type].width / 2;
+          const cY = el.y + ELEMENT_CONFIG[el.type].height / 2;
+          if (isPointInTriangle({x: cX, y: cY}, triangle.p1, triangle.p2, triangle.p3)) {
+            smoked.add(el.id);
           }
-          if (isMuddy) muddyPathTableIds.add(el.id);
+
+          // Muddy Paths
+          if (isRaining) {
+            let isMuddy = false;
+            for (const tent of tents) {
+              const rect = {
+                left: tent.x - 40,
+                right: tent.x + ELEMENT_CONFIG.tent_40x60.width + 40,
+                top: tent.y - 40,
+                bottom: tent.y + ELEMENT_CONFIG.tent_40x60.height + 40
+              };
+              if (doesLineIntersectRect({x: kX, y: kY}, {x: cX, y: cY}, rect)) {
+                isMuddy = true;
+                break;
+              }
+            }
+            if (isMuddy) muddy.add(el.id);
+          }
         }
-      }
-    });
-  }
+      });
+    }
+    return { smokedElementIds: smoked, muddyPathTableIds: muddy, smokeTriangle: triangle };
+  }, [elements, windDirection, isRaining]);
 
   // Logistics & Setup Timer Math
-  const hubsCount = elements.filter(e => ["power_drop", "audio_hub", "water_access"].includes(e.type)).length;
-  const setupMins = (tablesCount * 5) + (chairsCount * 1) + (tentsCount * 60) + (kitchen ? 30 : 0) + (hubsCount * 10) + (elements.filter(e => e.type === "dance_floor").length * 5);
-  const loadOutMins = Math.round(setupMins * 0.7);
+  const {
+    hubsCount,
+    setupMins,
+    loadOutMins,
+    totalServiceFeet,
+    totalLoops,
+    serviceMileage,
+    avgDistanceFt,
+    safetyHazardsCount,
+    safetyLines,
+    efficiencyScore,
+    scoreColor
+  } = useMemo(() => {
+    const _hubsCount = elements.filter(e => ["power_drop", "audio_hub", "water_access"].includes(e.type)).length;
+    const _setupMins = (tablesCount * 5) + (chairsCount * 1) + (tentsCount * 60) + (elements.find(e => e.type === "staging_kitchen") ? 30 : 0) + (_hubsCount * 10) + (elements.filter(e => e.type === "dance_floor").length * 5);
+    const _loadOutMins = Math.round(_setupMins * 0.7);
+
+    // Travel Distance Math
+    let _totalServiceFeet = 0;
+    let _totalLoops = 0;
+    const kitchen = elements.find(e => e.type === "staging_kitchen");
+    if (kitchen) {
+      const K = { x: kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2, y: kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2 };
+      elements.filter(e => e.type.startsWith("table") || e.type === "high_top" || e.type === "deuce").forEach(t => {
+        const T = { x: t.x + ELEMENT_CONFIG[t.type as ElementType].width / 2, y: t.y + ELEMENT_CONFIG[t.type as ElementType].height / 2 };
+        const distPx = Math.hypot(T.x - K.x, T.y - K.y);
+        const distFt = distPx / PIXELS_PER_FOOT;
+        const loops = t.guests * 3; // Assume 3 trips per guest (drinks, main, clear)
+        _totalServiceFeet += (distFt * 2) * loops; // round trip
+        _totalLoops += loops;
+      });
+    }
+    const _serviceMileage = _totalServiceFeet / 5280;
+    const _avgDistanceFt = _totalLoops > 0 ? (_totalServiceFeet / 2) / _totalLoops : 0;
+
+    // Efficiency Score Math
+    let _safetyHazardsCount = 0;
+    const ccw = (A: {x:number,y:number}, B: {x:number,y:number}, C: {x:number,y:number}) => (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+    const intersect = (A: {x:number,y:number}, B: {x:number,y:number}, C: {x:number,y:number}, D: {x:number,y:number}) => ccw(A, C, D) !== ccw(B, C, D) && ccw(A, B, C) !== ccw(A, B, D);
+    
+    const hubs = elements.filter(e => ["power_drop", "audio_hub", "water_access"].includes(e.type));
+    const _safetyLines: any[] = [];
+    hubs.forEach((hub, i) => {
+      let nearest = null;
+      let minDist = Infinity;
+      hubs.forEach((other, j) => {
+        if (i === j) return;
+        const d = Math.hypot(hub.x - other.x, hub.y - other.y);
+        if (d < minDist) { minDist = d; nearest = other; }
+      });
+      if (nearest) {
+        const exists = _safetyLines.find(l => (l.h1.id === hub.id && l.h2.id === nearest.id) || (l.h1.id === nearest.id && l.h2.id === hub.id));
+        if (!exists) _safetyLines.push({ h1: hub, h2: nearest });
+      }
+    });
+
+    if (kitchen) {
+      const K = { x: kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2, y: kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2 };
+      _safetyLines.forEach(line => {
+        const c1 = ELEMENT_CONFIG[line.h1.type as ElementType];
+        const c2 = ELEMENT_CONFIG[line.h2.type as ElementType];
+        const A = { x: line.h1.x + c1.width / 2, y: line.h1.y + c1.height / 2 };
+        const B = { x: line.h2.x + c2.width / 2, y: line.h2.y + c2.height / 2 };
+        let isHazard = false;
+        elements.filter(e => e.type.startsWith("table") || e.type === "high_top" || e.type === "deuce").forEach(t => {
+          const T = { x: t.x + ELEMENT_CONFIG[t.type as ElementType].width / 2, y: t.y + ELEMENT_CONFIG[t.type as ElementType].height / 2 };
+          if (intersect(A, B, K, T)) isHazard = true;
+        });
+        if (isHazard) _safetyHazardsCount++;
+      });
+    }
+
+    let _efficiencyScore = 100;
+    if (_avgDistanceFt > 30) _efficiencyScore -= (_avgDistanceFt - 30) * 0.5;
+    _efficiencyScore -= _safetyHazardsCount * 5;
+    _efficiencyScore -= muddyPathTableIds.size * 2;
+    _efficiencyScore = Math.max(1, Math.min(100, Math.round(_efficiencyScore)));
+
+    let _scoreColor = "text-emerald-400";
+    if (_efficiencyScore < 70) _scoreColor = "text-amber-400";
+    if (_efficiencyScore < 50) _scoreColor = "text-red-400";
+
+    return {
+      hubsCount: _hubsCount,
+      setupMins: _setupMins,
+      loadOutMins: _loadOutMins,
+      totalServiceFeet: _totalServiceFeet,
+      totalLoops: _totalLoops,
+      serviceMileage: _serviceMileage,
+      avgDistanceFt: _avgDistanceFt,
+      safetyHazardsCount: _safetyHazardsCount,
+      safetyLines: _safetyLines,
+      efficiencyScore: _efficiencyScore,
+      scoreColor: _scoreColor
+    };
+  }, [elements, tablesCount, chairsCount, tentsCount, muddyPathTableIds]);
 
   const formatDuration = (mins: number) => {
     const h = Math.floor(mins / 60);
     const m = Math.round(mins % 60);
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
-
-  // Travel Distance Math
-  let totalServiceFeet = 0;
-  let totalLoops = 0;
-  if (kitchen) {
-    const K = { x: kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2, y: kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2 };
-    elements.filter(e => e.type.startsWith("table") || e.type === "high_top" || e.type === "deuce").forEach(t => {
-      const T = { x: t.x + ELEMENT_CONFIG[t.type as ElementType].width / 2, y: t.y + ELEMENT_CONFIG[t.type as ElementType].height / 2 };
-      const distPx = Math.hypot(T.x - K.x, T.y - K.y);
-      const distFt = distPx / PIXELS_PER_FOOT;
-      const loops = t.guests * 3; // Assume 3 trips per guest (drinks, main, clear)
-      totalServiceFeet += (distFt * 2) * loops; // round trip
-      totalLoops += loops;
-    });
-  }
-  const serviceMileage = totalServiceFeet / 5280;
-  const avgDistanceFt = totalLoops > 0 ? (totalServiceFeet / 2) / totalLoops : 0;
-
-  // Efficiency Score Math
-  let safetyHazardsCount = 0;
-  const ccw = (A: {x:number,y:number}, B: {x:number,y:number}, C: {x:number,y:number}) => (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
-  const intersect = (A: {x:number,y:number}, B: {x:number,y:number}, C: {x:number,y:number}, D: {x:number,y:number}) => ccw(A, C, D) !== ccw(B, C, D) && ccw(A, B, C) !== ccw(A, B, D);
-  
-  const hubs = elements.filter(e => ["power_drop", "audio_hub", "water_access"].includes(e.type));
-  const safetyLines: any[] = [];
-  hubs.forEach((hub, i) => {
-    let nearest = null;
-    let minDist = Infinity;
-    hubs.forEach((other, j) => {
-      if (i === j) return;
-      const d = Math.hypot(hub.x - other.x, hub.y - other.y);
-      if (d < minDist) { minDist = d; nearest = other; }
-    });
-    if (nearest) {
-      const exists = safetyLines.find(l => (l.h1.id === hub.id && l.h2.id === nearest.id) || (l.h1.id === nearest.id && l.h2.id === hub.id));
-      if (!exists) safetyLines.push({ h1: hub, h2: nearest });
-    }
-  });
-
-  if (kitchen) {
-    const K = { x: kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2, y: kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2 };
-    safetyLines.forEach(line => {
-      const c1 = ELEMENT_CONFIG[line.h1.type as ElementType];
-      const c2 = ELEMENT_CONFIG[line.h2.type as ElementType];
-      const A = { x: line.h1.x + c1.width / 2, y: line.h1.y + c1.height / 2 };
-      const B = { x: line.h2.x + c2.width / 2, y: line.h2.y + c2.height / 2 };
-      let isHazard = false;
-      elements.filter(e => e.type.startsWith("table") || e.type === "high_top" || e.type === "deuce").forEach(t => {
-        const T = { x: t.x + ELEMENT_CONFIG[t.type as ElementType].width / 2, y: t.y + ELEMENT_CONFIG[t.type as ElementType].height / 2 };
-        if (intersect(A, B, K, T)) isHazard = true;
-      });
-      if (isHazard) safetyHazardsCount++;
-    });
-  }
-
-  let efficiencyScore = 100;
-  if (avgDistanceFt > 30) efficiencyScore -= (avgDistanceFt - 30) * 0.5;
-  efficiencyScore -= safetyHazardsCount * 5;
-  efficiencyScore -= muddyPathTableIds.size * 2;
-  efficiencyScore = Math.max(1, Math.min(100, Math.round(efficiencyScore)));
-
-  let scoreColor = "text-emerald-400";
-  if (efficiencyScore < 70) scoreColor = "text-amber-400";
-  if (efficiencyScore < 50) scoreColor = "text-red-400";
 
   // Sync to global context whenever these values change
   useEffect(() => {
@@ -431,10 +465,16 @@ export const VenueArchitect = () => {
           onMouseMove={(e) => {
             if (!containerRef.current) return;
             const rect = containerRef.current.getBoundingClientRect();
-            setMousePos({
-              x: e.clientX - rect.left,
-              y: e.clientY - rect.top
-            });
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (crosshairXRef.current) crosshairXRef.current.style.left = `${x}px`;
+            if (crosshairYRef.current) crosshairYRef.current.style.top = `${y}px`;
+            if (crosshairLabelRef.current) {
+              crosshairLabelRef.current.style.left = `${x + 10}px`;
+              crosshairLabelRef.current.style.top = `${y + 10}px`;
+              crosshairLabelRef.current.innerText = `${Math.round(x / PIXELS_PER_FOOT)}' , ${Math.round(y / PIXELS_PER_FOOT)}'`;
+            }
           }}
           onMouseEnter={() => setIsHoveringMap(true)}
           onMouseLeave={() => setIsHoveringMap(false)}
@@ -648,11 +688,9 @@ export const VenueArchitect = () => {
           {/* Precision Crosshair */}
           {isHoveringMap && (
             <>
-              <div className="absolute top-0 bottom-0 border-l border-dashed border-[#fbbf24]/40 pointer-events-none z-30" style={{ left: mousePos.x }} />
-              <div className="absolute left-0 right-0 border-t border-dashed border-[#fbbf24]/40 pointer-events-none z-30" style={{ top: mousePos.y }} />
-              <div className="absolute bg-slate-900/80 text-[#fbbf24] text-[10px] px-2 py-1 rounded border border-[#fbbf24]/30 pointer-events-none z-30" style={{ left: mousePos.x + 10, top: mousePos.y + 10 }}>
-                {Math.round(mousePos.x / PIXELS_PER_FOOT)}' , {Math.round(mousePos.y / PIXELS_PER_FOOT)}'
-              </div>
+              <div ref={crosshairXRef} className="absolute top-0 bottom-0 border-l border-dashed border-[#fbbf24]/40 pointer-events-none z-30" />
+              <div ref={crosshairYRef} className="absolute left-0 right-0 border-t border-dashed border-[#fbbf24]/40 pointer-events-none z-30" />
+              <div ref={crosshairLabelRef} className="absolute bg-slate-900/80 text-[#fbbf24] text-[10px] px-2 py-1 rounded border border-[#fbbf24]/30 pointer-events-none z-30" />
             </>
           )}
 
