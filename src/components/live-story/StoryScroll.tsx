@@ -59,6 +59,7 @@ function parseLuxuryMarkdown(md: string): StoryChapter[] {
 
     // Bold lead-ins like "**A Heritage Collection experience often includes**"
     // become the kicker (if empty), otherwise a bullet.
+    if (typeof line !== "string") continue;
     const boldHeading = line.match(/^\*\*(.+?)\*\*$/);
     if (boldHeading) {
       flushParagraph();

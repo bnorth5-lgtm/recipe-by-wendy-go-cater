@@ -182,7 +182,7 @@ export function scaleAndConvertQuantity(quantity: number, unit: string, scaleFac
 /** Parse a freeform time string ("30 mins", "1 hr 30 min", "—") into a Quantity. */
 export function parseTimeQuantity(s: string | undefined): Quantity {
   const fallback: Quantity = { value: 0, unit: "min" };
-  if (!s || !s.trim() || s.trim() === "—") return fallback;
+  if (!s || typeof s !== 'string' || !s.trim || s.trim() === "—") return fallback;
   const parts = s.toLowerCase().match(/(\d+(?:\.\d+)?)\s*(min|hr|hour|h|m)\b/g);
   if (!parts) {
     const num = Number.parseFloat(s);
@@ -203,7 +203,7 @@ export function parseTimeQuantity(s: string | undefined): Quantity {
 /** Parse a freeform servings string ("8", "Serves 8", "8-10 servings") into a Quantity. */
 export function parseServingQuantity(s: string | undefined): Quantity {
   const fallback: Quantity = { value: 4, unit: "servings" };
-  if (!s || !s.trim() || s.trim() === "—") return fallback;
+  if (!s || typeof s !== 'string' || !s.trim || s.trim() === "—") return fallback;
   const range = String(s).match(/(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)/);
   if (range) {
     const a = Number.parseFloat(range[1]);

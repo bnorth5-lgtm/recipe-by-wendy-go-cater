@@ -78,7 +78,7 @@ export function BottomNav() {
       {/* items-center so icons stay vertically centred within the taller bar */}
       <ul className="flex items-center" role="tablist">
         {visibleTabs.map((tab) => {
-          const isActive = location.pathname.startsWith(tab.matchPrefix);
+          const isActive = typeof location.pathname === "string" && location.pathname.startsWith(tab.matchPrefix);
           const isExecTab = tab.adminOnly;
 
           return (

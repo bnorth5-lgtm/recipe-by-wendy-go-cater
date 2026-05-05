@@ -18,7 +18,7 @@ const quantityToSeconds = (q: Quantity): number => Math.round(q.value * 60);
 
 // Legacy helper kept for any callers that may pass raw strings.
 const timeStringToSeconds = (timeStr: string): number => {
-  if (!timeStr) return 0;
+  if (!timeStr || typeof timeStr !== 'string') return 0;
   const parts = timeStr.toLowerCase().match(/(\d+)\s*(min|hr|hour|h|m)/g);
   if (!parts) return 0;
 

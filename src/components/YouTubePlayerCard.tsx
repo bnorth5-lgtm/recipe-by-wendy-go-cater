@@ -12,6 +12,7 @@ export const YouTubePlayerCard: React.FC = () => {
   const [inputUrl, setInputUrl] = useState("");
 
   const extractVideoId = (url: string) => {
+    if (typeof url !== "string") return null;
     const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|)([\w-]{11})(?:\S+)?/;
     const match = url.match(youtubeRegex);
     return match ? match[1] : null;
