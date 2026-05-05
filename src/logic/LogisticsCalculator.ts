@@ -27,5 +27,8 @@ export function calculateLogisticsFee(
   const mileageCost = distanceMiles * 2 * MILEAGE_RATE * vehiclesRequired; // Round trip
   const travelLaborCost = staffCount * estimatedTravelHours * LABOR_HOUR_RATE;
   
-  return mileageCost + travelLaborCost;
+  // Remote Site Surcharge: Add $250 if distance is greater than 30 miles
+  const remoteSurcharge = distanceMiles > 30 ? 250 : 0;
+  
+  return mileageCost + travelLaborCost + remoteSurcharge;
 }

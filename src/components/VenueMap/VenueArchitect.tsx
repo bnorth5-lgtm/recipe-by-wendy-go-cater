@@ -597,7 +597,7 @@ export const VenueArchitect = () => {
 
             {/* Draw Power Drop Lines */}
             {elements.filter(e => e.type === "power_drop").map(drop => {
-              const targets = elements.filter(e => e.type === "stage" || e.type === "string_lights");
+              const targets = elements.filter(e => e.type === "stage" || e.type === "string_lights" || e.type === "staging_kitchen");
               if (targets.length === 0) return null;
               
               let nearest = targets[0];
@@ -616,6 +616,9 @@ export const VenueArchitect = () => {
               const dropConfig = ELEMENT_CONFIG.power_drop;
               const targetConfig = ELEMENT_CONFIG[nearest.type];
               
+              // Max safe power run is 100ft (2000px)
+              const isHazard = minDist > 2000;
+              
               return (
                 <line 
                   key={`line-${drop.id}`}
@@ -623,10 +626,51 @@ export const VenueArchitect = () => {
                   y1={drop.y + dropConfig.height / 2} 
                   x2={nearest.x + targetConfig.width / 2} 
                   y2={nearest.y + targetConfig.height / 2} 
-                  stroke="#fbbf24" 
-                  strokeWidth="2" 
+                  stroke={isHazard ? "#ef4444" : "#fbbf24"} 
+                  strokeWidth={isHazard ? "4" : "2"} 
                   strokeDasharray="5,5" 
-                  opacity="0.5" 
+                  opacity={isHazard ? "0.8" : "0.5"} 
+                  className={isHazard ? "animate-pulse" : ""}
+                />
+              );
+            })}
+
+            {/* Draw Water Access Lines */}
+            {elements.filter(e => e.type === "water_access").map(water => {
+              const targets = elements.filter(e => e.type === "staging_kitchen" || e.type === "bar");
+              if (targets.length === 0) return null;
+              
+              let nearest = targets[0];
+              let minDist = Infinity;
+              
+              targets.forEach(t => {
+                const dx = t.x - water.x;
+                const dy = t.y - water.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < minDist) {
+                  minDist = dist;
+                  nearest = t;
+                }
+              });
+              
+              const waterConfig = ELEMENT_CONFIG.water_access;
+              const targetConfig = ELEMENT_CONFIG[nearest.type];
+              
+              // Max safe water line is 150ft (3000px)
+              const isHazard = minDist > 3000;
+              
+              return (
+                <line 
+                  key={`water-line-${water.id}`}
+                  x1={water.x + waterConfig.width / 2} 
+                  y1={water.y + waterConfig.height / 2} 
+                  x2={nearest.x + targetConfig.width / 2} 
+                  y2={nearest.y + targetConfig.height / 2} 
+                  stroke={isHazard ? "#ef4444" : "#06b6d4"} 
+                  strokeWidth={isHazard ? "4" : "2"} 
+                  strokeDasharray="5,5" 
+                  opacity={isHazard ? "0.8" : "0.5"} 
+                  className={isHazard ? "animate-pulse" : ""}
                 />
               );
             })}

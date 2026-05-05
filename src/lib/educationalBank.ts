@@ -489,6 +489,48 @@ Last-minute accommodations can sometimes be arranged — please ask, and we will
       "Where do I note dietary needs on the BEO?",
     ],
   },
+
+  // ─── Legal & Compliance ────────────────────────────────────────────────────────
+  {
+    id: "maine-compliance",
+    title: "Maine Compliance & Permit (Infrastructure-Zero)",
+    category: "Logistics",
+    keywords: [
+      "maine compliance",
+      "maine permit",
+      "infrastructure zero",
+      "infrastructure-zero",
+      "off grid",
+      "off-grid",
+      "remote site",
+      "remote catering",
+      "legal eagle",
+      "health department",
+      "fire marshal",
+      "water line",
+      "power run"
+    ],
+    shortAnswer:
+      "For remote or 'Infrastructure-Zero' sites in Maine, we mandate specific power, water, and health department compliance protocols.",
+    fullAnswer: `When executing events at remote or "Infrastructure-Zero" locations (sites lacking built-in commercial kitchens, municipal water, or sufficient power), Catering By Wendy adheres to a strict <strong>Maine Compliance & Permit</strong> protocol.
+
+<strong>Power & Electrical Limits:</strong>
+To satisfy local fire marshals and ensure uninterrupted service, no primary power run (from generator to staging kitchen) may exceed 100 feet. Runs exceeding this limit suffer voltage drops that can damage heating elements and refrigeration.
+
+<strong>Water & Sanitation Proximity:</strong>
+Maine health department guidelines for temporary food service require potable water access within 150 feet of the staging kitchen. If municipal water is unavailable, we must truck in certified potable water tanks and establish a gray-water capture system.
+
+<strong>Remote Site Surcharges:</strong>
+For any event located more than 30 miles from our central commissary, a "Remote Site Surcharge" of $250 is automatically applied to the logistics fee to cover the additional transport time, specialized vehicle requirements, and off-grid equipment insurance.
+
+<strong>Permitting:</strong>
+Our "Legal Eagle" team handles all temporary food service permits, fire marshal tent inspections, and liquor liability riders required by the State of Maine for off-grid events. We require a minimum of 45 days notice to secure these approvals.`,
+    followUps: [
+      "How much does catering cost?",
+      "Setup times?",
+      "How do rentals work?"
+    ],
+  }
 ];
 
 // ── Matching Logic ────────────────────────────────────────────────────────────

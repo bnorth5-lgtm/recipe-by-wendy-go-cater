@@ -15,7 +15,12 @@ export const BEOSidebar = () => {
 
   // Calculations
   const laborCost = eventState.staffCount * eventState.hourlyRate * eventState.estimatedHours;
-  const logisticsCost = eventState.mileage * 2 * 0.725; // Round trip mileage
+  
+  // Logistics Cost (includes Remote Site Surcharge if > 30 miles)
+  const baseLogistics = eventState.mileage * 2 * 0.725; // Round trip mileage
+  const remoteSurcharge = eventState.mileage > 30 ? 250 : 0;
+  const logisticsCost = baseLogistics + remoteSurcharge;
+  
   const atmosphereCost = eventState.inventoryCosts;
   
   // Culinary Cost (Food + Labor)

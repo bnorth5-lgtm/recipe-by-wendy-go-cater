@@ -127,7 +127,9 @@ export const generateProposalPDF = async (
 
   // Calculations
   const laborCost = eventState.staffCount * eventState.hourlyRate * eventState.estimatedHours;
-  const logisticsCost = eventState.mileage * 2 * 0.725;
+  const baseLogistics = eventState.mileage * 2 * 0.725;
+  const remoteSurcharge = eventState.mileage > 30 ? 250 : 0;
+  const logisticsCost = baseLogistics + remoteSurcharge;
   const atmosphereCost = eventState.inventoryCosts;
   const foodCost = eventState.menuItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) * eventState.totalGuests;
   const culinaryCost = foodCost + laborCost;
