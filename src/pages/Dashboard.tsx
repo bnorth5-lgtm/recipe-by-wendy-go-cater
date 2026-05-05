@@ -256,7 +256,7 @@ const Dashboard = () => {
         {/* Door 1: Quick Drop-Off */}
         <Card 
           className="bg-slate-900/60 border border-slate-800 hover:border-[#fbbf24]/50 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] transition-all cursor-pointer group"
-          onClick={() => navigate('/menu/recipes')}
+          onClick={() => navigate('/events/beos')}
         >
           <CardHeader className="text-center pb-2">
             <div className="mx-auto bg-slate-800 p-4 rounded-full mb-4 group-hover:bg-[#fbbf24]/20 transition-colors">
