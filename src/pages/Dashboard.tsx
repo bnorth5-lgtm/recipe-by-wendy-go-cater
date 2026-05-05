@@ -262,7 +262,7 @@ const Dashboard = () => {
             <div className="mx-auto bg-slate-800 p-4 rounded-full mb-4 group-hover:bg-[#fbbf24]/20 transition-colors">
               <Utensils className="w-8 h-8 text-slate-400 group-hover:text-[#fbbf24] transition-colors" />
             </div>
-            <CardTitle className="text-xl font-serif text-white group-hover:text-[#fbbf24] transition-colors">Quick Drop-Off</CardTitle>
+            <CardTitle className="text-xl font-serif text-white group-hover:text-[#fbbf24] transition-colors">RBW Drop-Off</CardTitle>
           </CardHeader>
           <CardContent className="text-center text-slate-400 text-sm">
             Minimalist view for simple deliveries. Access recipes and basic BEOs without the heavy logistics.
@@ -278,7 +278,7 @@ const Dashboard = () => {
             <div className="mx-auto bg-slate-800 p-4 rounded-full mb-4 group-hover:bg-[#fbbf24]/20 transition-colors">
               <UserPlus className="w-8 h-8 text-slate-400 group-hover:text-[#fbbf24] transition-colors" />
             </div>
-            <CardTitle className="text-xl font-serif text-white group-hover:text-[#fbbf24] transition-colors">Staffed Buffet</CardTitle>
+            <CardTitle className="text-xl font-serif text-white group-hover:text-[#fbbf24] transition-colors">RBW Staffing</CardTitle>
           </CardHeader>
           <CardContent className="text-center text-slate-400 text-sm">
             Adds labor, bartenders, and inventory toggles. Generate comprehensive BEOs with profit shields.
