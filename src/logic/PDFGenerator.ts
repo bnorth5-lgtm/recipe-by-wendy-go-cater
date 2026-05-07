@@ -4,6 +4,141 @@ import QRCode from "qrcode";
 import { EventState } from "@/context/EventContext";
 import { NBS_COMPANY_CONFIG } from "@/logic/PaymentOrchestrator";
 
+export const ExportMasterpiecePDF = async (
+  mapElementId: string,
+  eventDetails: { name: string; totalCost: number; region: string; items: { name: string; cost: number; source: string }[] }
+) => {
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "in",
+    format: "letter",
+  });
+
+  const margin = 0.5;
+  const pageWidth = 8.5;
+  const contentWidth = pageWidth - margin * 2;
+  let currentY = margin;
+
+  // Colors
+  const gold = [251, 191, 36];
+  const slate = [15, 23, 42];
+
+  // --- HEADER ---
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(24);
+  doc.setTextColor(slate[0], slate[1], slate[2]);
+  doc.text("RBW MASTERPIECE", margin, currentY);
+  currentY += 0.4;
+
+  doc.setFontSize(14);
+  doc.setTextColor(gold[0], gold[1], gold[2]);
+  doc.text(`Event: ${eventDetails.name} | Region: ${eventDetails.region}`, margin, currentY);
+  currentY += 0.5;
+
+  // --- 3D MAP VIEW (Harrison Field) ---
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(slate[0], slate[1], slate[2]);
+  doc.text("1. Harrison Field Layout", margin, currentY);
+  currentY += 0.3;
+
+  const mapEl = document.getElementById(mapElementId);
+  if (mapEl) {
+    try {
+      const canvas = await html2canvas(mapEl, { scale: 2, useCORS: true, backgroundColor: "#0f172a" });
+      const imgData = canvas.toDataURL("image/jpeg", 0.8);
+      const imgProps = doc.getImageProperties(imgData);
+      const pdfHeight = (imgProps.height * contentWidth) / imgProps.width;
+      
+      // Check page break
+      if (currentY + pdfHeight > 10.5) {
+        doc.addPage();
+        currentY = margin;
+      }
+      
+      doc.addImage(imgData, "JPEG", margin, currentY, contentWidth, pdfHeight);
+      currentY += pdfHeight + 0.5;
+    } catch (err) {
+      console.error("Failed to capture map:", err);
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(12);
+      doc.text("[Map Capture Failed]", margin, currentY);
+      currentY += 0.5;
+    }
+  } else {
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(12);
+    doc.text("[Map Element Not Found]", margin, currentY);
+    currentY += 0.5;
+  }
+
+  // --- ITEMIZED COST LIST (Scout_NBS) ---
+  if (currentY > 9) {
+    doc.addPage();
+    currentY = margin;
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(slate[0], slate[1], slate[2]);
+  doc.text("2. Market Intelligence (Scout_NBS)", margin, currentY);
+  currentY += 0.3;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+  
+  eventDetails.items.forEach(item => {
+    if (currentY > 10.5) { doc.addPage(); currentY = margin; }
+    doc.text(`• ${item.name}: $${item.cost.toFixed(2)} (Source: ${item.source})`, margin + 0.2, currentY);
+    currentY += 0.25;
+  });
+
+  currentY += 0.25;
+  doc.setFont("helvetica", "bold");
+  doc.text(`Total Estimated Cost: $${eventDetails.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, margin, currentY);
+  currentY += 0.5;
+
+  // --- SIGNATURE PAPERS (Legal_Eagle) ---
+  if (currentY > 8) {
+    doc.addPage();
+    currentY = margin;
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("3. Legal Eagle Clauses & Signatures", margin, currentY);
+  currentY += 0.3;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  const legalText = [
+    "1. INFRASTRUCTURE ZERO: Client acknowledges that off-grid events require specialized power and water protocols. Any deviation from the agreed 100ft power run limit voids the service guarantee.",
+    "2. PROFIT LOCK: Prices are secured based on real-time Scout_NBS market data. Significant market fluctuations prior to the 30-day lock-in may require adjustments.",
+    "3. LIABILITY: Delicious Catering & Events by Wendy is not liable for weather-related disruptions to outdoor structures (e.g., 40x60 tents) beyond standard safety ratings."
+  ];
+
+  legalText.forEach(clause => {
+    const lines = doc.splitTextToSize(clause, contentWidth);
+    lines.forEach((line: string) => {
+      if (currentY > 10.5) { doc.addPage(); currentY = margin; }
+      doc.text(line, margin, currentY);
+      currentY += 0.2;
+    });
+    currentY += 0.1;
+  });
+
+  currentY += 0.5;
+  doc.line(margin, currentY, margin + 3, currentY);
+  doc.text("Client Signature", margin, currentY + 0.2);
+  
+  doc.line(margin + 4, currentY, margin + 7, currentY);
+  doc.text("Date", margin + 4, currentY + 0.2);
+
+  // Save PDF
+  doc.save(`RBW_Masterpiece_${eventDetails.name.replace(/\s+/g, '_')}.pdf`);
+  return { success: true };
+};
+
 export const generateProposalPDF = async (
   eventState: EventState,
   mapElementId: string,

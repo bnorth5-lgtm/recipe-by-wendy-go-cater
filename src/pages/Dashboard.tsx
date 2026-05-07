@@ -61,6 +61,7 @@ import { useBrand } from "@/context/BrandContext";
 import { useEventContext } from "@/context/EventContext";
 import { generateProposalPDF } from "@/logic/PDFGenerator";
 import { saveToVault } from "@/logic/persistence";
+import { logSystemAlert } from "@/lib/switchboardHook";
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
@@ -85,6 +86,33 @@ const Dashboard = () => {
   const toggleCriticalTaskCompletion = useCateringStore((state) => state.toggleCriticalTaskCompletion);
   const notes = useCateringStore((state) => state.notes);
   const updateNote = useCateringStore((state) => state.updateNote);
+  const inventory = useCateringStore((state) => state.inventory);
+
+  const profitWarnings = inventory.filter(item => {
+    if (!item.market_scraped_cost || item.market_scraped_cost <= 0) return false;
+    const margin = ((item.market_scraped_cost - item.costPerUnit) / item.market_scraped_cost) * 100;
+    return margin < (item.margin_goal || 70.00);
+  });
+
+  // Trigger Switchboard hook for Profit Alerts
+  useEffect(() => {
+    if (profitWarnings.length > 0) {
+      logSystemAlert({
+        alert_type: 'Profit Alert',
+        severity: 'warning',
+        message: `${profitWarnings.length} item(s) are threatening the target margin.`,
+        metadata: {
+          items: profitWarnings.map(item => ({
+            id: item.id,
+            name: item.name,
+            currentCost: item.costPerUnit,
+            marketScrapedCost: item.market_scraped_cost,
+            targetMargin: item.margin_goal || 70.00
+          }))
+        }
+      });
+    }
+  }, [profitWarnings.length]);
 
   const [isClientFormDialogOpen, setIsClientFormDialogOpen] = useState(false);
   const [isCateringIntakeDialogOpen, setIsCateringIntakeDialogOpen] = useState(false);
@@ -232,6 +260,27 @@ const Dashboard = () => {
     <div
       className="space-y-6 p-6 relative min-h-screen flex flex-col bg-slate-950 text-slate-50"
     >
+      {/* GIANT VISIONARY BUTTON */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50">
+        <Button 
+          className="bg-[#fbbf24] hover:bg-amber-500 text-slate-950 font-black text-2xl px-12 py-8 rounded-full shadow-[0_0_40px_rgba(251,191,36,0.6)] animate-pulse border-4 border-white"
+          onClick={() => {
+            navigate('/venue-architect');
+            // We use a timeout to allow the navigation to complete before requesting fullscreen
+            setTimeout(() => {
+              const canvas = document.getElementById('venue-map-canvas');
+              if (canvas) {
+                canvas.requestFullscreen().catch(err => {
+                  console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+              }
+            }, 500);
+          }}
+        >
+          LAUNCH VISIONARY MAP
+        </Button>
+      </div>
+
       {/* Global Status Badges */}
       {vaultStatus.isLocalOnly && (
         <div className="relative z-10 flex justify-end">
@@ -534,6 +583,55 @@ const Dashboard = () => {
           </Card>
         </Link>
       </div>
+
+      {/* NBS Intelligence: Profit Monitoring */}
+      {profitWarnings.length > 0 && (
+        <div className="max-w-6xl mx-auto w-full mt-6">
+          <Card className="bg-red-950/20 border-red-900/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-medium text-red-400 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                NBS Profit Monitoring Warning
+              </CardTitle>
+              <CardDescription className="text-red-300/70">
+                The following items have a current cost that threatens the target 70% margin based on market scraped costs.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {profitWarnings.map(item => {
+                  const currentMargin = ((item.market_scraped_cost! - item.costPerUnit) / item.market_scraped_cost!) * 100;
+                  return (
+                    <div key={item.id} className="bg-slate-900/50 border border-red-900/30 p-4 rounded-lg">
+                      <div className="font-bold text-white mb-1">{item.name}</div>
+                      <div className="text-sm text-slate-400 flex justify-between">
+                        <span>Category:</span>
+                        <span className="text-slate-300">{item.category}</span>
+                      </div>
+                      <div className="text-sm text-slate-400 flex justify-between">
+                        <span>Current Cost:</span>
+                        <span className="text-slate-300">${item.costPerUnit.toFixed(2)}</span>
+                      </div>
+                      <div className="text-sm text-slate-400 flex justify-between">
+                        <span>Market Price:</span>
+                        <span className="text-slate-300">${item.market_scraped_cost?.toFixed(2)}</span>
+                      </div>
+                      <div className="text-sm font-medium mt-2 pt-2 border-t border-slate-800 flex justify-between">
+                        <span className="text-red-400">Current Margin:</span>
+                        <span className="text-red-400">{currentMargin.toFixed(1)}%</span>
+                      </div>
+                      <div className="text-xs text-slate-500 flex justify-between mt-1">
+                        <span>Target Margin:</span>
+                        <span>{item.margin_goal || 70.0}%</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Footer for Date, MadeWithDyad, and Time */}
       <div className="relative z-10 flex justify-between items-center mt-auto pt-8 border-t border-slate-800/50">

@@ -49,7 +49,7 @@ import { useCateringStore, InventoryItem } from "@/store/cateringStore";
 // Define the schema for an inventory item
 const inventoryItemSchema = z.object({
   name: z.string().min(1, "Item name is required"),
-  category: z.enum(["Food Ingredient", "Beverage", "Furniture", "Tableware", "Silverware", "Glassware", "Linens", "Serving Equipment", "Other"], {
+  category: z.enum(["Food Ingredient", "Beverage", "Furniture", "Tableware", "Silverware", "Glassware", "Linens", "Serving Equipment", "Other", "Floral", "AV", "Structure", "Staffing"], {
     required_error: "Category is required.",
   }),
   currentStock: z.coerce.number().min(0, "Stock cannot be negative"),
@@ -57,6 +57,8 @@ const inventoryItemSchema = z.object({
   lowStockThreshold: z.coerce.number().min(0, "Threshold cannot be negative"),
   costPerUnit: z.coerce.number().min(0, "Cost per unit cannot be negative"),
   markupPercentage: z.coerce.number().min(0, "Markup cannot be negative").max(1, "Markup must be between 0 and 1 (e.g., 0.20 for 20%)"),
+  market_scraped_cost: z.coerce.number().optional(),
+  margin_goal: z.coerce.number().default(70.00),
 });
 
 type InventoryFormData = z.infer<typeof inventoryItemSchema>;
@@ -84,6 +86,8 @@ const Inventory = () => {
       lowStockThreshold: globalLowStockThreshold, // Use global low stock threshold
       costPerUnit: 0.00,
       markupPercentage: defaultMarkupPercentage, // Use default markup percentage
+      market_scraped_cost: 0.00,
+      margin_goal: 70.00,
     },
   });
 
@@ -195,6 +199,10 @@ const Inventory = () => {
                               <SelectItem value="Glassware">Glassware</SelectItem>
                               <SelectItem value="Linens">Linens</SelectItem>
                               <SelectItem value="Serving Equipment">Serving Equipment</SelectItem>
+                              <SelectItem value="Floral">Floral</SelectItem>
+                              <SelectItem value="AV">AV</SelectItem>
+                              <SelectItem value="Structure">Structure</SelectItem>
+                              <SelectItem value="Staffing">Staffing</SelectItem>
                               <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
                           </Select>
@@ -286,6 +294,32 @@ const Inventory = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Markup Percentage (e.g., 0.20 for 20%)</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="market_scraped_cost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Market Scraped Cost</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="margin_goal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Margin Goal (%)</FormLabel>
                           <FormControl>
                             <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                           </FormControl>

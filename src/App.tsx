@@ -47,6 +47,7 @@ import { Onboarding } from "./pages/Onboarding.tsx";
 
 import { EventProvider } from "./context/EventContext";
 import { BrandProvider } from "./context/BrandContext";
+import { Toaster } from "sonner";
 
 // ── App shell (authenticated, with sidebar + bottom nav) ─────────────────────
 
@@ -119,6 +120,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <BrandingInjector /> {/* Add BrandingInjector here */}
+      <Toaster position="top-right" />
       <ErrorBoundary>
         <Routes>
           {/*

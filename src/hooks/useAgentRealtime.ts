@@ -110,6 +110,11 @@ export function useAgentRealtime() {
   useEffect(() => {
     let cancelled = false;
 
+    // Demo mode: skip all fetching and realtime connection
+    setConnectionStatus("disconnected");
+    setLoading(false);
+    return;
+
     // ── Initial REST fetch ─────────────────────────────────────────────────
     setLoading(true);
     setConnectionStatus("connecting");

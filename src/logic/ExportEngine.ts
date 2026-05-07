@@ -1,5 +1,6 @@
 import { BEODocument } from "@/lib/beoGenerator";
 import { Vendor } from "@/components/ProcurementHUD";
+import { geminiService } from "./GeminiService";
 
 /**
  * Simulated PDF Generation & Export Engine
@@ -24,10 +25,27 @@ export const generatePrepSheetPDF = async (beo: BEODocument, staffLanguage: stri
   
   const t = translations[staffLanguage] || translations.en;
   
+  // Gemini 1.5 Pro Integration for 5-Language Translation
+  const targetLangMap: Record<string, string> = {
+    en: "English",
+    es: "Spanish",
+    fr: "French",
+    pt: "Portuguese",
+    zh: "Chinese (Simplified)"
+  };
+
+  const targetLangName = targetLangMap[staffLanguage] || "English";
+  let translatedTitle = t.title;
+
+  if (staffLanguage !== "en") {
+    translatedTitle = await geminiService.translate(`Prep Sheet for BEO ${beo.beoNumber}`, targetLangName);
+    console.log(`[ExportEngine] Gemini Translated Title: ${translatedTitle}`);
+  }
+  
   return {
     success: true,
     filename: `PrepSheet_${beo.beoNumber}_${staffLanguage}.pdf`,
-    message: `Generated ${t.title} PDF`,
+    message: `Generated ${translatedTitle} PDF via Gemini 1.5 Pro`,
     simulatedData: {
       lang: staffLanguage,
       beo: beo.beoNumber

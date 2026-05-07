@@ -7,6 +7,10 @@ export interface MenuItem {
   price: number;
   quantity?: number;
   isInteractive?: boolean;
+  category?: string;
+  market_scraped_cost?: number;
+  margin_goal?: number;
+  translations?: Record<string, string>;
 }
 
 export interface TimelineEvent {
@@ -26,6 +30,7 @@ export interface EventState {
   id?: string;
   eventId?: string;
   eventName: string;
+  category?: string;
   totalGuests: number;
   staffCount: number;
   hourlyRate: number;
@@ -33,6 +38,10 @@ export interface EventState {
   mileage: number;
   menuItems: MenuItem[];
   inventoryCosts: number;
+  market_scraped_cost?: number;
+  margin_goal?: number;
+  translations?: Record<string, string>;
+  s_e_e_oversight?: Record<string, any>;
   globalTime?: number;
   timelineEvents?: TimelineEvent[];
   kitchenNotifications?: KitchenNotification[];
@@ -49,17 +58,19 @@ interface EventContextType {
 }
 
 const defaultState: EventState = {
-  eventName: "Smith Wedding Reception",
+  eventName: "Harrison, Maine (Infrastructure-Zero Demo)",
+  category: "Catering",
   totalGuests: 0,
   staffCount: 0,
   hourlyRate: 25.00,
   estimatedHours: 6,
-  mileage: 15, // Default 15 miles
+  mileage: 50, // 50 miles to trigger $250 Remote Surcharge
   menuItems: [
     { id: "m1", name: "Live Carving Station", price: 45, quantity: 1, isInteractive: true },
     { id: "m2", name: "Plated Filet Mignon", price: 65, quantity: 1, isInteractive: false }
   ],
   inventoryCosts: 0,
+  margin_goal: 70.00,
   globalTime: 16,
   timelineEvents: [],
   kitchenNotifications: [],
@@ -73,6 +84,8 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [eventId, setEventId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Supabase fetch bypassed for demo
+    /*
     const initSupabase = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -105,6 +118,7 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
     
     initSupabase();
+    */
   }, []);
 
   // Set up Real-time Sync
@@ -127,6 +141,7 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           setEventState(prev => ({
             ...prev,
             eventName: newData.event_name,
+            category: newData.category,
             totalGuests: newData.total_guests,
             staffCount: newData.staff_count,
             hourlyRate: Number(newData.hourly_rate),
@@ -134,6 +149,10 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             mileage: Number(newData.mileage),
             menuItems: newData.menu_items || [],
             inventoryCosts: Number(newData.inventory_costs),
+            market_scraped_cost: newData.market_scraped_cost ? Number(newData.market_scraped_cost) : undefined,
+            margin_goal: newData.margin_goal ? Number(newData.margin_goal) : 70.00,
+            translations: newData.translations || {},
+            s_e_e_oversight: newData.s_e_e_oversight || {},
           }));
         }
       )
@@ -153,6 +172,7 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       const payload = {
         user_id: userId,
         event_name: newState.eventName,
+        category: newState.category,
         total_guests: newState.totalGuests,
         staff_count: newState.staffCount,
         hourly_rate: newState.hourlyRate,
@@ -160,15 +180,22 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         mileage: newState.mileage,
         menu_items: newState.menuItems,
         inventory_costs: newState.inventoryCosts,
+        market_scraped_cost: newState.market_scraped_cost,
+        margin_goal: newState.margin_goal,
+        translations: newState.translations,
+        s_e_e_oversight: newState.s_e_e_oversight,
         updated_at: new Date().toISOString()
       };
 
+      // Supabase update bypassed for demo
+      /*
       if (eventId) {
         await supabase.from('events').update(payload).eq('id', eventId);
       } else {
         const { data } = await supabase.from('events').insert(payload).select().single();
         if (data) setEventId(data.id);
       }
+      */
     }
   };
 

@@ -1,6 +1,9 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen, Volume2, Droplets, Bath, HardHat, CloudRain, Wind } from "lucide-react";
+import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen, Volume2, Droplets, Bath, HardHat, CloudRain, Wind, ChevronLeft, Maximize, Minimize, Save, MapPin, FileCheck } from "lucide-react";
+import { dropGlobalPin } from "@/logic/ScoutNBS";
+import { toast } from "sonner";
+import { ExportMasterpiecePDF } from "@/logic/PDFGenerator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -17,7 +20,7 @@ import { useEventContext } from "@/context/EventContext";
 import { useCateringStore } from "@/store/cateringStore";
 import { cn } from "@/lib/utils";
 
-export type ElementType = "table_round_60" | "table_rect" | "high_top" | "deuce" | "dance_floor" | "bar" | "buffet" | "cake" | "stage" | "pipe_drape" | "floral_arch" | "tent_40x60" | "string_lights" | "staging_kitchen" | "power_drop" | "exit_sign" | "audio_hub" | "water_access" | "bathroom";
+export type ElementType = "table_round_60" | "table_rect" | "high_top" | "deuce" | "dance_floor" | "bar" | "buffet" | "cake" | "stage" | "pipe_drape" | "floral_arch" | "tent_40x60" | "string_lights" | "staging_kitchen" | "power_drop" | "exit_sign" | "audio_hub" | "water_access" | "bathroom" | "staff_member";
 
 export interface MapElementData {
   id: string;
@@ -64,10 +67,39 @@ const ELEMENT_CONFIG: Record<ElementType, { label: string; icon: React.ElementTy
   water_access: { label: "Water Access", icon: Droplets, width: 40, height: 40, shape: "circle", color: "bg-cyan-500 text-slate-900 border-cyan-400" },
   bathroom: { label: "Bathroom", icon: Bath, width: 120, height: 120, shape: "rect", color: "bg-slate-200 text-slate-800 border-slate-400" },
   exit_sign: { label: "EXIT", icon: DoorOpen, width: 60, height: 30, shape: "rect", color: "bg-red-600 text-white font-bold border-red-400" },
+  staff_member: { label: "Staff", icon: Users, width: 20, height: 20, shape: "circle", color: "bg-amber-400 text-slate-900 border-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.8)]" },
 };
 
+
+const CONST_DEMO_STATE: MapElementData[] = [
+  {
+    id: "demo-tent-1",
+    type: "tent_40x60",
+    x: 200,
+    y: 100,
+    rotation: 0,
+    guests: 0,
+    vendorAssigned: false,
+    selfPerform: false,
+  },
+  {
+    id: "demo-power-1",
+    type: "power_drop",
+    x: 200 + 600 - 20,
+    y: 100 + 400 - 20,
+    rotation: 0,
+    guests: 0,
+    vendorAssigned: false,
+    selfPerform: false,
+  }
+];
+
 const VenueArchitectContent = () => {
-  const [elements, setElements] = useState<MapElementData[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const crosshairXRef = useRef<HTMLDivElement>(null);
+  const crosshairYRef = useRef<HTMLDivElement>(null);
+  const crosshairLabelRef = useRef<HTMLDivElement>(null);
+  const [elements, setElements] = useState<MapElementData[]>(CONST_DEMO_STATE);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isHoveringMap, setIsHoveringMap] = useState(false);
   const [isOutdoorMode, setIsOutdoorMode] = useState(false);
@@ -77,7 +109,70 @@ const VenueArchitectContent = () => {
   const [globalTime, setGlobalTime] = useState<number>(16); // 16.0 = 4:00 PM, 22.0 = 10:00 PM
   const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "timeline" | "logistics">("properties");
   const [selectedSignatureDish, setSelectedSignatureDish] = useState<string>("Blueberry Cranberry Bread");
-    const formatTime = (decimalTime: number) => {
+    
+  const [isZenMode, setIsZenMode] = useState(false);
+  const [isElementsPanelOpen, setIsElementsPanelOpen] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isGridMagnetism, setIsGridMagnetism] = useState(false);
+  const [isStaffBrushActive, setIsStaffBrushActive] = useState(false);
+  const [isFloorSnap, setIsFloorSnap] = useState(false);
+  const warnedTablesRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFS = !!document.fullscreenElement;
+      setIsFullscreen(isFS);
+      const chatWidget = document.querySelector('.nbs-chat');
+      if (isFS && containerRef.current && chatWidget) {
+        containerRef.current.appendChild(chatWidget);
+      } else if (!isFS && chatWidget) {
+        document.body.appendChild(chatWidget);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  // Visionary Thought Bubbles (Safety Checks)
+  useEffect(() => {
+    const kitchen = elements.find(e => e.type === "staging_kitchen");
+    if (!kitchen) return;
+
+    const kX = kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2;
+    const kY = kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2;
+
+    elements.forEach(el => {
+      if (el.type.startsWith("table") || el.type === "high_top" || el.type === "deuce") {
+        const tX = el.x + ELEMENT_CONFIG[el.type as ElementType].width / 2;
+        const tY = el.y + ELEMENT_CONFIG[el.type as ElementType].height / 2;
+        const distPx = Math.hypot(tX - kX, tY - kY);
+        const distFt = distPx / PIXELS_PER_FOOT;
+
+        if (distFt < 10 && !warnedTablesRef.current.has(el.id)) {
+          warnedTablesRef.current.add(el.id);
+          const event = new CustomEvent("nbs-thought-bubble", {
+            detail: {
+              message: `<strong>Albert the Brain:</strong> Fire code violation detected! A table was placed within 10ft of the staging kitchen. Please adjust the layout for workflow safety.`
+            }
+          });
+          window.dispatchEvent(event);
+        }
+      }
+    });
+  }, [elements]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'z') {
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+        setIsZenMode(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const formatTime = (decimalTime: number) => {
     const hours = Math.floor(decimalTime);
     const mins = Math.round((decimalTime - hours) * 60);
     const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -85,8 +180,89 @@ const VenueArchitectContent = () => {
     return `${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`;
   };
 
+  const handleSaveTemplate = () => {
+    const template = JSON.stringify(elements);
+    localStorage.setItem("rbw_harrison_template", template);
+    toast.success("Blueprint Saved", { description: "Harrison layout saved as RBW Template." });
+  };
+
+  const handleGlobalDrop = async () => {
+    const templateStr = localStorage.getItem("rbw_harrison_template");
+    if (!templateStr) {
+      toast.error("No Template Found", { description: "Please save a layout first." });
+      return;
+    }
+    
+    const region = prompt("Enter new location for Global Drop (e.g., Nashville):");
+    if (!region) return;
+
+    const templateElements = JSON.parse(templateStr);
+    
+    // Assign new IDs to avoid conflicts if dropped multiple times, though replacing is fine too
+    const newElements = templateElements.map((el: MapElementData) => ({
+      ...el,
+      id: crypto.randomUUID()
+    }));
+    
+    setElements(newElements);
+    toast.success("Global Drop Initiated", { description: `Dropping blueprint onto ${region}...` });
+
+    const itemsToScrape = new Set<string>();
+    newElements.forEach((el: MapElementData) => {
+      if (el.type === "tent_40x60") itemsToScrape.add("clear-top tent");
+      if (el.type.startsWith("table")) itemsToScrape.add("banquet tables");
+      if (el.type === "staff_member") itemsToScrape.add("event staff");
+      if (el.type === "floral_arch") itemsToScrape.add("event florals");
+      if (el.type === "bar") itemsToScrape.add("portable bar");
+      if (el.type === "dance_floor") itemsToScrape.add("dance floor");
+    });
+
+    const itemsArray = Array.from(itemsToScrape);
+    if (itemsArray.length === 0) itemsArray.push("event rentals");
+
+    try {
+      await dropGlobalPin({
+        lat: 36.1627, // mock Nashville
+        lng: -86.7816,
+        region: region,
+        items: itemsArray
+      });
+      toast.success("Scout_NBS Complete", { description: `Re-scraped prices for ${region}. Albert is calculating profit lock.` });
+    } catch (error) {
+      console.error(error);
+      toast.error("Scout_NBS Error", { description: "Failed to fetch new regional pricing." });
+    }
+  };
+
+  const handleRunFullTest = async () => {
+    toast.info("Initializing RBW Visionary Workflow...", { description: "Simulating $50k event generation." });
+    
+    // Simulate 10 second generation
+    const toastId = toast.loading("Generating Masterpiece PDF...");
+    
+    setTimeout(async () => {
+      try {
+        await ExportMasterpiecePDF("venue-map-canvas", {
+          name: "Harrison Field Gala",
+          totalCost: 50000,
+          region: "Harrison Field",
+          items: [
+            { name: "Clear-top Tent", cost: 1500, source: "Brave Search (Scout_NBS)" },
+            { name: "Banquet Tables", cost: 16.50, source: "Brave Search (Scout_NBS)" },
+            { name: "Folding Chairs", cost: 2.50, source: "Brave Search (Scout_NBS)" },
+            { name: "Event Staff (per hr)", cost: 25.00, source: "Brave Search (Scout_NBS)" }
+          ]
+        });
+        toast.success("Masterpiece Generated", { id: toastId, description: "PDF has been downloaded successfully." });
+      } catch (error) {
+        console.error(error);
+        toast.error("Generation Failed", { id: toastId, description: "Could not generate PDF." });
+      }
+    }, 10000);
+  };
+
   const handleAddElement = (type: ElementType) => {
-    const snap = PIXELS_PER_FOOT;
+    const snap = isGridMagnetism || isFloorSnap ? PIXELS_PER_FOOT * 3 : PIXELS_PER_FOOT;
     const rawX = 100 + Math.random() * 50;
     const rawY = 100 + Math.random() * 50;
     
@@ -398,8 +574,23 @@ const VenueArchitectContent = () => {
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
 
+  // Profit Calculations for Fullscreen Overlay
+  const laborCostFullscreen = requiredStaff * 25 * 6; // 6 hours
+  const baseLogistics = (eventState.mileage || 0) * 2 * 0.725;
+  const remoteSurcharge = (eventState.mileage || 0) > 30 ? 250 : 0;
+  const logisticsCostFullscreen = baseLogistics + remoteSurcharge;
+  const atmosphereCostFullscreen = simulatedInventoryCost;
+  const foodCostFullscreen = (eventState.menuItems || []).reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0) * totalGuests;
+  const culinaryCostFullscreen = foodCostFullscreen + laborCostFullscreen;
+  const estimatedRevenueFullscreen = totalGuests * 125;
+  const totalCostFullscreen = culinaryCostFullscreen + atmosphereCostFullscreen + logisticsCostFullscreen;
+  const marginFullscreen = estimatedRevenueFullscreen > 0 ? (estimatedRevenueFullscreen - totalCostFullscreen) / estimatedRevenueFullscreen : 0;
+  const isHealthyMarginFullscreen = marginFullscreen >= 0.70;
+
   // Sync to global context whenever these values change
+  /* Bypassed for demo to prevent infinite loops
   useEffect(() => {
+    // Sync to global context
     updateEventState({
       totalGuests,
       staffCount: requiredStaff,
@@ -440,383 +631,353 @@ const VenueArchitectContent = () => {
       });
     }
   }, [totalGuests, requiredStaff, simulatedInventoryCost, globalTime, totalEstimatedValue, elements, updateEventState, eventState.menuItems, inventory, updateInventoryItem, addInventoryItem]);
+  */
 
   return (
     <div className="flex flex-col h-full bg-slate-950 text-slate-50 min-h-screen">
       <ExecutionProgress percentage={progressPercentage} />
       
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Toolbar - Now the Live BEO Sidebar */}
+        {!isZenMode && (
+          <>
+            {/* Left Toolbar - Now the Live BEO Sidebar */}
         <BEOSidebar />
-        {/* Left Sidebar (Details) */}
-      <div className="w-80 bg-slate-900 border-r border-slate-800 p-4 flex flex-col gap-4 overflow-y-auto z-10 shadow-2xl h-full">
-        <Tabs value={rightSidebarTab} onValueChange={(v: any) => setRightSidebarTab(v)} className="w-full flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-3 bg-slate-950 border border-slate-800 p-1 rounded-lg mb-4">
-            <TabsTrigger value="properties" className="text-xs">Props</TabsTrigger>
-            <TabsTrigger value="timeline" className="text-xs">Run of Show</TabsTrigger>
-            <TabsTrigger value="logistics" className="text-xs">Logistics</TabsTrigger>
-          </TabsList>
+                {/* Left Sidebar (Details) */}
+        <div className="w-80 bg-slate-900 border-r border-slate-800 p-4 flex flex-col gap-4 overflow-y-auto z-10 shadow-2xl h-full">
+          <Tabs value={rightSidebarTab} onValueChange={(v: any) => setRightSidebarTab(v)} className="w-full flex-1 flex flex-col">
+            <TabsList className="grid w-full grid-cols-3 bg-slate-950 border border-slate-800 p-1 rounded-lg mb-4">
+              <TabsTrigger value="properties" className="text-xs">Props</TabsTrigger>
+              <TabsTrigger value="timeline" className="text-xs">Run of Show</TabsTrigger>
+              <TabsTrigger value="logistics" className="text-xs">Logistics</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="properties" className="flex-1 overflow-y-auto pr-2">
-            {selectedElement ? (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-serif text-xl text-white font-bold">Properties</h3>
-                  <Button variant="ghost" size="icon" onClick={() => updateElement(selectedElement.id, { rotation: selectedElement.rotation + 45 })}>
-                    <span className="text-xs">Rotate</span>
-                  </Button>
-                </div>
-                
-                {selectedElement.type.startsWith("table") && (
-                  <>
-                    <div className="space-y-2">
-                      <Label className="text-slate-300">Guests at Table</Label>
-                      <Input 
-                        type="number" 
-                        min={0} 
-                        max={12} 
-                        value={selectedElement.guests}
-                        onChange={(e) => updateElement(selectedElement.id, { guests: parseInt(e.target.value) || 0 })}
-                        className="bg-slate-800 border-slate-700 text-white"
-                      />
-                    </div>
-                    
-                    <Separator className="bg-slate-800" />
-                    <h4 className="font-serif text-[#fbbf24] text-lg">Inventory Selection</h4>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-slate-300">Linens</Label>
-                      <Select value={selectedElement.linen} onValueChange={(v) => updateElement(selectedElement.id, { linen: v })}>
-                        <SelectTrigger className="bg-slate-800 border-slate-700 text-white"><SelectValue placeholder="Select Linen" /></SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                          <SelectItem value="white_cotton">White Cotton</SelectItem>
-                          <SelectItem value="ivory_damask">Ivory Damask</SelectItem>
-                          <SelectItem value="black_polyester">Black Polyester</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-slate-300">Napkins</Label>
-                      <Select value={selectedElement.napkin} onValueChange={(v) => updateElement(selectedElement.id, { napkin: v })}>
-                        <SelectTrigger className="bg-slate-800 border-slate-700 text-white"><SelectValue placeholder="Select Napkin" /></SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                          <SelectItem value="white">White</SelectItem>
-                          <SelectItem value="gold">Gold Accent</SelectItem>
-                          <SelectItem value="navy">Navy Blue</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+            <TabsContent value="properties" className="flex-1 overflow-y-auto pr-2">
+              {selectedElement ? (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-serif text-xl text-white font-bold">Properties</h3>
+                    <Button variant="ghost" size="icon" onClick={() => updateElement(selectedElement.id, { rotation: selectedElement.rotation + 45 })}>
+                      <span className="text-xs">Rotate</span>
+                    </Button>
+                  </div>
+                  
+                  {selectedElement.type.startsWith("table") && (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">Guests at Table</Label>
+                        <Input 
+                          type="number" 
+                          min={0} 
+                          max={12} 
+                          value={selectedElement.guests}
+                          onChange={(e) => updateElement(selectedElement.id, { guests: parseInt(e.target.value) || 0 })}
+                          className="bg-slate-800 border-slate-700 text-white"
+                        />
+                      </div>
+                      
+                      <Separator className="bg-slate-800" />
+                      <h4 className="font-serif text-[#fbbf24] text-lg">Inventory Selection</h4>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">Linens</Label>
+                        <Select value={selectedElement.linen} onValueChange={(v) => updateElement(selectedElement.id, { linen: v })}>
+                          <SelectTrigger className="bg-slate-800 border-slate-700 text-white"><SelectValue placeholder="Select Linen" /></SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                            <SelectItem value="white_cotton">White Cotton</SelectItem>
+                            <SelectItem value="ivory_damask">Ivory Damask</SelectItem>
+                            <SelectItem value="black_polyester">Black Polyester</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">Napkins</Label>
+                        <Select value={selectedElement.napkin} onValueChange={(v) => updateElement(selectedElement.id, { napkin: v })}>
+                          <SelectTrigger className="bg-slate-800 border-slate-700 text-white"><SelectValue placeholder="Select Napkin" /></SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                            <SelectItem value="white">White</SelectItem>
+                            <SelectItem value="gold">Gold Accent</SelectItem>
+                            <SelectItem value="navy">Navy Blue</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-slate-300">Glassware</Label>
-                      <Select value={selectedElement.glassware} onValueChange={(v) => updateElement(selectedElement.id, { glassware: v })}>
-                        <SelectTrigger className="bg-slate-800 border-slate-700 text-white"><SelectValue placeholder="Select Glassware" /></SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                          <SelectItem value="standard">Standard Water/Wine</SelectItem>
-                          <SelectItem value="crystal">Crystal Stemware</SelectItem>
-                          <SelectItem value="gold_rim">Gold-Rimmed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">Glassware</Label>
+                        <Select value={selectedElement.glassware} onValueChange={(v) => updateElement(selectedElement.id, { glassware: v })}>
+                          <SelectTrigger className="bg-slate-800 border-slate-700 text-white"><SelectValue placeholder="Select Glassware" /></SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                            <SelectItem value="standard">Standard Water/Wine</SelectItem>
+                            <SelectItem value="crystal">Crystal Stemware</SelectItem>
+                            <SelectItem value="gold_rim">Gold-Rimmed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    <Separator className="bg-slate-800" />
-                    <h4 className="font-serif text-[#fbbf24] text-lg">Atmosphere</h4>
+                      <Separator className="bg-slate-800" />
+                      <h4 className="font-serif text-[#fbbf24] text-lg">Atmosphere</h4>
 
-                    <div className="space-y-2">
-                      <Label className="text-slate-300">Centerpiece Style</Label>
-                      <Select value={selectedElement.centerpieceStyle} onValueChange={(v) => updateElement(selectedElement.id, { centerpieceStyle: v })}>
-                        <SelectTrigger className="bg-slate-800 border-slate-700 text-white"><SelectValue placeholder="Select Style" /></SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                          <SelectItem value="low_lush">Low & Lush</SelectItem>
-                          <SelectItem value="tall_elegant">Tall & Elegant</SelectItem>
-                          <SelectItem value="candles_only">Candles Only</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">Centerpiece Style</Label>
+                        <Select value={selectedElement.centerpieceStyle} onValueChange={(v) => updateElement(selectedElement.id, { centerpieceStyle: v })}>
+                          <SelectTrigger className="bg-slate-800 border-slate-700 text-white"><SelectValue placeholder="Select Style" /></SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                            <SelectItem value="low_lush">Low & Lush</SelectItem>
+                            <SelectItem value="tall_elegant">Tall & Elegant</SelectItem>
+                            <SelectItem value="candles_only">Candles Only</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-slate-300">Floral Type</Label>
-                      <Input 
-                        placeholder="e.g., White Roses & Eucalyptus"
-                        value={selectedElement.floralType || ""}
-                        onChange={(e) => updateElement(selectedElement.id, { floralType: e.target.value })}
-                        className="bg-slate-800 border-slate-700 text-white"
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-300">Floral Type</Label>
+                        <Input 
+                          placeholder="e.g., White Roses & Eucalyptus"
+                          value={selectedElement.floralType || ""}
+                          onChange={(e) => updateElement(selectedElement.id, { floralType: e.target.value })}
+                          className="bg-slate-800 border-slate-700 text-white"
+                        />
+                      </div>
+                      <div className="space-y-2 pt-4">
+                        <Label className="text-slate-300">Self-Perform (In-House Override)</Label>
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            checked={selectedElement.selfPerform} 
+                            onCheckedChange={(checked) => updateElement(selectedElement.id, { selfPerform: checked })}
+                          />
+                          <span className="text-xs text-slate-400">If ON, cost is $0 (increases profit margin)</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {selectedElement.type === "tent_40x60" && (
                     <div className="space-y-2 pt-4">
-                      <Label className="text-slate-300">Self-Perform (In-House Override)</Label>
+                      <Label className="text-slate-300">Tent Sidewalls (+$300)</Label>
                       <div className="flex items-center space-x-2">
                         <Switch 
-                          checked={selectedElement.selfPerform} 
-                          onCheckedChange={(checked) => updateElement(selectedElement.id, { selfPerform: checked })}
+                          checked={selectedElement.hasSidewalls || false} 
+                          onCheckedChange={(checked) => updateElement(selectedElement.id, { hasSidewalls: checked })}
                         />
-                        <span className="text-xs text-slate-400">If ON, cost is $0 (increases profit margin)</span>
+                        <span className="text-xs text-slate-400">Enclose tent with solid walls</span>
                       </div>
                     </div>
-                  </>
-                )}
-
-                {selectedElement.type === "tent_40x60" && (
-                  <div className="space-y-2 pt-4">
-                    <Label className="text-slate-300">Tent Sidewalls (+$300)</Label>
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        checked={selectedElement.hasSidewalls || false} 
-                        onCheckedChange={(checked) => updateElement(selectedElement.id, { hasSidewalls: checked })}
-                      />
-                      <span className="text-xs text-slate-400">Enclose tent with solid walls</span>
-                    </div>
-                  </div>
-                )}
-
-                {selectedElement.type === "staging_kitchen" && (
-                  <div className="space-y-2 pt-4">
-                    <Label className="text-slate-300">Safety Radius (10ft)</Label>
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        checked={selectedElement.showSafetyRadius || false} 
-                        onCheckedChange={(checked) => updateElement(selectedElement.id, { showSafetyRadius: checked })}
-                      />
-                      <span className="text-xs text-slate-400">Show 10ft fire safety clearance</span>
-                    </div>
-                  </div>
-                )}
-
-                <Separator className="bg-slate-800" />
-                <h4 className="font-serif text-[#fbbf24] text-lg">Timeline Event</h4>
-                <div className="space-y-2">
-                  <Label className="text-slate-300">Event Name</Label>
-                  <Input 
-                    placeholder="e.g., Band Start" 
-                    value={selectedElement.timeEventName || ""} 
-                    onChange={(e) => updateElement(selectedElement.id, { timeEventName: e.target.value })}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-slate-300">Time (Decimal 16-22)</Label>
-                  <Input 
-                    type="number"
-                    min={16}
-                    max={22}
-                    step={0.25}
-                    value={selectedElement.timeEventTime || ""} 
-                    onChange={(e) => updateElement(selectedElement.id, { timeEventTime: parseFloat(e.target.value) })}
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                  <p className="text-xs text-slate-500">16 = 4 PM, 20.25 = 8:15 PM</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-slate-300">Event Type</Label>
-                  <Select value={selectedElement.timeEventType || "general"} onValueChange={(v: any) => updateElement(selectedElement.id, { timeEventType: v })}>
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white"><SelectValue /></SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                      <SelectItem value="general">General</SelectItem>
-                      <SelectItem value="food_service">Food Service</SelectItem>
-                      <SelectItem value="entertainment">Entertainment</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2 pt-4">
-                  <Label className="text-slate-300">Vendor Assigned?</Label>
-                  <Select value={selectedElement.vendorAssigned ? "yes" : "no"} onValueChange={(v) => updateElement(selectedElement.id, { vendorAssigned: v === "yes" })}>
-                    <SelectTrigger className="bg-slate-800 border-slate-700 text-white"><SelectValue /></SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                      <SelectItem value="no">Pending</SelectItem>
-                      <SelectItem value="yes">Confirmed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <ProcurementHUD elementType={selectedElement.type} />
-
-                <div className="pt-6 space-y-3 pb-6">
-                  {selectedElement.type.startsWith("table") && (
-                    <Button 
-                      onClick={handleApplyStyleToAll}
-                      className="w-full bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_10px_rgba(217,119,6,0.4)]"
-                    >
-                      <Copy className="w-4 h-4 mr-2" /> Apply Style to All Tables
-                    </Button>
                   )}
-                  
-                  <Button 
-                    variant="destructive" 
-                    onClick={() => {
-                      setElements(elements.filter(e => e.id !== selectedElement.id));
-                      setSelectedId(null);
-                    }}
-                    className="w-full"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" /> Remove Element
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center text-slate-500 p-6">
-                <Crosshair className="w-12 h-12 mb-4 opacity-20" />
-                <p>Select an element on the map to view and edit its properties.</p>
-              </div>
-            )}
-          </TabsContent>
 
-          <TabsContent value="timeline" className="flex-1 overflow-y-auto pr-2">
-            <h3 className="font-serif text-xl text-white font-bold mb-4">Run of Show</h3>
-            {timelineEvents.length === 0 ? (
-              <p className="text-sm text-slate-500 italic">No timeline events assigned to map elements yet.</p>
-            ) : (
-              <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-700 before:to-transparent">
-                {timelineEvents.map((event, index) => (
-                  <div key={index} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border border-slate-700 bg-slate-900 text-slate-400 group-[.is-active]:text-[#fbbf24] shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                      <Clock className="w-4 h-4" />
-                    </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-slate-800 bg-slate-900/50 shadow">
-                      <div className="flex items-center justify-between space-x-2 mb-1">
-                        <div className="font-bold text-slate-200">{event.timeEventName}</div>
-                        <time className="font-mono text-xs font-medium text-[#fbbf24]">{formatTime(event.timeEventTime!)}</time>
+                  {selectedElement.type === "staging_kitchen" && (
+                    <div className="space-y-2 pt-4">
+                      <Label className="text-slate-300">Safety Radius (10ft)</Label>
+                      <div className="flex items-center space-x-2">
+                        <Switch 
+                          checked={selectedElement.showSafetyRadius || false} 
+                          onCheckedChange={(checked) => updateElement(selectedElement.id, { showSafetyRadius: checked })}
+                        />
+                        <span className="text-xs text-slate-400">Show 10ft fire safety clearance</span>
                       </div>
-                      <div className="text-xs text-slate-500">Element: {ELEMENT_CONFIG[event.type].label}</div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                  )}
 
-          <TabsContent value="logistics" className="flex-1 overflow-y-auto pr-2 flex flex-col">
-            <h3 className="font-serif text-xl text-white font-bold mb-4 flex items-center gap-2">
-              <ListChecks className="w-5 h-5 text-[#fbbf24]" />
-              Logistics & Setup Timer
-            </h3>
-            
-            <div className="space-y-4 flex-1">
-              {/* Wendy Efficiency Score */}
-              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm text-slate-300 font-bold">Wendy Efficiency Score</h4>
-                  <p className="text-xs text-slate-500">Based on travel distance & hazards</p>
-                </div>
-                <div className={`text-4xl font-black font-serif ${scoreColor}`}>
-                  {efficiencyScore}
-                </div>
-              </div>
-
-              {/* Setup Clock */}
-              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
-                <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-blue-400" /> Setup & Load-Out Clock
-                </h4>
-                <div className="space-y-2 text-sm text-slate-400">
-                  <div className="flex justify-between"><span>Estimated Setup</span> <span className="font-bold text-white">{formatDuration(setupMins)}</span></div>
-                  <div className="flex justify-between"><span>Estimated Load-Out</span> <span className="font-bold text-white">{formatDuration(loadOutMins)}</span></div>
-                </div>
-              </div>
-
-              {/* Travel Distance Math */}
-              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
-                <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2 flex items-center gap-2">
-                  <HardHat className="w-4 h-4 text-orange-400" /> Travel Distance Math
-                </h4>
-                <div className="space-y-2 text-sm text-slate-400">
-                  <div className="flex justify-between"><span>Total Service Mileage</span> <span className="font-bold text-white">{serviceMileage.toFixed(2)} mi</span></div>
-                  <div className="flex justify-between"><span>Avg Table Distance</span> <span className="font-bold text-white">{Math.round(avgDistanceFt)} ft</span></div>
-                  <div className="flex justify-between"><span>Worker Loops</span> <span className="font-bold text-white">{totalLoops}</span></div>
-                </div>
-              </div>
-
-              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
-                <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2">Asset Count</h4>
-                <div className="space-y-2 text-sm text-slate-400">
-                  <div className="flex justify-between"><span className="flex items-center gap-2"><Users className="w-4 h-4" /> Tables</span> <span className="font-bold text-white">{tablesCount}x</span></div>
-                  <div className="flex justify-between"><span className="flex items-center gap-2"><Users className="w-4 h-4" /> Chairs (Guests)</span> <span className="font-bold text-white">{chairsCount}x</span></div>
-                  <div className="flex justify-between"><span className="flex items-center gap-2"><Tent className="w-4 h-4" /> Tents</span> <span className="font-bold text-white">{tentsCount}x</span></div>
-                  <div className="flex justify-between"><span className="flex items-center gap-2"><Zap className="w-4 h-4 text-yellow-500" /> Hubs (Power/Audio/Water)</span> <span className="font-bold text-white">{hubsCount}x</span></div>
-                </div>
-              </div>
-
-              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
-                <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2">Cost Analysis (MarketWatch)</h4>
-                <div className="space-y-2 text-sm text-slate-400">
-                  {tablesCount > 0 && <div className="flex justify-between"><span>Tables (${16.50.toFixed(2)}/ea)</span> <span className="font-bold text-white">${tablesCost.toFixed(2)}</span></div>}
-                  {chairsCount > 0 && <div className="flex justify-between"><span>Chairs (${2.50.toFixed(2)}/ea)</span> <span className="font-bold text-white">${chairsCost.toFixed(2)}</span></div>}
-                  {tentsCount > 0 && <div className="flex justify-between"><span>Tents ($1500.00/ea)</span> <span className="font-bold text-white">${tentsCost.toFixed(2)}</span></div>}
-                  {powerDropsCount > 0 && <div className="flex justify-between"><span>Power Drops ($150.00/ea)</span> <span className="font-bold text-white">${powerDropsCost.toFixed(2)}</span></div>}
-                  {stringLightsCost > 0 && <div className="flex justify-between"><span>String Lights ($45.00/ea)</span> <span className="font-bold text-white">${stringLightsCost.toFixed(2)}</span></div>}
-                  {stagingKitchenCost > 0 && <div className="flex justify-between"><span>Staging Kitchen ($500.00/ea)</span> <span className="font-bold text-white">${stagingKitchenCost.toFixed(2)}</span></div>}
-                  {danceFloorCost > 0 && <div className="flex justify-between"><span>Dance Floor ($250.00/ea)</span> <span className="font-bold text-white">${danceFloorCost.toFixed(2)}</span></div>}
-                </div>
-              </div>
-
-              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
-                <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2">Labor Estimator</h4>
-                <div className="space-y-2 text-sm text-slate-400">
-                  <div className="flex justify-between"><span>Servers (1 per 10 tables)</span> <span className="font-bold text-white">{estimatedLaborServers}</span></div>
-                  <div className="flex justify-between"><span>Rate ($25/hr x 6 hrs)</span> <span className="font-bold text-white">${laborCost.toFixed(2)}</span></div>
-                </div>
-              </div>
-
-              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
-                <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2 flex items-center gap-2">
-                  <ChefHat className="w-4 h-4 text-[#fbbf24]" /> Menu Planner
-                </h4>
-                <div className="space-y-4">
+                  <Separator className="bg-slate-800" />
+                  <h4 className="font-serif text-[#fbbf24] text-lg">Timeline Event</h4>
                   <div className="space-y-2">
-                    <Label className="text-xs text-slate-400">Signature Dish</Label>
-                    <Select value={selectedSignatureDish} onValueChange={setSelectedSignatureDish}>
-                      <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-8">
-                        <SelectValue placeholder="Select Dish" />
-                      </SelectTrigger>
+                    <Label className="text-slate-300">Event Name</Label>
+                    <Input 
+                      placeholder="e.g., Band Start" 
+                      value={selectedElement.timeEventName || ""} 
+                      onChange={(e) => updateElement(selectedElement.id, { timeEventName: e.target.value })}
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-300">Time (Decimal 16-22)</Label>
+                    <Input 
+                      type="number"
+                      min={16}
+                      max={22}
+                      step={0.25}
+                      value={selectedElement.timeEventTime || ""} 
+                      onChange={(e) => updateElement(selectedElement.id, { timeEventTime: parseFloat(e.target.value) })}
+                      className="bg-slate-800 border-slate-700 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-slate-300">Event Type</Label>
+                    <Select value={selectedElement.timeEventType || "general"} onValueChange={(v: any) => updateElement(selectedElement.id, { timeEventType: v })}>
+                      <SelectTrigger className="bg-slate-800 border-slate-700 text-white"><SelectValue placeholder="Select Type" /></SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                        <SelectItem value="Blueberry Cranberry Bread">Blueberry Cranberry Bread</SelectItem>
-                        <SelectItem value="Wendy's Signature Quiche">Wendy's Signature Quiche</SelectItem>
-                        <SelectItem value="Herb-Crusted Salmon">Herb-Crusted Salmon</SelectItem>
+                        <SelectItem value="general">General</SelectItem>
+                        <SelectItem value="food_service">Food Service</SelectItem>
+                        <SelectItem value="entertainment">Entertainment</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  
-                  <div className="bg-slate-900 p-3 rounded border border-slate-800">
-                    <div className="text-xs text-slate-400 mb-1">Dynamic Prep List</div>
-                    <div className="text-sm text-white">
-                      {chairsCount === 0 ? (
-                        <span className="text-slate-500 italic">Add guests to map to calculate prep.</span>
-                      ) : (
-                        <span>
-                          If <strong className="text-[#fbbf24]">{chairsCount} guests</strong>, you need <strong className="text-[#fbbf24]">{
-                            selectedSignatureDish === "Blueberry Cranberry Bread" ? Math.ceil(chairsCount / 8) + " loaves" : 
-                            selectedSignatureDish === "Wendy's Signature Quiche" ? Math.ceil(chairsCount / 6) + " quiches" : 
-                            chairsCount + " portions"
-                          }</strong> of {selectedSignatureDish}.
-                        </span>
+                </div>
+              ) : (
+                <div className="text-center text-slate-500 mt-10">
+                  <p>Select an element on the map to edit its properties.</p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="timeline" className="flex-1 overflow-y-auto pr-2">
+              <div className="space-y-4">
+                <h3 className="font-serif text-xl text-white font-bold">Run of Show</h3>
+                <div className="space-y-2">
+                  {timelineEvents.map(e => (
+                    <div key={e.id} className={cn(
+                      "p-3 rounded-lg border flex items-center justify-between",
+                      e.timeEventTime! <= globalTime ? "bg-emerald-950/30 border-emerald-900/50" : "bg-slate-900 border-slate-800",
+                      e.timeEventType === "food_service" && e.timeEventTime! <= globalTime && "border-[#fbbf24] shadow-[0_0_10px_rgba(251,191,36,0.2)]"
+                    )}>
+                      <div>
+                        <div className="text-xs text-slate-400 font-mono">{formatTime(e.timeEventTime!)}</div>
+                        <div className={cn(
+                          "font-bold",
+                          e.timeEventTime! <= globalTime ? "text-emerald-400" : "text-white",
+                          e.timeEventType === "food_service" && e.timeEventTime! <= globalTime && "text-[#fbbf24]"
+                        )}>{e.timeEventName}</div>
+                      </div>
+                      {e.timeEventType === "food_service" && e.timeEventTime! <= globalTime && (
+                        <span className="text-[10px] bg-[#fbbf24] text-slate-950 px-2 py-1 rounded font-bold animate-pulse">NOW PLATING</span>
                       )}
                     </div>
-                  </div>
-
-                  <Button 
-                    onClick={handleKitchenSync}
-                    className="w-full bg-slate-800 hover:bg-slate-700 text-white border border-slate-700"
-                    size="sm"
-                  >
-                    <Send className="w-3 h-3 mr-2 text-[#fbbf24]" /> Kitchen Sync
-                  </Button>
+                  ))}
+                  {timelineEvents.length === 0 && (
+                    <p className="text-sm text-slate-500 italic">No timeline events assigned to map elements.</p>
+                  )}
                 </div>
               </div>
-            </div>
+            </TabsContent>
 
-            <div className="mt-6 pt-4 border-t border-slate-800">
-              <div className="flex justify-between items-center bg-emerald-950/30 border border-emerald-900/50 p-4 rounded-lg">
-                <span className="text-sm font-bold text-emerald-400 uppercase tracking-wider">Total Estimated Value</span>
-                <span className="text-2xl font-serif font-bold text-white">${totalEstimatedValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <TabsContent value="logistics" className="flex-1 overflow-y-auto pr-2">
+              <div className="space-y-6">
+                <h3 className="font-serif text-xl text-white font-bold flex items-center gap-2">
+                  <ListChecks className="w-5 h-5 text-[#fbbf24]" />
+                  Logistics & Setup
+                </h3>
+                
+                <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-2 opacity-10">
+                    <Clock className="w-16 h-16" />
+                  </div>
+                  <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2">Wendy Efficiency Score</h4>
+                  <div className="flex items-end gap-3">
+                    <div className={cn("text-4xl font-black", scoreColor)}>{efficiencyScore}</div>
+                    <div className="text-xs text-slate-400 mb-1">/ 100</div>
+                  </div>
+                  <div className="mt-2 text-xs text-slate-500">
+                    {safetyHazardsCount > 0 ? "Safety hazards detected. " : ""}
+                    {muddyPathTableIds.size > 0 ? "Muddy paths slowing service. " : ""}
+                    {avgDistanceFt > 50 ? "Long travel distances. " : "Optimal layout."}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+                    <div className="text-xs text-slate-400 mb-1">Est. Setup Time</div>
+                    <div className="text-lg font-bold text-white">{Math.floor(setupMins / 60)}h {setupMins % 60}m</div>
+                  </div>
+                  <div className="bg-slate-950 border border-slate-800 rounded-lg p-3">
+                    <div className="text-xs text-slate-400 mb-1">Est. Load-Out</div>
+                    <div className="text-lg font-bold text-white">{Math.floor(loadOutMins / 60)}h {loadOutMins % 60}m</div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
+                  <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2">Travel Distance Math</h4>
+                  <div className="space-y-2 text-sm text-slate-400">
+                    <div className="flex justify-between"><span>Avg Table Distance</span> <span className="font-bold text-white">{Math.round(avgDistanceFt)} ft</span></div>
+                    <div className="flex justify-between"><span>Worker Loops</span> <span className="font-bold text-white">{totalLoops}</span></div>
+                    <div className="flex justify-between"><span>Total Service Mileage</span> <span className="font-bold text-white">{serviceMileage.toFixed(2)} mi</span></div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
+                  <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2">Asset Count</h4>
+                  <div className="space-y-2 text-sm text-slate-400">
+                    <div className="flex justify-between"><span>Dining Tables</span> <span className="font-bold text-white">{tablesCount}</span></div>
+                    <div className="flex justify-between"><span>Chairs Needed</span> <span className="font-bold text-white">{chairsCount}</span></div>
+                    <div className="flex justify-between"><span>Tents (40x60)</span> <span className="font-bold text-white">{tentsCount}</span></div>
+                    <div className="flex justify-between"><span>Power Drops</span> <span className="font-bold text-white">{powerDropsCount}</span></div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
+                  <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2">Cost Analysis (MarketWatch)</h4>
+                  <div className="space-y-2 text-sm text-slate-400">
+                    <div className="flex justify-between"><span>Tables ($16.50/ea)</span> <span className="font-bold text-white">${tablesCost.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>Chairs ($2.50/ea)</span> <span className="font-bold text-white">${chairsCost.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>Tents ($1500/ea)</span> <span className="font-bold text-white">${tentsCost.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>Power Drops ($150/ea)</span> <span className="font-bold text-white">${powerDropsCost.toFixed(2)}</span></div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
+                  <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2">Labor Estimator</h4>
+                  <div className="space-y-2 text-sm text-slate-400">
+                    <div className="flex justify-between"><span>Servers (1 per 10 tables)</span> <span className="font-bold text-white">{estimatedLaborServers}</span></div>
+                    <div className="flex justify-between"><span>Rate ($25/hr x 6 hrs)</span> <span className="font-bold text-white">${laborCost.toFixed(2)}</span></div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-950 border border-slate-800 rounded-lg p-4">
+                  <h4 className="text-sm text-slate-300 font-bold mb-3 border-b border-slate-800 pb-2 flex items-center gap-2">
+                    <ChefHat className="w-4 h-4 text-[#fbbf24]" /> Menu Planner
+                  </h4>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs text-slate-400">Signature Dish</Label>
+                      <Select value={selectedSignatureDish} onValueChange={setSelectedSignatureDish}>
+                        <SelectTrigger className="bg-slate-900 border-slate-700 text-white text-xs h-8">
+                          <SelectValue placeholder="Select Dish" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                          <SelectItem value="Blueberry Cranberry Bread">Blueberry Cranberry Bread</SelectItem>
+                          <SelectItem value="Wendy's Signature Quiche">Wendy's Signature Quiche</SelectItem>
+                          <SelectItem value="Herb-Crusted Salmon">Herb-Crusted Salmon</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="bg-slate-900 p-3 rounded border border-slate-800">
+                      <div className="text-xs text-slate-400 mb-1">Dynamic Prep List</div>
+                      <div className="text-sm text-white">
+                        {chairsCount === 0 ? (
+                          <span className="text-slate-500 italic">Add guests to map to calculate prep.</span>
+                        ) : (
+                          <span>
+                            If <strong className="text-[#fbbf24]">{chairsCount} guests</strong>, you need <strong className="text-[#fbbf24]">{
+                              selectedSignatureDish === "Blueberry Cranberry Bread" ? Math.ceil(chairsCount / 8) + " loaves" : 
+                              selectedSignatureDish === "Wendy's Signature Quiche" ? Math.ceil(chairsCount / 6) + " quiches" : 
+                              chairsCount + " portions"
+                            }</strong> of {selectedSignatureDish}.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <Button 
+                      onClick={handleKitchenSync}
+                      className="w-full bg-slate-800 hover:bg-slate-700 text-white border border-slate-700"
+                      size="sm"
+                    >
+                      <Send className="w-3 h-3 mr-2 text-[#fbbf24]" /> Kitchen Sync
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
 
-
+              <div className="mt-6 pt-4 border-t border-slate-800">
+                <div className="flex justify-between items-center bg-emerald-950/30 border border-emerald-900/50 p-4 rounded-lg">
+                  <span className="text-sm font-bold text-emerald-400 uppercase tracking-wider">Total Estimated Value</span>
+                  <span className="text-2xl font-serif font-bold text-white">${totalEstimatedValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+          </>
+        )}
         {/* Canvas Area */}
         <div 
           id="venue-map-canvas" 
@@ -827,8 +988,12 @@ const VenueArchitectContent = () => {
           onMouseMove={(e) => {
             if (!containerRef.current) return;
             const rect = containerRef.current.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const rawX = e.clientX - rect.left;
+            const rawY = e.clientY - rect.top;
+            
+            const snap = isGridMagnetism || isFloorSnap ? PIXELS_PER_FOOT * 3 : PIXELS_PER_FOOT;
+            const x = (isGridMagnetism || isFloorSnap) ? Math.round(rawX / snap) * snap : rawX;
+            const y = (isGridMagnetism || isFloorSnap) ? Math.round(rawY / snap) * snap : rawY;
             
             if (crosshairXRef.current) crosshairXRef.current.style.left = `${x}px`;
             if (crosshairYRef.current) crosshairYRef.current.style.top = `${y}px`;
@@ -837,10 +1002,100 @@ const VenueArchitectContent = () => {
               crosshairLabelRef.current.style.top = `${y + 10}px`;
               crosshairLabelRef.current.innerText = `${Math.round(x / PIXELS_PER_FOOT)}' , ${Math.round(y / PIXELS_PER_FOOT)}'`;
             }
+
+            // Staff Brush (Multi-Drop)
+            if (isStaffBrushActive && e.buttons === 1) {
+              const brushSnap = PIXELS_PER_FOOT * 3; // 3-foot intervals
+              const brushX = Math.round(rawX / brushSnap) * brushSnap;
+              const brushY = Math.round(rawY / brushSnap) * brushSnap;
+              
+              setElements(prev => {
+                const exists = prev.some(el => el.type === "staff_member" && el.x === brushX && el.y === brushY);
+                if (!exists) {
+                  return [...prev, {
+                    id: `staff_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    type: "staff_member",
+                    x: brushX,
+                    y: brushY,
+                    rotation: 0,
+                    guests: 0,
+                    vendorAssigned: false,
+                    selfPerform: false
+                  }];
+                }
+                return prev;
+              });
+            }
+          }}
+          onMouseDown={(e) => {
+            if (isStaffBrushActive) {
+              if (!containerRef.current) return;
+              const rect = containerRef.current.getBoundingClientRect();
+              const rawX = e.clientX - rect.left;
+              const rawY = e.clientY - rect.top;
+              const brushSnap = PIXELS_PER_FOOT * 3;
+              const brushX = Math.round(rawX / brushSnap) * brushSnap;
+              const brushY = Math.round(rawY / brushSnap) * brushSnap;
+              
+              setElements(prev => {
+                const exists = prev.some(el => el.type === "staff_member" && el.x === brushX && el.y === brushY);
+                if (!exists) {
+                  return [...prev, {
+                    id: `staff_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    type: "staff_member",
+                    x: brushX,
+                    y: brushY,
+                    rotation: 0,
+                    guests: 0,
+                    vendorAssigned: false,
+                    selfPerform: false
+                  }];
+                }
+                return prev;
+              });
+            }
           }}
           onMouseEnter={() => setIsHoveringMap(true)}
           onMouseLeave={() => setIsHoveringMap(false)}
         >
+          {/* Fullscreen Toggle */}
+          <Button
+            variant="secondary"
+            size="icon"
+            className="absolute top-4 right-4 z-50 bg-slate-900/80 backdrop-blur-md border-slate-700 text-slate-400 hover:text-[#fbbf24] shadow-lg"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!document.fullscreenElement) {
+                containerRef.current?.requestFullscreen();
+              } else {
+                document.exitFullscreen();
+              }
+            }}
+          >
+            {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+          </Button>
+
+          {/* Floating Profit Bar (Only visible in fullscreen) */}
+          {isFullscreen && (
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-md border border-[#fbbf24]/50 p-4 rounded-full shadow-[0_0_30px_rgba(251,191,36,0.2)] z-50 flex items-center gap-6 pointer-events-auto">
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest">Est. Revenue</span>
+                <span className="text-lg font-bold text-emerald-400">${estimatedRevenueFullscreen.toFixed(2)}</span>
+              </div>
+              <div className="w-px h-8 bg-slate-700"></div>
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest">Total Cost</span>
+                <span className="text-lg font-bold text-white">${totalCostFullscreen.toFixed(2)}</span>
+              </div>
+              <div className="w-px h-8 bg-slate-700"></div>
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest">Profit Margin</span>
+                <span className={cn("text-xl font-bold", isHealthyMarginFullscreen ? "text-[#fbbf24]" : "text-amber-500")}>
+                  {(marginFullscreen * 100).toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          )}
           {/* Blueprint Grid Background */}
           <div className="absolute inset-0 pointer-events-none transition-all duration-700" style={{
             backgroundImage: isOutdoorMode ? `
@@ -854,7 +1109,7 @@ const VenueArchitectContent = () => {
               linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
               linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
             `,
-            backgroundSize: '100px 100px, 100px 100px, 20px 20px, 20px 20px',
+            backgroundSize: isGridMagnetism ? '60px 60px, 60px 60px, 20px 20px, 20px 20px' : '100px 100px, 100px 100px, 20px 20px, 20px 20px',
             backgroundPosition: '-1px -1px, -1px -1px, -1px -1px, -1px -1px'
           }} />
 
@@ -1109,19 +1364,28 @@ const VenueArchitectContent = () => {
             </div>
           </div>
 
-          {/* Elements Palette (Floating & Draggable) */}
-          <motion.div 
-            drag
-            dragMomentum={false}
-            dragConstraints={containerRef}
-            className="absolute top-6 left-6 w-48 bg-slate-900/90 backdrop-blur-xl border border-slate-700 p-4 flex flex-col gap-4 z-40 rounded-xl shadow-2xl cursor-move"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="font-serif text-xl text-[#fbbf24] font-bold">Elements</h3>
-              <GripHorizontal className="w-5 h-5 text-slate-500" />
-            </div>
-            <div className="grid grid-cols-1 gap-2">
+          {/* Right Elements Panel */}
+        <div 
+          className={cn(
+            "bg-slate-900/95 backdrop-blur-xl border-slate-700 flex flex-col z-40 shadow-2xl transition-all duration-300 relative",
+            (isElementsPanelOpen && !isZenMode) ? "w-64 border-l" : "w-0 border-l-0"
+          )}
+        >
+          <div className={cn("absolute top-4 -left-10 z-50 transition-opacity duration-300", !isZenMode ? "opacity-100" : "opacity-0 pointer-events-none")}>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="rounded-l-md rounded-r-none border-y border-l border-slate-700 bg-slate-900 text-slate-400 hover:text-[#fbbf24] shadow-md"
+              onClick={(e) => { e.stopPropagation(); setIsElementsPanelOpen(!isElementsPanelOpen); }}
+            >
+              <ChevronLeft className={cn("w-5 h-5 transition-transform duration-300", !isElementsPanelOpen && "rotate-180")} />
+            </Button>
+          </div>
+
+          <div className={cn("flex flex-col gap-4 h-full transition-opacity duration-300", (isElementsPanelOpen && !isZenMode) ? "opacity-100 p-4 overflow-y-auto" : "opacity-0 p-0 overflow-hidden")}>
+            <h3 className="font-serif text-xl text-[#fbbf24] font-bold sticky top-0 bg-slate-900/95 z-10 pb-2 border-b border-slate-800">Elements</h3>
+            
+            <div className="grid grid-cols-2 gap-2">
               {(Object.keys(ELEMENT_CONFIG) as ElementType[]).map((type) => {
                 const config = ELEMENT_CONFIG[type];
                 const Icon = config.icon;
@@ -1130,7 +1394,6 @@ const VenueArchitectContent = () => {
                     key={type}
                     variant="outline"
                     className="flex flex-col items-center justify-center h-20 gap-2 bg-slate-800/80 border-slate-700 hover:bg-slate-700 hover:border-[#fbbf24] hover:text-[#fbbf24] transition-all cursor-pointer"
-                    onPointerDown={(e) => e.stopPropagation()} // Prevent dragging the palette when clicking a button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddElement(type);
@@ -1145,47 +1408,101 @@ const VenueArchitectContent = () => {
             
             <Separator className="bg-slate-700 my-1" />
             
-            <div className="flex items-center justify-between bg-slate-800/50 p-2 rounded-lg border border-slate-700">
-              <Label className="text-xs text-slate-300 cursor-pointer" htmlFor="outdoor-mode">Outdoor Mode</Label>
-              <Switch id="outdoor-mode" checked={isOutdoorMode} onCheckedChange={setIsOutdoorMode} />
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between bg-slate-800/50 p-2 rounded-lg border border-slate-700">
+                <Label className="text-xs text-slate-300 cursor-pointer" htmlFor="outdoor-mode">Outdoor Mode</Label>
+                <Switch id="outdoor-mode" checked={isOutdoorMode} onCheckedChange={setIsOutdoorMode} />
+              </div>
+
+              <div className="flex items-center justify-between bg-slate-800/50 p-2 rounded-lg border border-slate-700">
+                <Label className="text-xs text-slate-300 cursor-pointer" htmlFor="infra-mode">Safety Overlay</Label>
+                <Switch id="infra-mode" checked={showInfraOverlay} onCheckedChange={setShowInfraOverlay} />
+              </div>
             </div>
 
             <Separator className="bg-slate-700 my-1" />
 
-            <div className="flex items-center justify-between bg-slate-800/50 p-2 rounded-lg border border-slate-700">
-              <Label className="text-xs text-slate-300 cursor-pointer" htmlFor="infra-mode">Safety & Infra Overlay</Label>
-              <Switch id="infra-mode" checked={showInfraOverlay} onCheckedChange={setShowInfraOverlay} />
-            </div>
-
-            <Separator className="bg-slate-700 my-1" />
-
-            <div className="flex flex-col gap-2 bg-slate-800/50 p-2 rounded-lg border border-slate-700">
+            <div className="flex flex-col gap-2 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
               <div className="flex items-center justify-between">
                 <Label className="text-xs text-slate-300 cursor-pointer flex items-center gap-1" htmlFor="rain-mode">
                   <CloudRain className="w-3 h-3 text-blue-400" /> Rain Sim
                 </Label>
                 <Switch id="rain-mode" checked={isRaining} onCheckedChange={setIsRaining} />
               </div>
-              <div className="flex items-center justify-between mt-1">
+              <div className="flex items-center justify-between mt-2">
                 <Label className="text-xs text-slate-300 flex items-center gap-1">
                   <Wind className="w-3 h-3 text-slate-400" /> Wind Dir
                 </Label>
                 <Select value={windDirection} onValueChange={setWindDirection}>
-                  <SelectTrigger className="w-[70px] h-6 text-[10px] bg-slate-900 border-slate-700 text-white px-1">
+                  <SelectTrigger className="w-[80px] h-7 text-xs bg-slate-900 border-slate-700 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700 text-white min-w-[70px]">
+                  <SelectContent className="bg-slate-800 border-slate-700 text-white min-w-[80px]">
                     {["N", "NE", "E", "SE", "S", "SW", "W", "NW"].map(d => (
-                      <SelectItem key={d} value={d} className="text-[10px]">{d}</SelectItem>
+                      <SelectItem key={d} value={d} className="text-xs">{d}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
+            
+            <Separator className="bg-slate-700 my-1" />
 
+            <div className="flex flex-col gap-2">
+              <h4 className="font-serif text-[#fbbf24] text-sm font-bold">Harrison Field Tools</h4>
+              <Button
+                variant={isGridMagnetism ? "default" : "outline"}
+                className={cn("justify-start", isGridMagnetism ? "bg-[#fbbf24] text-slate-900 hover:bg-amber-500" : "bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700")}
+                onClick={() => setIsGridMagnetism(!isGridMagnetism)}
+              >
+                <Crosshair className="w-4 h-4 mr-2" />
+                Grid Magnetism (3')
+              </Button>
+              <Button
+                variant={isStaffBrushActive ? "default" : "outline"}
+                className={cn("justify-start", isStaffBrushActive ? "bg-amber-400 text-slate-900 hover:bg-amber-500" : "bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700")}
+                onClick={() => setIsStaffBrushActive(!isStaffBrushActive)}
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Staff Brush (Multi-Drop)
+              </Button>
+              <Button
+                variant={isFloorSnap ? "default" : "outline"}
+                className={cn("justify-start", isFloorSnap ? "bg-emerald-500 text-slate-900 hover:bg-emerald-600" : "bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700")}
+                onClick={() => setIsFloorSnap(!isFloorSnap)}
+              >
+                <Square className="w-4 h-4 mr-2" />
+                Floor Snap (Raycaster)
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-[#fbbf24]"
+                onClick={handleSaveTemplate}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save as RBW Template
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-emerald-400"
+                onClick={handleGlobalDrop}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                The Global Drop
+              </Button>
+              <Button
+                variant="default"
+                className="justify-start bg-indigo-600 text-white hover:bg-indigo-700 shadow-[0_0_15px_rgba(79,70,229,0.5)]"
+                onClick={handleRunFullTest}
+              >
+                <FileCheck className="w-4 h-4 mr-2" />
+                Run Full Test ($50k Sim)
+              </Button>
+            </div>
+            
             <Separator className="bg-slate-700 my-1" />
             
-            <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700 cursor-default" onPointerDown={(e) => e.stopPropagation()}>
+            <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700 cursor-default mb-6">
               <h4 className="font-serif text-[#fbbf24] mb-2 text-sm">Staffing</h4>
               <div className="flex justify-between text-xs mb-1">
                 <span className="text-slate-400">Guests:</span>
@@ -1196,9 +1513,10 @@ const VenueArchitectContent = () => {
                 <span className="font-bold text-amber-400">{requiredStaff}</span>
               </div>
             </div>
-          </motion.div>
+          </div>
+        </div>
 
-          {/* Staffing Dots (Service Entry) */}
+        {/* Staffing Dots (Service Entry) */}
           {requiredStaff > 0 && (
             <div className="absolute bottom-8 left-8 bg-slate-900/80 p-4 rounded-xl border border-amber-500/30 backdrop-blur-sm">
               <p className="text-xs text-amber-400 font-bold mb-2 uppercase tracking-wider">Service Entry (Staff)</p>
@@ -1238,7 +1556,7 @@ const VenueArchitectContent = () => {
           })}
 
           {/* Render Elements */}
-          {elements.map((el) => {
+          {(elements || []).map((el) => {
             const config = ELEMENT_CONFIG[el.type];
             const isSelected = el.id === selectedId;
             const isActiveEvent = el.timeEventTime !== undefined && globalTime >= el.timeEventTime && globalTime < el.timeEventTime + 1; // Active for 1 hour
@@ -1251,7 +1569,7 @@ const VenueArchitectContent = () => {
                 dragMomentum={false}
                 dragConstraints={containerRef}
                 onDragEnd={(e, info) => {
-                  const snap = PIXELS_PER_FOOT;
+                  const snap = isGridMagnetism || isFloorSnap ? PIXELS_PER_FOOT * 3 : PIXELS_PER_FOOT;
                   const newX = Math.round((el.x + info.offset.x) / snap) * snap;
                   const newY = Math.round((el.y + info.offset.y) / snap) * snap;
                   updateElement(el.id, { x: newX, y: newY });
@@ -1389,8 +1707,9 @@ const VenueArchitectContent = () => {
     </div>
   );
 };
-class VenueArchitectErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
-  constructor(props: { children: React.ReactNode }) {
+
+class VenueArchitectErrorBoundary extends React.Component<{ children: React.ReactNode, onReset: () => void }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode, onReset: () => void }) {
     super(props);
     this.state = { hasError: false };
   }
@@ -1410,7 +1729,8 @@ class VenueArchitectErrorBoundary extends React.Component<{ children: React.Reac
           <h2 className="text-2xl font-bold text-red-400 mb-4">Map Render Error</h2>
           <p className="text-slate-400 mb-6">The Venue Architect encountered an unexpected error loading the map data.</p>
           <Button onClick={() => { 
-            this.setState({ hasError: false }); 
+            this.setState({ hasError: false });
+            this.props.onReset();
           }} className="bg-[#fbbf24] text-slate-900 hover:bg-[#f59e0b]">
             Reset Map to Default Grid
           </Button>
@@ -1422,9 +1742,21 @@ class VenueArchitectErrorBoundary extends React.Component<{ children: React.Reac
 }
 
 export const VenueArchitect = () => {
+  const [resetKey, setResetKey] = useState(0);
+
+  const handleReset = () => {
+    localStorage.removeItem("venue_architect_elements");
+    setElements(CONST_DEMO_STATE);
+    setSelectedId(null);
+    setGlobalTime(16);
+    setIsOutdoorMode(false);
+    setShowInfraOverlay(false);
+    setIsRaining(false);
+  };
+
   return (
-    <VenueArchitectErrorBoundary>
-      <VenueArchitectContent />
+    <VenueArchitectErrorBoundary onReset={handleReset}>
+      <VenueArchitectContent key={resetKey} />
     </VenueArchitectErrorBoundary>
   );
 };

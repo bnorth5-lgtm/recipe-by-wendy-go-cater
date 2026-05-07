@@ -1,13 +1,20 @@
-import { createClient } from '@supabase/supabase-js';
+// Total Network Lockdown for Demo
+export const isDemo = true;
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn("Supabase credentials are missing. Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in your .env file.");
-}
-
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder-project.supabase.co', 
-  supabaseAnonKey || 'placeholder-anon-key'
-);
+// Hard-Kill Network Requests
+export const supabase = { 
+  from: () => ({ 
+    select: () => ({ data: [], error: null }),
+    update: () => ({ eq: () => ({ data: null, error: null }) }),
+    insert: () => ({ select: () => ({ single: () => ({ data: null, error: null }) }) }),
+  }),
+  channel: () => ({
+    on: () => ({ subscribe: () => ({}) }),
+  }),
+  removeChannel: () => {},
+  auth: {
+    getUser: async () => ({ data: { user: null }, error: null }),
+    getSession: async () => ({ data: { session: null }, error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+  },
+} as any;

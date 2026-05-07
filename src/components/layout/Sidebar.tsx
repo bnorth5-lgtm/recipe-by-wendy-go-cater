@@ -23,7 +23,7 @@ import {
   Lock,
   FileText,
   Radar,
-  PanelLeftClose,
+  ChevronLeft,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -109,8 +109,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isColl
         { name: "Bookings", href: "/events/bookings" },
         { name: "BEOs", href: "/events/beos" },
         { name: "BEO Generator", href: "/logistics/beo-generator" },
-        { name: "Venue Architect", href: "/venue-architect" },
       ],
+    },
+    {
+      name: "Visionary",
+      href: "/venue-architect",
+      icon: Radar,
+      children: [],
     },
     {
       name: "Educational Bank",
@@ -174,7 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isColl
             onClick={onToggleCollapse}
             aria-label="Collapse menu"
           >
-            <PanelLeftClose className="h-5 w-5" />
+            <ChevronLeft className="h-5 w-5" />
           </Button>
         )}
         {isMobile && (
@@ -213,7 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isColl
                     locked ? "opacity-50 cursor-not-allowed" : hoverBg,
                     isActiveParent && !locked ? cn(activeBg, activeTextColor) : ""
                   )}
-                  onClick={locked ? undefined : isMobile ? onClose : undefined}
+                  {...(isMobile && !locked ? { onClick: onClose } : {})}
                   disabled={locked}
                 >
                   {locked ? (
@@ -245,7 +250,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isColl
                             hoverBg,
                             isChildActive ? cn(activeBg, activeTextColor) : ""
                           )}
-                          onClick={isMobile ? onClose : undefined}
+                          {...(isMobile ? { onClick: onClose } : {})}
                         >
                           <Link to={child.href}>
                             {child.name}

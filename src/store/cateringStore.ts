@@ -294,13 +294,16 @@ export interface Recipe {
 export interface InventoryItem {
   id: string;
   name: string;
-  category: "Food Ingredient" | "Beverage" | "Furniture" | "Tableware" | "Silverware" | "Glassware" | "Linens" | "Serving Equipment" | "Other";
+  category: "Food Ingredient" | "Beverage" | "Furniture" | "Tableware" | "Silverware" | "Glassware" | "Linens" | "Serving Equipment" | "Other" | "Floral" | "AV" | "Structure" | "Staffing";
   currentStock: number;
   unit: string; // e.g., "lb", "fl oz", "count", "bottle", "chair", "set"
   lowStockThreshold: number;
   costPerUnit: number; // Cost per unit for inventory tracking
   markupPercentage: number; // NEW: Markup percentage for profit (e.g., 0.20 for 20%)
   requiredPortions?: number; // NEW: Dynamically synced from Venue Architect
+  market_scraped_cost?: number;
+  margin_goal?: number;
+  translations?: Record<string, string>;
 }
 
 // Define the schema for a client
