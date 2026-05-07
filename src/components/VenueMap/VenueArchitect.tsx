@@ -120,6 +120,7 @@ const VenueArchitectContent = () => {
   const hasAutoSnapped = useRef(false);
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     console.log("MAP ACTIVE");
@@ -285,6 +286,7 @@ const VenueArchitectContent = () => {
 
   const handleTotalManifestDiamondSnap = () => {
     toast.info("Initiating Diamond Snap", { description: "Calculating coordinates for 180 guests in background..." });
+    setIsLoading(true);
     const targetGuests = 180;
     const tablesNeeded = Math.ceil(targetGuests / 10); // Using 60" rounds (10 guests each based on BEO logic)
     const serversNeeded = Math.ceil(targetGuests / 20); // 1:20 ratio
@@ -414,19 +416,56 @@ const VenueArchitectContent = () => {
       } else {
         setTimeout(syncManifest, 100);
       }
+      setTimeout(() => setIsLoading(false), 500);
     });
   };
 
   useEffect(() => {
-    if (!hasAutoSnapped.current && eventState?.eventName?.includes("Harrison") && elements.length <= 2) {
-      hasAutoSnapped.current = true;
-      // Small timeout to let the canvas mount fully before snapping
-      setTimeout(() => {
-        handleTotalManifestDiamondSnap();
-      }, 100);
-    }
+    if (!eventState?.eventName?.includes("Harrison")) return;
+    if (hasAutoSnapped.current) return;
+
+    const fetchManifest = async () => {
+      setIsLoading(true);
+      try {
+        const { supabase } = await import("@/logic/supabaseClient");
+        const eventId = eventState.eventId || "demo-harrison";
+        
+        const { data, error } = await supabase
+          .from('harrison_build_manifest')
+          .select('*')
+          .eq('event_id', eventId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+
+        if (data && data.elements && data.elements.length > 0 && data.is_locked) {
+          setElements(data.elements);
+          hasAutoSnapped.current = true;
+          setIsLoading(false);
+        } else {
+          // If the map fails to render because of a missing is_locked value or null elements, fallback to snap
+          hasAutoSnapped.current = true;
+          setTimeout(() => {
+            handleTotalManifestDiamondSnap();
+          }, 100);
+        }
+      } catch (err) {
+        console.error("Map Render Error / Fetch Error:", err);
+        // Fallback to Default Harrison Template instead of showing an error screen
+        hasAutoSnapped.current = true;
+        setTimeout(() => {
+          handleTotalManifestDiamondSnap();
+        }, 100);
+      }
+    };
+
+    fetchManifest();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventState?.eventName, elements.length]);
+  }, [eventState?.eventName]);
 
   const handleAddElement = (type: ElementType) => {
     const snap = isGridMagnetism || isFloorSnap ? PIXELS_PER_FOOT * 3 : PIXELS_PER_FOOT;
@@ -1808,10 +1847,25 @@ const VenueArchitectContent = () => {
             );
           })}
 
+          {/* Loading Spinner */}
+          {isLoading && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-4">
+                <Loader2 className="w-12 h-12 text-[#fbbf24] animate-spin" />
+                <span className="text-[#fbbf24] font-bold font-serif">Calculating Diamond Snap...</span>
+              </div>
+            </div>
+          )}
+
           {/* Render Elements */}
-          {(elements || []).map((el) => {
-            const config = ELEMENT_CONFIG[el.type];
-            const isSelected = el.id === selectedId;
+          {(() => {
+            try {
+              if (!elements) throw new Error("Map Render Error: null elements array");
+              return elements.map((el) => {
+                const config = ELEMENT_CONFIG[el.type];
+                if (!config) throw new Error(`Map Render Error: Missing config for type ${el.type}`);
+                
+                const isSelected = el.id === selectedId;
             const isActiveEvent = el.timeEventTime !== undefined && globalTime >= el.timeEventTime && globalTime < el.timeEventTime + 1; // Active for 1 hour
             const isSmoked = smokedElementIds.has(el.id);
             const isAnchor = el.type === "stage" || el.type === "power_drop";
@@ -1933,7 +1987,15 @@ const VenueArchitectContent = () => {
                 )}
               </motion.div>
             );
-          })}
+          });
+          } catch (e) {
+            console.error("Map Render Error:", e);
+            setTimeout(() => {
+              handleTotalManifestDiamondSnap();
+            }, 0);
+            return null;
+          }
+        })()}
         </div>
 
         {/* Global Clock Slider */}
