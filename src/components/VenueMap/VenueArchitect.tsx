@@ -117,6 +117,26 @@ const VenueArchitectContent = () => {
   const [isStaffBrushActive, setIsStaffBrushActive] = useState(false);
   const [isFloorSnap, setIsFloorSnap] = useState(false);
   const warnedTablesRef = useRef<Set<string>>(new Set());
+  const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+  useEffect(() => {
+    console.log("MAP ACTIVE");
+    
+    // Force complete re-render of the canvas by slightly adjusting state
+    const timer = setTimeout(() => {
+      setElements(prev => [...prev]);
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -1367,7 +1387,7 @@ const VenueArchitectContent = () => {
           {/* Right Elements Panel */}
         <div 
           className={cn(
-            "bg-slate-900/95 backdrop-blur-xl border-slate-700 flex flex-col z-40 shadow-2xl transition-all duration-300 relative",
+            "bg-slate-900/95 backdrop-blur-xl border-slate-700 flex flex-col z-50 shadow-2xl transition-all duration-300 relative",
             (isElementsPanelOpen && !isZenMode) ? "w-64 border-l" : "w-0 border-l-0"
           )}
         >
@@ -1585,7 +1605,7 @@ const VenueArchitectContent = () => {
                   rotate: el.rotation,
                   width: config.width,
                   height: config.height,
-                  zIndex: isSelected ? 50 : (el.type === 'tent_40x60' ? 0 : 10),
+                  zIndex: isSelected ? 50 : (el.type === 'tent_40x60' ? 0 : 20), // Increased base z-index for elements
                 }}
                 initial={false}
                 animate={{
