@@ -117,14 +117,25 @@ const VenueArchitectContent = () => {
         console.log("MAP ACTIVE");
 
         resizeObserver = new ResizeObserver(() => {
-          setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-          setElements(prev => [...prev]); // Conceptual invalidateSize/refresh
+          const runResize = () => {
+            setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+            setElements(prev => [...prev]); // Conceptual invalidateSize/refresh
+          };
+          if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(runResize);
+          } else {
+            setTimeout(runResize, 0);
+          }
         });
         resizeObserver.observe(containerRef.current);
 
         // Force complete re-render of the canvas by slightly adjusting state
         refreshTimer = setTimeout(() => {
-          setElements(prev => [...prev]);
+          if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(() => setElements(prev => [...prev]));
+          } else {
+            setTimeout(() => setElements(prev => [...prev]), 0);
+          }
         }, 300); // 300ms delay for final refresh to ensure it snaps into place
 
       } catch (err) {
