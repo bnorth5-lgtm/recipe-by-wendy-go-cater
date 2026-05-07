@@ -62,6 +62,7 @@ import { useEventContext } from "@/context/EventContext";
 import { generateProposalPDF } from "@/logic/PDFGenerator";
 import { saveToVault } from "@/logic/persistence";
 import { logSystemAlert } from "@/lib/switchboardHook";
+import { supabase } from "@/logic/supabaseClient";
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
@@ -261,7 +262,25 @@ const Dashboard = () => {
       className="space-y-6 p-6 relative min-h-screen flex flex-col bg-slate-950 text-slate-50"
     >
       {/* GIANT VISIONARY BUTTON */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex gap-4">
+        <Button 
+          className="bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-6 py-4 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.5)] border-2 border-red-400"
+          onClick={async () => {
+            if (confirm("Are you sure you want to wipe Harrison Field data?")) {
+              localStorage.clear();
+              try {
+                const eventId = eventState?.eventId || "demo-harrison";
+                await supabase.from('harrison_build_manifest').delete().eq('event_id', eventId);
+              } catch (e) {
+                console.error("Failed to delete manifest from Supabase", e);
+              }
+              window.location.reload();
+            }
+          }}
+        >
+          EMERGENCY DATA WIPE
+        </Button>
+
         <Button 
           className="bg-[#fbbf24] hover:bg-amber-500 text-slate-950 font-black text-2xl px-12 py-8 rounded-full shadow-[0_0_40px_rgba(251,191,36,0.6)] animate-pulse border-4 border-white"
           onClick={() => {

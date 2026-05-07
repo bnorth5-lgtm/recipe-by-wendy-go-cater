@@ -7,7 +7,7 @@ import { FileText, Truck, Users, Package, DollarSign, Printer, ChefHat, Sparkles
 import { cn } from "@/lib/utils";
 import { generateProposalPDF } from "@/logic/PDFGenerator";
 import { useBrand } from "@/context/BrandContext";
-import { MapElementData } from "./VenueMap/VenueArchitect";
+import { TARGET_MARGIN, REVENUE_PER_GUEST_DEFAULT, LABOR_PER_STAFF, FOOD_PER_TABLE, type MapElementData } from "@/utils/geoMath";
 
 export const BEOSidebar = ({ elements = [] }: { elements?: MapElementData[] }) => {
   const { eventState } = useEventContext();
@@ -18,11 +18,11 @@ export const BEOSidebar = ({ elements = [] }: { elements?: MapElementData[] }) =
   const tablesCount = elements.filter((e) => e.type === "table_round_60").length;
   
   // Culinary Logic: Every 60_round table adds $1,500
-  const layoutFoodCost = tablesCount * 1500;
+  const layoutFoodCost = tablesCount * FOOD_PER_TABLE;
   
   // Labor Logic: 1 staff member per 2 tables ($300 per staff)
   const layoutStaffCount = Math.ceil(tablesCount / 2);
-  const layoutLaborCost = layoutStaffCount * 300;
+  const layoutLaborCost = layoutStaffCount * LABOR_PER_STAFF;
 
   // Use context defaults if no elements, else use layout calculations
   const dynamicGuests = tablesCount > 0 ? elements.reduce((sum, el) => sum + (el.guests || 0), 0) : eventState.totalGuests;
@@ -44,8 +44,8 @@ export const BEOSidebar = ({ elements = [] }: { elements?: MapElementData[] }) =
   const totalCost = culinaryCost + atmosphereCost + logisticsCost;
 
   // Simulated Revenue dynamically scales to maintain a healthy margin (or defaults to $125/head if no map layout)
-  const targetMargin = eventState.margin_goal ? (eventState.margin_goal / 100) : 0.70;
-  const estimatedRevenue = tablesCount > 0 ? (totalCost / (1 - targetMargin)) : (dynamicGuests * 125);
+  const targetMargin = eventState.margin_goal ? (eventState.margin_goal / 100) : TARGET_MARGIN;
+  const estimatedRevenue = tablesCount > 0 ? (totalCost / (1 - targetMargin)) : (dynamicGuests * REVENUE_PER_GUEST_DEFAULT);
   
   const margin = estimatedRevenue > 0 ? (estimatedRevenue - totalCost) / estimatedRevenue : 0;
   const isHealthyMargin = margin >= 0.70;
