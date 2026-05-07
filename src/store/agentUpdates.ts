@@ -52,7 +52,7 @@ export interface AgentUpdatesState {
   triggerNewUpdate: () => void;
 }
 
-export const useAgentUpdatesStore = create<AgentUpdatesState>((set) => ({
+export const useAgentUpdatesStore = create<AgentUpdatesState>()((set) => ({
   entries: [],
   loading: true,
   error: null,
