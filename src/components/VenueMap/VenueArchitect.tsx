@@ -102,22 +102,49 @@ const VenueArchitectContent = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    console.log("MAP ACTIVE");
-    
-    // Force complete re-render of the canvas by slightly adjusting state
-    const timer = setTimeout(() => {
-      setElements(prev => [...prev]);
-    }, 50);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    let retryTimer: NodeJS.Timeout;
+    let refreshTimer: NodeJS.Timeout;
+    let resizeObserver: ResizeObserver | null = null;
 
-  useEffect(() => {
+    const initMap = () => {
+      try {
+        if (!containerRef.current) {
+          // Wait and retry if the container isn't in the DOM yet
+          retryTimer = setTimeout(initMap, 100);
+          return;
+        }
+
+        console.log("MAP ACTIVE");
+
+        resizeObserver = new ResizeObserver(() => {
+          setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+          setElements(prev => [...prev]); // Conceptual invalidateSize/refresh
+        });
+        resizeObserver.observe(containerRef.current);
+
+        // Force complete re-render of the canvas by slightly adjusting state
+        refreshTimer = setTimeout(() => {
+          setElements(prev => [...prev]);
+        }, 300); // 300ms delay for final refresh to ensure it snaps into place
+
+      } catch (err) {
+        console.error("Map Render Error: Initialization failed", err);
+      }
+    };
+
+    initMap();
+
     const handleResize = () => {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     };
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    return () => {
+      clearTimeout(retryTimer);
+      clearTimeout(refreshTimer);
+      if (resizeObserver) resizeObserver.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   useEffect(() => {
@@ -1761,6 +1788,7 @@ const VenueArchitectContent = () => {
           {/* Render Elements */}
           {(() => {
             try {
+              if (!containerRef.current) return null; // Wait for container to be ready
               if (!elements) throw new Error("Map Render Error: null elements array");
               return elements.map((el) => {
                 const config = ELEMENT_CONFIG[el.type];
