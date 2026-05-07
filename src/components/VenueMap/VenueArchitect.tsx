@@ -281,6 +281,114 @@ const VenueArchitectContent = () => {
     }, 10000);
   };
 
+  const handleTotalManifestDiamondSnap = async () => {
+    toast.info("Initiating Diamond Snap", { description: "Calculating coordinates for 200 guests..." });
+    const targetGuests = 200;
+    const tablesNeeded = Math.ceil(targetGuests / 8); // Using 60" rounds (8 guests each)
+    const serversNeeded = Math.ceil(targetGuests / 20); // 1:20 ratio
+    
+    if (serversNeeded > 12) {
+       toast.error("Architecture Failure", { description: `Requires ${serversNeeded} servers, which exceeds the limit.` });
+       return;
+    }
+
+    const snapElements: MapElementData[] = [];
+    
+    // 1. Anchor: Stage
+    const stageX = 600;
+    const stageY = 100;
+    snapElements.push({
+      id: crypto.randomUUID(),
+      type: "stage",
+      x: stageX,
+      y: stageY,
+      rotation: 0,
+      guests: 0,
+      vendorAssigned: true,
+      selfPerform: false
+    });
+
+    // Add Power Drop near stage
+    snapElements.push({
+      id: crypto.randomUUID(),
+      type: "power_drop",
+      x: stageX + 240,
+      y: stageY + 60,
+      rotation: 0,
+      guests: 0,
+      vendorAssigned: true,
+      selfPerform: false
+    });
+
+    // 2. Execute Staggered Offset Grid (Diamond Snap)
+    // 45-degree service runways.
+    const startX = 200;
+    const startY = 300;
+    const spacingX = 140; // 100px table + 40px runway
+    const spacingY = 120;
+    
+    for (let i = 0; i < tablesNeeded; i++) {
+       const row = Math.floor(i / 5);
+       const col = i % 5;
+       const offsetX = (row % 2 === 1) ? (spacingX / 2) : 0;
+       
+       snapElements.push({
+         id: crypto.randomUUID(),
+         type: "table_round_60",
+         x: startX + (col * spacingX) + offsetX,
+         y: startY + (row * spacingY),
+         rotation: 45, 
+         guests: 8,
+         vendorAssigned: true,
+         selfPerform: false
+       });
+    }
+
+    // Add staging kitchen
+    snapElements.push({
+      id: crypto.randomUUID(),
+      type: "staging_kitchen",
+      x: 100,
+      y: 700,
+      rotation: 0,
+      guests: 0,
+      vendorAssigned: true,
+      selfPerform: false
+    });
+
+    // Bypass incremental rendering - drop all at once
+    setElements(snapElements);
+    
+    // Auto-enter fullscreen for visual confirmation
+    if (!document.fullscreenElement && containerRef.current) {
+      containerRef.current.requestFullscreen().catch(() => {});
+    }
+
+    toast.success("Diamond Snap Complete", { description: "100% Seating Achieved. 45-degree runways established." });
+
+    // Sync to Supabase harrison_build_manifest
+    try {
+      const { supabase } = await import("@/logic/supabaseClient");
+      const eventId = eventState?.eventId || "demo-harrison";
+      const result = await supabase.from('harrison_build_manifest').insert({
+        event_id: eventId,
+        snap_mode: 'Diamond',
+        guest_count: targetGuests,
+        elements: snapElements
+      });
+      // the mock returns an object without an error property or we check if there's an error
+      if (result && result.error) {
+         console.error("Supabase Manifest Sync Error:", result.error);
+         toast.error("Manifest Sync Failed", { description: result.error.message });
+      } else {
+         toast.success("Manifest Synced", { description: "Layout successfully committed to Supabase." });
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Manifest Sync Failed", { description: e.message });
+    }
+  };
+
   const handleAddElement = (type: ElementType) => {
     const snap = isGridMagnetism || isFloorSnap ? PIXELS_PER_FOOT * 3 : PIXELS_PER_FOOT;
     const rawX = 100 + Math.random() * 50;
@@ -1556,6 +1664,14 @@ const VenueArchitectContent = () => {
               >
                 <MapPin className="w-4 h-4 mr-2" />
                 The Global Drop
+              </Button>
+              <Button
+                variant="default"
+                className="justify-start bg-yellow-400 text-slate-900 font-bold hover:bg-yellow-500 shadow-[0_0_15px_rgba(250,204,21,0.5)]"
+                onClick={handleTotalManifestDiamondSnap}
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Total Manifest (Diamond Snap)
               </Button>
               <Button
                 variant="default"
