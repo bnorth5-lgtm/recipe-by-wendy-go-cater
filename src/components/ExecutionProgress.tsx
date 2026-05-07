@@ -22,8 +22,8 @@ export const ExecutionProgress: React.FC<ExecutionProgressProps> = ({ percentage
           <div className="relative flex-1 h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
             <div 
               className={cn(
-                "absolute top-0 left-0 h-full transition-all duration-1000 ease-out rounded-full",
-                percentage === 100 ? "bg-[#fbbf24] shadow-[0_0_10px_rgba(234,179,8,0.8)]" : "bg-amber-600/80"
+                "absolute top-0 left-0 h-full transition-all ease-out rounded-full",
+                percentage === 100 ? "bg-[#fbbf24] shadow-[0_0_10px_rgba(234,179,8,0.8)] duration-[1500ms]" : "bg-amber-600/80 duration-1000"
               )}
               style={{ width: `${percentage}%` }}
             />

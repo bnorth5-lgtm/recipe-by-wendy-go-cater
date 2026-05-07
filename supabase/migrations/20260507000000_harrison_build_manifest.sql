@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS harrison_build_manifest (
     snap_mode TEXT NOT NULL,
     guest_count INT NOT NULL,
     elements JSONB NOT NULL,
+    is_locked BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

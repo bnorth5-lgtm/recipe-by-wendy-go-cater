@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from "react";
+import React, { useState, useRef, useMemo, useEffect, useTransition } from "react";
 import { motion } from "framer-motion";
 import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen, Volume2, Droplets, Bath, HardHat, CloudRain, Wind, ChevronLeft, Maximize, Minimize, Save, MapPin, FileCheck } from "lucide-react";
 import { dropGlobalPin } from "@/logic/ScoutNBS";
@@ -117,7 +117,9 @@ const VenueArchitectContent = () => {
   const [isStaffBrushActive, setIsStaffBrushActive] = useState(false);
   const [isFloorSnap, setIsFloorSnap] = useState(false);
   const warnedTablesRef = useRef<Set<string>>(new Set());
+  const hasAutoSnapped = useRef(false);
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     console.log("MAP ACTIVE");
@@ -281,10 +283,10 @@ const VenueArchitectContent = () => {
     }, 10000);
   };
 
-  const handleTotalManifestDiamondSnap = async () => {
-    toast.info("Initiating Diamond Snap", { description: "Calculating coordinates for 200 guests..." });
-    const targetGuests = 200;
-    const tablesNeeded = Math.ceil(targetGuests / 8); // Using 60" rounds (8 guests each)
+  const handleTotalManifestDiamondSnap = () => {
+    toast.info("Initiating Diamond Snap", { description: "Calculating coordinates for 180 guests in background..." });
+    const targetGuests = 180;
+    const tablesNeeded = Math.ceil(targetGuests / 10); // Using 60" rounds (10 guests each based on BEO logic)
     const serversNeeded = Math.ceil(targetGuests / 20); // 1:20 ratio
     
     if (serversNeeded > 12) {
@@ -292,102 +294,139 @@ const VenueArchitectContent = () => {
        return;
     }
 
-    const snapElements: MapElementData[] = [];
-    
-    // 1. Anchor: Stage
-    const stageX = 600;
-    const stageY = 100;
-    snapElements.push({
-      id: crypto.randomUUID(),
-      type: "stage",
-      x: stageX,
-      y: stageY,
-      rotation: 0,
-      guests: 0,
-      vendorAssigned: true,
-      selfPerform: false
-    });
-
-    // Add Power Drop near stage
-    snapElements.push({
-      id: crypto.randomUUID(),
-      type: "power_drop",
-      x: stageX + 240,
-      y: stageY + 60,
-      rotation: 0,
-      guests: 0,
-      vendorAssigned: true,
-      selfPerform: false
-    });
-
-    // 2. Execute Staggered Offset Grid (Diamond Snap)
-    // 45-degree service runways.
-    const startX = 200;
-    const startY = 300;
-    const spacingX = 140; // 100px table + 40px runway
-    const spacingY = 120;
-    
-    for (let i = 0; i < tablesNeeded; i++) {
-       const row = Math.floor(i / 5);
-       const col = i % 5;
-       const offsetX = (row % 2 === 1) ? (spacingX / 2) : 0;
-       
-       snapElements.push({
-         id: crypto.randomUUID(),
-         type: "table_round_60",
-         x: startX + (col * spacingX) + offsetX,
-         y: startY + (row * spacingY),
-         rotation: 45, 
-         guests: 8,
-         vendorAssigned: true,
-         selfPerform: false
-       });
-    }
-
-    // Add staging kitchen
-    snapElements.push({
-      id: crypto.randomUUID(),
-      type: "staging_kitchen",
-      x: 100,
-      y: 700,
-      rotation: 0,
-      guests: 0,
-      vendorAssigned: true,
-      selfPerform: false
-    });
-
-    // Bypass incremental rendering - drop all at once
-    setElements(snapElements);
-    
-    // Auto-enter fullscreen for visual confirmation
-    if (!document.fullscreenElement && containerRef.current) {
-      containerRef.current.requestFullscreen().catch(() => {});
-    }
-
-    toast.success("Diamond Snap Complete", { description: "100% Seating Achieved. 45-degree runways established." });
-
-    // Sync to Supabase harrison_build_manifest
-    try {
-      const { supabase } = await import("@/logic/supabaseClient");
-      const eventId = eventState?.eventId || "demo-harrison";
-      const result = await supabase.from('harrison_build_manifest').insert({
-        event_id: eventId,
-        snap_mode: 'Diamond',
-        guest_count: targetGuests,
-        elements: snapElements
+    startTransition(() => {
+      const snapElements: MapElementData[] = [];
+      
+      // 1. Anchor: Tent & Stage
+      const stageX = 600;
+      const stageY = 100;
+      
+      snapElements.push({
+        id: crypto.randomUUID(),
+        type: "tent_40x60",
+        x: 150,
+        y: 50,
+        rotation: 0,
+        guests: 0,
+        vendorAssigned: true,
+        selfPerform: false
       });
-      // the mock returns an object without an error property or we check if there's an error
-      if (result && result.error) {
-         console.error("Supabase Manifest Sync Error:", result.error);
-         toast.error("Manifest Sync Failed", { description: result.error.message });
-      } else {
-         toast.success("Manifest Synced", { description: "Layout successfully committed to Supabase." });
+
+      snapElements.push({
+        id: crypto.randomUUID(),
+        type: "stage",
+        x: stageX,
+        y: stageY,
+        rotation: 0,
+        guests: 0,
+        vendorAssigned: true,
+        selfPerform: false
+      });
+
+      // Add Power Drop near stage
+      snapElements.push({
+        id: crypto.randomUUID(),
+        type: "power_drop",
+        x: stageX + 240,
+        y: stageY + 60,
+        rotation: 0,
+        guests: 0,
+        vendorAssigned: true,
+        selfPerform: false
+      });
+
+      // 2. Execute Staggered Offset Grid (Diamond Snap)
+      // 45-degree service runways.
+      const startX = 200;
+      const startY = 300;
+      const spacingX = 140; // 100px table + 40px runway
+      const spacingY = 120;
+      
+      for (let i = 0; i < tablesNeeded; i++) {
+         const row = Math.floor(i / 5);
+         const col = i % 5;
+         const offsetX = (row % 2 === 1) ? (spacingX / 2) : 0;
+         
+         snapElements.push({
+           id: crypto.randomUUID(),
+           type: "table_round_60",
+           x: startX + (col * spacingX) + offsetX,
+           y: startY + (row * spacingY),
+           rotation: 45, 
+           guests: 10,
+           vendorAssigned: true,
+           selfPerform: false,
+           linen: "white_cotton",
+           napkin: "white",
+           glassware: "standard",
+           centerpieceStyle: "low_lush"
+         });
       }
-    } catch (e: any) {
-      console.error(e);
-      toast.error("Manifest Sync Failed", { description: e.message });
-    }
+
+      // Add staging kitchen
+      snapElements.push({
+        id: crypto.randomUUID(),
+        type: "staging_kitchen",
+        x: 100,
+        y: 700,
+        rotation: 0,
+        guests: 0,
+        vendorAssigned: true,
+        selfPerform: false
+      });
+
+      // Bypass incremental rendering - drop all at once
+      setElements(snapElements);
+      
+      // Auto-enter fullscreen for visual confirmation
+      if (!document.fullscreenElement && containerRef.current) {
+        containerRef.current.requestFullscreen().catch(() => {});
+      }
+
+      toast.success("Diamond Snap Complete", { description: "100% Seating Achieved. 45-degree runways established." });
+
+      // Sync to Supabase harrison_build_manifest asynchronously
+      const syncManifest = async () => {
+        try {
+          const { supabase } = await import("@/logic/supabaseClient");
+          const eventId = eventState?.eventId || "demo-harrison";
+          const result = await supabase.from('harrison_build_manifest').insert({
+            event_id: eventId,
+            snap_mode: 'Diamond',
+            guest_count: targetGuests,
+            elements: snapElements,
+            is_locked: true
+          });
+          if (result && result.error) {
+             console.error("Supabase Manifest Sync Error:", result.error);
+             toast.error("Manifest Sync Failed", { description: result.error.message });
+          } else {
+             toast.success("Manifest Synced", { description: "Layout successfully committed to Supabase." });
+          }
+        } catch (e: any) {
+          console.error(e);
+          toast.error("Manifest Sync Failed", { description: e.message });
+        }
+      };
+
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => { syncManifest(); });
+      } else {
+        setTimeout(syncManifest, 100);
+      }
+    });
   };
+
+  useEffect(() => {
+    if (!hasAutoSnapped.current && eventState?.eventName?.includes("Harrison") && elements.length <= 2) {
+      hasAutoSnapped.current = true;
+      // Small timeout to let the canvas mount fully before snapping
+      setTimeout(() => {
+        handleTotalManifestDiamondSnap();
+      }, 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventState?.eventName, elements.length]);
 
   const handleAddElement = (type: ElementType) => {
     const snap = isGridMagnetism || isFloorSnap ? PIXELS_PER_FOOT * 3 : PIXELS_PER_FOOT;
@@ -696,6 +735,10 @@ const VenueArchitectContent = () => {
     };
   }, [elements, tablesCount, chairsCount, tentsCount, muddyPathTableIds]);
 
+  const isDiamondSnapActive = useMemo(() => {
+    return elements.length > 5 && elements.some(e => e.type === "table_round_60" && e.rotation === 45);
+  }, [elements]);
+
   const formatDuration = (mins: number) => {
     const h = Math.floor(mins / 60);
     const m = Math.round(mins % 60);
@@ -769,7 +812,7 @@ const VenueArchitectContent = () => {
         {!isZenMode && (
           <>
             {/* Left Toolbar - Now the Live BEO Sidebar */}
-        <BEOSidebar />
+        <BEOSidebar elements={elements} />
                 {/* Left Sidebar (Details) */}
         <div className="w-80 bg-slate-900 border-r border-slate-800 p-4 flex flex-col gap-4 overflow-y-auto z-10 shadow-2xl h-full">
           <Tabs value={rightSidebarTab} onValueChange={(v: any) => setRightSidebarTab(v)} className="w-full flex-1 flex flex-col">
@@ -1316,6 +1359,33 @@ const VenueArchitectContent = () => {
 
           {/* Power Drop Connections */}
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: '100%', height: '100%' }}>
+            {/* High-Speed Service Runways (Diamond Snap Ghost Layer) */}
+            {isDiamondSnapActive && Array.from({ length: 5 }).map((_, i) => (
+              <g key={`runway-${i}`}>
+                <line 
+                  x1={180 + (i * 140)} 
+                  y1={280} 
+                  x2={180 + (i * 140) + 400} 
+                  y2={280 + 600} 
+                  stroke="#FFD700" 
+                  strokeWidth="30" 
+                  strokeDasharray="20,20" 
+                  opacity="0.1" 
+                />
+                <text 
+                  x={180 + (i * 140) + 100} 
+                  y={280 + 100 + 40} 
+                  fill="#FFD700" 
+                  fontSize="14" 
+                  fontWeight="bold" 
+                  opacity="0.3" 
+                  transform={`rotate(56 ${180 + (i * 140) + 100} ${280 + 100 + 40})`}
+                >
+                  HIGH-SPEED SERVICE RUNWAY
+                </text>
+              </g>
+            ))}
+
             {/* Draw Red Gap Lines */}
             {elements.map((el1, i) => {
               return elements.slice(i + 1).map(el2 => {
@@ -1744,6 +1814,7 @@ const VenueArchitectContent = () => {
             const isSelected = el.id === selectedId;
             const isActiveEvent = el.timeEventTime !== undefined && globalTime >= el.timeEventTime && globalTime < el.timeEventTime + 1; // Active for 1 hour
             const isSmoked = smokedElementIds.has(el.id);
+            const isAnchor = el.type === "stage" || el.type === "power_drop";
             
             return (
               <motion.div
@@ -1782,7 +1853,8 @@ const VenueArchitectContent = () => {
                   el.type === "tent_40x60" && el.hasSidewalls ? "bg-amber-50/5 border-4 border-solid border-white backdrop-blur-[2px]" : config.color,
                   config.shape === "circle" ? "rounded-full" : "rounded-md",
                   isSelected && "border-[#fbbf24] border-solid border-2",
-                  isSmoked && "border-orange-500 border-4 shadow-[0_0_20px_rgba(249,115,22,0.6)] bg-orange-900/50"
+                  isSmoked && "border-orange-500 border-4 shadow-[0_0_20px_rgba(249,115,22,0.6)] bg-orange-900/50",
+                  isAnchor && isDiamondSnapActive && "shadow-[0_0_30px_rgba(251,191,36,0.6)] border-amber-400 z-30"
                 )}>
                   {el.type === "staging_kitchen" && el.showSafetyRadius && (
                     <div 

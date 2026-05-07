@@ -60,8 +60,8 @@ interface EventContextType {
 const defaultState: EventState = {
   eventName: "Harrison, Maine (Infrastructure-Zero Demo)",
   category: "Catering",
-  totalGuests: 0,
-  staffCount: 0,
+  totalGuests: 180,
+  staffCount: 12,
   hourlyRate: 25.00,
   estimatedHours: 6,
   mileage: 50, // 50 miles to trigger $250 Remote Surcharge

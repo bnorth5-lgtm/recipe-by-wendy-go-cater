@@ -7,14 +7,28 @@ import { FileText, Truck, Users, Package, DollarSign, Printer, ChefHat, Sparkles
 import { cn } from "@/lib/utils";
 import { generateProposalPDF } from "@/logic/PDFGenerator";
 import { useBrand } from "@/context/BrandContext";
+import { MapElementData } from "./VenueMap/VenueArchitect";
 
-export const BEOSidebar = () => {
+export const BEOSidebar = ({ elements = [] }: { elements?: MapElementData[] }) => {
   const { eventState } = useEventContext();
   const { brand } = useBrand();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  // Calculations
-  const laborCost = eventState.staffCount * eventState.hourlyRate * eventState.estimatedHours;
+  // Layout Dynamic Calculations
+  const tablesCount = elements.filter((e) => e.type === "table_round_60").length;
+  
+  // Culinary Logic: Every 60_round table adds $1,500
+  const layoutFoodCost = tablesCount * 1500;
+  
+  // Labor Logic: 1 staff member per 2 tables ($300 per staff)
+  const layoutStaffCount = Math.ceil(tablesCount / 2);
+  const layoutLaborCost = layoutStaffCount * 300;
+
+  // Use context defaults if no elements, else use layout calculations
+  const dynamicGuests = tablesCount > 0 ? elements.reduce((sum, el) => sum + (el.guests || 0), 0) : eventState.totalGuests;
+  const dynamicStaffCount = tablesCount > 0 ? layoutStaffCount : eventState.staffCount;
+  const laborCost = tablesCount > 0 ? layoutLaborCost : (eventState.staffCount * eventState.hourlyRate * eventState.estimatedHours);
+  const foodCost = tablesCount > 0 ? layoutFoodCost : (eventState.menuItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) * eventState.totalGuests);
   
   // Logistics Cost (includes Remote Site Surcharge if > 30 miles)
   const baseLogistics = eventState.mileage * 2 * 0.725; // Round trip mileage
@@ -24,12 +38,15 @@ export const BEOSidebar = () => {
   const atmosphereCost = eventState.inventoryCosts;
   
   // Culinary Cost (Food + Labor)
-  const foodCost = eventState.menuItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) * eventState.totalGuests; // Simplified food cost calc
   const culinaryCost = foodCost + laborCost;
   
-  // Simulated Revenue based on guests
-  const estimatedRevenue = eventState.totalGuests * 125;
+  // Total Cost calculation
   const totalCost = culinaryCost + atmosphereCost + logisticsCost;
+
+  // Simulated Revenue dynamically scales to maintain a healthy margin (or defaults to $125/head if no map layout)
+  const targetMargin = eventState.margin_goal ? (eventState.margin_goal / 100) : 0.70;
+  const estimatedRevenue = tablesCount > 0 ? (totalCost / (1 - targetMargin)) : (dynamicGuests * 125);
+  
   const margin = estimatedRevenue > 0 ? (estimatedRevenue - totalCost) / estimatedRevenue : 0;
   const isHealthyMargin = margin >= 0.70;
 
@@ -87,14 +104,14 @@ export const BEOSidebar = () => {
               <Users className="w-3.5 h-3.5" />
               <span className="text-xs uppercase tracking-wider">Guests</span>
             </div>
-            <p className="text-lg font-bold text-white">{eventState.totalGuests}</p>
+            <p className="text-lg font-bold text-white">{dynamicGuests}</p>
           </div>
           <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
             <div className="flex items-center gap-1.5 text-slate-400 mb-1">
               <Users className="w-3.5 h-3.5 text-amber-500" />
               <span className="text-xs uppercase tracking-wider">Staff</span>
             </div>
-            <p className="text-lg font-bold text-white">{eventState.staffCount}</p>
+            <p className="text-lg font-bold text-white">{dynamicStaffCount}</p>
           </div>
         </div>
 
