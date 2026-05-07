@@ -1001,10 +1001,39 @@ const VenueArchitectContent = () => {
         {/* Canvas Area */}
         <div 
           id="venue-map-canvas" 
-          className="flex-1 relative overflow-hidden cursor-crosshair transition-colors duration-700" 
-          style={{ backgroundColor: isOutdoorMode ? '#064e3b' : '#0f172a' }}
+          className="flex-1 relative overflow-hidden cursor-crosshair transition-colors duration-700 pointer-events-auto" 
+          style={{ backgroundColor: isOutdoorMode ? '#064e3b' : '#0f172a', pointerEvents: 'auto' }}
           ref={containerRef} 
-          onClick={() => setSelectedId(null)}
+          onClick={(e) => {
+            setSelectedId(null);
+            // Fallback for Staff Brush / Floor Snap if onMouseDown fails
+            if (isStaffBrushActive) {
+              if (!containerRef.current) return;
+              const rect = containerRef.current.getBoundingClientRect();
+              const rawX = e.clientX - rect.left;
+              const rawY = e.clientY - rect.top;
+              const brushSnap = PIXELS_PER_FOOT * 3;
+              const brushX = Math.round(rawX / brushSnap) * brushSnap;
+              const brushY = Math.round(rawY / brushSnap) * brushSnap;
+              
+              setElements(prev => {
+                const exists = prev.some(el => el.type === "staff_member" && el.x === brushX && el.y === brushY);
+                if (!exists) {
+                  return [...prev, {
+                    id: `staff_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    type: "staff_member",
+                    x: brushX,
+                    y: brushY,
+                    rotation: 0,
+                    guests: 0,
+                    vendorAssigned: false,
+                    selfPerform: false
+                  }];
+                }
+                return prev;
+              });
+            }
+          }}
           onMouseMove={(e) => {
             if (!containerRef.current) return;
             const rect = containerRef.current.getBoundingClientRect();
@@ -1384,6 +1413,24 @@ const VenueArchitectContent = () => {
             </div>
           </div>
 
+          {/* Manual Trigger / Reset Interaction */}
+          <div className="absolute bottom-6 left-6 z-50">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-slate-900/90 backdrop-blur-xl border-slate-700 text-slate-400 hover:text-white shadow-2xl pointer-events-auto"
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("RESET INTERACTION Triggered");
+                setElements(prev => [...prev]);
+                setIsHoveringMap(false);
+                setTimeout(() => setIsHoveringMap(true), 50);
+              }}
+            >
+              RESET INTERACTION
+            </Button>
+          </div>
+
           {/* Right Elements Panel */}
         <div 
           className={cn(
@@ -1413,7 +1460,7 @@ const VenueArchitectContent = () => {
                   <Button
                     key={type}
                     variant="outline"
-                    className="flex flex-col items-center justify-center h-20 gap-2 bg-slate-800/80 border-slate-700 hover:bg-slate-700 hover:border-[#fbbf24] hover:text-[#fbbf24] transition-all cursor-pointer"
+                    className="flex flex-col items-center justify-center h-20 gap-2 bg-slate-800/80 border-slate-700 hover:bg-slate-700 hover:border-[#fbbf24] hover:text-[#fbbf24] transition-all cursor-pointer pointer-events-auto"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddElement(type);
