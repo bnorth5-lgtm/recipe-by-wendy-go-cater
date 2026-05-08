@@ -27,6 +27,8 @@ import {
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/logic/supabaseClient";
+import { useEventContext } from "@/context/EventContext";
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -39,6 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isColl
   const location = useLocation();
   const isMobile = useIsMobile();
   const { can, isExec } = useSubscription();
+  const { eventState } = useEventContext();
 
   const navItems = [
     {
@@ -265,6 +268,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isColl
           })}
         </nav>
       </ScrollArea>
+      {!isCollapsed && (
+        <div className="p-4 border-t border-sidebar-border mt-auto">
+          <div className="text-[10px] uppercase font-bold tracking-wider text-red-500 mb-2 pl-2">Danger Zone</div>
+          <Button 
+            variant="destructive"
+            className="w-full bg-red-950 hover:bg-red-900 text-red-400 font-semibold text-xs border border-red-900/50 shadow-[0_0_15px_rgba(220,38,38,0.15)]"
+            onClick={async () => {
+              if (confirm("Are you sure you want to wipe Harrison Field data?")) {
+                localStorage.clear();
+                try {
+                  const eventId = eventState?.eventId || "demo-harrison";
+                  await supabase.from('harrison_build_manifest').delete().eq('event_id', eventId);
+                } catch (e) {
+                  console.error("Failed to delete manifest from Supabase", e);
+                }
+                window.location.reload();
+              }
+            }}
+          >
+            EMERGENCY DATA WIPE
+          </Button>
+        </div>
+      )}
     </aside>
   );
 };

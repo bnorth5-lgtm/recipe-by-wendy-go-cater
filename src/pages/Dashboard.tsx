@@ -261,45 +261,6 @@ const Dashboard = () => {
     <div
       className="space-y-6 p-6 relative min-h-screen flex flex-col bg-slate-950 text-slate-50"
     >
-      {/* GIANT VISIONARY BUTTON */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex gap-4">
-        <Button 
-          className="bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-6 py-4 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.5)] border-2 border-red-400"
-          onClick={async () => {
-            if (confirm("Are you sure you want to wipe Harrison Field data?")) {
-              localStorage.clear();
-              try {
-                const eventId = eventState?.eventId || "demo-harrison";
-                await supabase.from('harrison_build_manifest').delete().eq('event_id', eventId);
-              } catch (e) {
-                console.error("Failed to delete manifest from Supabase", e);
-              }
-              window.location.reload();
-            }
-          }}
-        >
-          EMERGENCY DATA WIPE
-        </Button>
-
-        <Button 
-          className="bg-[#fbbf24] hover:bg-amber-500 text-slate-950 font-black text-2xl px-12 py-8 rounded-full shadow-[0_0_40px_rgba(251,191,36,0.6)] animate-pulse border-4 border-white"
-          onClick={() => {
-            navigate('/venue-architect');
-            // We use a timeout to allow the navigation to complete before requesting fullscreen
-            setTimeout(() => {
-              const canvas = document.getElementById('venue-map-canvas');
-              if (canvas) {
-                canvas.requestFullscreen().catch(err => {
-                  console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                });
-              }
-            }, 500);
-          }}
-        >
-          LAUNCH VISIONARY MAP
-        </Button>
-      </div>
-
       {/* Global Status Badges */}
       {vaultStatus.isLocalOnly && (
         <div className="relative z-10 flex justify-end">
@@ -310,7 +271,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="text-center space-y-4 mb-8">
+      <div className="text-center space-y-4 mb-8 pt-12 md:pt-16">
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-md" style={{ fontFamily: "'Playfair Display', serif" }}>
           {brand.companyName}
         </h1>

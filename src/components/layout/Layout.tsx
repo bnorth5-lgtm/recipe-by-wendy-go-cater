@@ -5,14 +5,14 @@ import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAgentRealtime } from "@/hooks/useAgentRealtime";
-import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeftOpen, Lock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ProvenanceBio } from "@/components/ProvenanceBio";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { Lock } from "lucide-react";
 import { saveToVault } from "@/logic/persistence";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -28,6 +28,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { eventState } = useEventContext();
   const [isPending, startTransition] = useTransition();
+  const navigate = useNavigate();
 
   // Watch for new kitchen notifications
   useEffect(() => {
@@ -110,8 +111,27 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       
       <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
         <Button 
+          className="bg-[#fbbf24] hover:bg-amber-500 text-slate-950 font-bold shadow-[0_0_15px_rgba(251,191,36,0.4)] gap-2 border border-amber-300"
+          size="sm"
+          onClick={() => {
+            navigate('/venue-architect');
+            setTimeout(() => {
+              const canvas = document.getElementById('venue-map-canvas');
+              if (canvas) {
+                canvas.requestFullscreen().catch(err => {
+                  console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+              }
+            }, 500);
+          }}
+        >
+          <Sparkles className="w-4 h-4" />
+          Visionary Map
+        </Button>
+        <Button 
           onClick={handleLockAndSave}
-          className="bg-[#fbbf24] text-slate-900 hover:bg-[#fbbf24]/90 font-bold shadow-[0_0_15px_rgba(234,179,8,0.4)] gap-2"
+          className="bg-slate-800 text-white hover:bg-slate-700 font-bold border border-slate-700 gap-2"
+          size="sm"
         >
           <Lock className="w-4 h-4" />
           Lock & Save
