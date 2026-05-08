@@ -24,7 +24,10 @@ import {
   Sparkles,
   BookText,
   Share2,
-  Download
+  Download,
+  ChevronDown,
+  Zap,
+  Droplets,
 } from "lucide-react";
 import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore";
 import { getVaultStatus } from "@/lib/cloudVault";
@@ -64,6 +67,38 @@ import { saveToVault } from "@/logic/persistence";
 import { logSystemAlert } from "@/lib/switchboardHook";
 import { supabase } from "@/logic/supabaseClient";
 import { PACKET_01_12_GOLD_DATA_URI } from "@/branding/packet-01-12-gold-data-uri";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+
+function HarrisonVenueThumbnail({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 200 140"
+      className={className}
+      aria-hidden
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id="harrisonGold" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#fde68a" />
+          <stop offset="55%" stopColor="#fbbf24" />
+          <stop offset="100%" stopColor="#b45309" />
+        </linearGradient>
+      </defs>
+      <rect width="200" height="140" rx="8" fill="#020617" stroke="url(#harrisonGold)" strokeWidth="1.25" opacity="0.9" />
+      <rect x="14" y="24" width="172" height="92" rx="4" stroke="#1e293b" strokeWidth="1.25" strokeDasharray="4 3" fill="#0a1628" />
+      <ellipse cx="102" cy="68" rx="44" ry="34" stroke="url(#harrisonGold)" strokeWidth="1.35" strokeOpacity="0.75" />
+      <rect x="40" y="46" width="28" height="18" rx="2" stroke="#64748b" strokeWidth="0.9" fill="#131f35" opacity="0.9" />
+      <rect x="132" y="46" width="28" height="18" rx="2" stroke="#64748b" strokeWidth="0.9" fill="#131f35" opacity="0.9" />
+      <path d="M164 118 L170 132 M34 132 L174 132" stroke="url(#harrisonGold)" strokeWidth="1" strokeOpacity="0.55" strokeLinecap="round" />
+      <text x="100" y="128" fill="#94a3b8" fontSize="8" fontFamily="system-ui, sans-serif" textAnchor="middle">
+        Harrison Field · Harrison, ME
+      </text>
+    </svg>
+  );
+}
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
@@ -123,6 +158,7 @@ const Dashboard = () => {
   const [currentTaskContent, setCurrentTaskContent] = useState("");
 
   const [heroImageError, setHeroImageError] = useState(false);
+  const [proposalPortalOpen, setProposalPortalOpen] = useState(false);
   const [isEditNoteDialogOpen, setIsEditNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editedNoteContent, setEditedNoteContent] = useState("");
@@ -300,64 +336,178 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Client Proposal Portal — directly under hero */}
+      {/* Client Proposal Portal — drawer expands for Live Event Feed */}
       <div className="w-full max-w-6xl mx-auto mb-8">
-        <Card className="bg-slate-900/80 border border-[#fbbf24]/40 backdrop-blur-xl shadow-[0_0_30px_rgba(251,191,36,0.12)] hover:shadow-[0_0_36px_rgba(251,191,36,0.22)] rounded-2xl overflow-hidden relative transition-all group">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#fbbf24]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-          <div className="absolute top-0 left-0 w-1.5 h-full bg-[#fbbf24]" />
-          <CardHeader className="relative z-10 flex flex-row flex-wrap items-center justify-between gap-4 pb-2">
-            <div>
-              <CardTitle className="text-2xl font-serif text-white flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-[#fbbf24]" />
-                Client Proposal Portal
-              </CardTitle>
-              <CardDescription className="text-slate-400 mt-1">
-                Active Event: <span className="text-[#fbbf24] font-medium">{eventState.eventName || "Untitled Event"}</span>
-              </CardDescription>
+        <Collapsible
+          open={proposalPortalOpen}
+          onOpenChange={setProposalPortalOpen}
+          className="group/collapsible w-full"
+        >
+          <Card className="bg-slate-900/80 border border-[#fbbf24]/40 backdrop-blur-xl shadow-[0_0_30px_rgba(251,191,36,0.12)] hover:shadow-[0_0_36px_rgba(251,191,36,0.22)] rounded-2xl overflow-hidden relative transition-shadow">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#fbbf24]/10 to-transparent opacity-0 transition-opacity duration-300 group-data-[state=open]/collapsible:opacity-100 group-hover/collapsible:opacity-70" />
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-[#fbbf24]" />
+
+            <div className="relative z-10 flex flex-col gap-2 px-4 pt-5 pb-2 sm:px-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "group/trigger flex w-full flex-1 min-w-0 flex-row items-center gap-4 rounded-xl border px-4 py-3 text-left outline-none transition-all",
+                      "border-[#fbbf24]/15 bg-[#0a1628]/40 hover:border-[#fbbf24]/35 hover:bg-[#fbbf24]/[0.07]",
+                      "focus-visible:border-[#fbbf24]/45 focus-visible:ring-2 focus-visible:ring-[#fbbf24]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c1424]"
+                    )}
+                    aria-expanded={proposalPortalOpen}
+                    aria-controls="proposal-portal-drawer"
+                  >
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <CardTitle className="text-xl font-serif text-white flex flex-wrap items-center gap-2 sm:text-2xl">
+                        <Sparkles className="h-5 w-5 shrink-0 text-[#fbbf24] sm:h-6 sm:w-6" />
+                        Client Proposal Portal
+                      </CardTitle>
+                      <CardDescription className="text-slate-400 text-sm sm:text-base">
+                        Active Event:{" "}
+                        <span className="font-medium text-[#fbbf24]">
+                          {eventState.eventName || "Untitled Event"}
+                        </span>
+                      </CardDescription>
+                      <p className="text-xs text-slate-500">Open Live Event Feed</p>
+                    </div>
+                    <ChevronDown
+                      className={cn(
+                        "h-6 w-6 shrink-0 text-[#fbbf24] transition-transform duration-300 ease-out",
+                        proposalPortalOpen && "rotate-180"
+                      )}
+                      aria-hidden
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <div className="flex shrink-0 justify-end sm:justify-center sm:self-stretch sm:items-center">
+                  <Button
+                    type="button"
+                    onClick={() => setIsAuditDialogOpen(true)}
+                    variant="destructive"
+                    className="whitespace-nowrap bg-red-950 hover:bg-red-900 text-red-400 border border-red-900/50 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
+                  >
+                    <Lock className="w-4 h-4 mr-2" /> Close Event
+                  </Button>
+                </div>
+              </div>
             </div>
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => {
-                  const url = `${window.location.origin}/quote/${eventState.eventId || 'current'}`;
-                  navigator.clipboard.writeText(url);
-                  toast.success("Read-Only Link Copied!", {
-                    description: "Share this URL with your client."
-                  });
+
+            <CollapsibleContent forceMount asChild>
+              <motion.div
+                id="proposal-portal-drawer"
+                initial={false}
+                animate={{
+                  height: proposalPortalOpen ? "auto" : 0,
+                  opacity: proposalPortalOpen ? 1 : 0,
+                  boxShadow: proposalPortalOpen
+                    ? "inset 0 16px 32px -20px rgba(251,191,36,0.22)"
+                    : "inset 0 0 0 0 transparent",
                 }}
-                variant="outline" 
-                className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700 hover:text-white"
-              >
-                <Share2 className="w-4 h-4 mr-2 text-[#fbbf24]" /> Share Link
-              </Button>
-              <Button 
-                onClick={async () => {
-                  toast.loading("Compiling Proposal PDF...");
-                  try {
-                    // We pass a dummy ID or the actual map ID if it were on the page. 
-                    // Since the map isn't on the dashboard, the PDF generator will skip the map snapshot gracefully
-                    // or we could redirect them to the Venue Architect to print. For now, we generate the data-driven PDF.
-                    await generateProposalPDF(eventState, "venue-map-canvas", brand);
-                    toast.dismiss();
-                    toast.success("Proposal PDF Generated!");
-                  } catch (error) {
-                    toast.dismiss();
-                    toast.error("Failed to generate PDF.");
-                  }
+                transition={{
+                  duration: 0.44,
+                  ease: [0.22, 1, 0.36, 1],
+                  opacity: { duration: proposalPortalOpen ? 0.32 : 0.22 },
                 }}
-                className="bg-[#fbbf24] hover:bg-amber-500 text-slate-950 font-bold shadow-[0_0_15px_rgba(251,191,36,0.4)]"
+                style={{ overflow: "hidden" }}
+                className="relative z-10 border-t border-[#fbbf24]/22 bg-gradient-to-b from-[#060f1c]/96 via-[#080f1f]/92 to-transparent"
               >
-                <Download className="w-4 h-4 mr-2" /> Generate PDF Proposal
-              </Button>
-              <Button 
-                onClick={() => setIsAuditDialogOpen(true)}
-                variant="destructive"
-                className="bg-red-950 hover:bg-red-900 text-red-400 border border-red-900/50 shadow-[0_0_15px_rgba(220,38,38,0.2)]"
-              >
-                <Lock className="w-4 h-4 mr-2" /> Close Event
-              </Button>
-            </div>
-          </CardHeader>
-        </Card>
+                <CardContent className="px-4 pb-6 pt-6 sm:px-6">
+                  <h3 className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.32em] text-[#fcd34d]/90">
+                    Live Event Feed — Harrison Corridor
+                  </h3>
+
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-12 md:items-stretch md:justify-center">
+                    {/* Left — venue thumbnail */}
+                    <div className="flex flex-col items-center gap-2 md:col-span-3">
+                      <HarrisonVenueThumbnail className="w-full max-w-[240px] rounded-lg shadow-[0_12px_40px_rgba(0,0,0,0.45)] ring-1 ring-[#fbbf24]/25" />
+                      <p className="text-center text-[11px] leading-snug text-slate-500">
+                        Mini-map · Harrison property footprint
+                      </p>
+                    </div>
+
+                    {/* Center — infrastructure */}
+                    <div className="flex flex-col justify-center gap-3 rounded-xl border border-[#fbbf24]/15 bg-[#050d16]/80 px-4 py-5 md:col-span-5">
+                      <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                        Infrastructure readiness
+                      </p>
+                      <div className="flex items-center gap-3 rounded-lg border border-emerald-500/20 bg-emerald-950/15 px-3 py-2.5">
+                        <Zap className="h-5 w-5 shrink-0 text-[#fbbf24]" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-slate-200">Power</p>
+                          <p className="text-xs text-emerald-400/90">100% — generator & shore-link nominal</p>
+                        </div>
+                        <span className="shrink-0 rounded bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold tabular-nums text-emerald-300">
+                          100%
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 rounded-lg border border-sky-500/20 bg-sky-950/15 px-3 py-2.5">
+                        <Droplets className="h-5 w-5 shrink-0 text-[#fbbf24]" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-slate-200">Water</p>
+                          <p className="text-xs text-sky-300/90">Tank-Link Active · potable loop sealed</p>
+                        </div>
+                        <span className="shrink-0 rounded border border-[#fbbf24]/35 bg-[#fbbf24]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#fcd34d]">
+                          LIVE
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 rounded-lg border border-slate-600/35 bg-slate-950/50 px-3 py-2.5">
+                        <Trash2 className="h-5 w-5 shrink-0 text-[#fbbf24]" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-slate-200">Waste</p>
+                          <p className="text-xs text-slate-400">Zero-Flow staging · greywater diverted</p>
+                        </div>
+                        <span className="shrink-0 rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-300">
+                          GREEN
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Right — quick actions */}
+                    <div className="flex flex-col justify-center gap-3 md:col-span-4">
+                      <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-widest text-slate-500 md:text-left">
+                        Client quick-actions
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full bg-slate-800/95 border-[#fbbf24]/25 text-white hover:border-[#fbbf24]/50 hover:bg-slate-800 hover:text-white"
+                        onClick={() => {
+                          const url = `${window.location.origin}/quote/${eventState.eventId || "current"}`;
+                          navigator.clipboard.writeText(url);
+                          toast.success("Read-Only Link Copied!", {
+                            description: "Share this URL with your client.",
+                          });
+                        }}
+                      >
+                        <Share2 className="w-4 h-4 mr-2 text-[#fbbf24]" /> Share Link
+                      </Button>
+                      <Button
+                        type="button"
+                        className="w-full bg-[#fbbf24] hover:bg-amber-500 text-slate-950 font-bold shadow-[0_0_15px_rgba(251,191,36,0.4)]"
+                        onClick={async () => {
+                          toast.loading("Compiling Proposal PDF...");
+                          try {
+                            await generateProposalPDF(eventState, "venue-map-canvas", brand);
+                            toast.dismiss();
+                            toast.success("Proposal PDF Generated!");
+                          } catch {
+                            toast.dismiss();
+                            toast.error("Failed to generate PDF.");
+                          }
+                        }}
+                      >
+                        <Download className="w-4 h-4 mr-2" /> Generate PDF Proposal
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </motion.div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       </div>
 
       {/* Post-Event Audit Dialog */}
