@@ -8,7 +8,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "encode:packet": "node scripts/encode-packet-brand.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

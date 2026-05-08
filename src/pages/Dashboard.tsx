@@ -63,6 +63,7 @@ import { generateProposalPDF } from "@/logic/PDFGenerator";
 import { saveToVault } from "@/logic/persistence";
 import { logSystemAlert } from "@/lib/switchboardHook";
 import { supabase } from "@/logic/supabaseClient";
+import { PACKET_01_12_GOLD_DATA_URI } from "@/branding/packet-01-12-gold-data-uri";
 
 const Dashboard = () => {
   console.log("Dashboard.tsx is rendering with LucideIcons!");
@@ -121,6 +122,7 @@ const Dashboard = () => {
   const [editingTask, setEditingTask] = useState<CriticalTask | null>(null);
   const [currentTaskContent, setCurrentTaskContent] = useState("");
 
+  const [heroImageError, setHeroImageError] = useState(false);
   const [isEditNoteDialogOpen, setIsEditNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editedNoteContent, setEditedNoteContent] = useState("");
@@ -271,15 +273,30 @@ const Dashboard = () => {
         </div>
       )}
 
-      <header className="-mx-6 mb-8 border-b border-slate-900/60 bg-[#0a1628] px-6 py-5 shadow-[inset_0_-1px_0_0_rgba(15,23,42,0.5)]">
-        <div className="flex items-start">
-          <img
-            src="/brand-hero-gold.png"
-            alt="Delicious Catering & Events by Wendy"
-            className="h-auto max-w-full w-72 min-w-64 sm:w-80 object-left object-contain select-none"
-            fetchPriority="high"
-            decoding="async"
-          />
+      <header
+        className="-mx-6 mb-8 border-b border-[#081924] bg-[#0a1628] px-6 py-3"
+        style={{ backgroundColor: "#0a1628" }}
+      >
+        <div className="flex w-full items-center justify-center">
+          <div className="flex w-full max-w-2xl flex-col items-center justify-center leading-none">
+            {!heroImageError ? (
+              <img
+                src={PACKET_01_12_GOLD_DATA_URI}
+                alt="Delicious Catering & Events by Wendy"
+                className="mx-auto block h-auto max-h-32 w-auto max-w-full object-contain object-center select-none"
+                fetchPriority="high"
+                decoding="async"
+                onError={() => setHeroImageError(true)}
+              />
+            ) : (
+              <p
+                className="w-full max-w-md text-center font-serif text-xl font-bold uppercase leading-snug tracking-wide text-[#fbbf24] drop-shadow-sm sm:text-2xl"
+                aria-live="polite"
+              >
+                {"DELICIOUS CATERING & EVENTS ~ BY WENDY"}
+              </p>
+            )}
+          </div>
         </div>
       </header>
 
