@@ -25,7 +25,7 @@ const APP_DOCUMENT_TITLE = "Delicious Catering & Events by Wendy";
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const { eventState } = useEventContext();
   const [isPending, startTransition] = useTransition();
   const navigate = useNavigate();

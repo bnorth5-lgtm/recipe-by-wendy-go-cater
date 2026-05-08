@@ -125,7 +125,7 @@ const VenueArchitectContent = () => {
     
   const [isZenMode, setIsZenMode] = useState(false);
   const [isElementsPanelOpen, setIsElementsPanelOpen] = useState(true);
-  const [isConciergePanelOpen, setIsConciergePanelOpen] = useState(true);
+  const [isConciergePanelOpen, setIsConciergePanelOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isGridMagnetism, setIsGridMagnetism] = useState(false);
   const [isStaffBrushActive, setIsStaffBrushActive] = useState(false);

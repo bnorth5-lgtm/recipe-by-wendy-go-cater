@@ -1,0 +1,20 @@
+{
+  "name": "Delicious Catering & Events by Wendy",
+  "short_name": "EBW",
+  "description": "Events By Wendy catering operations — 20-slot language engine.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a1628",
+  "theme_color": "#0a1628",
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/wendylogo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
