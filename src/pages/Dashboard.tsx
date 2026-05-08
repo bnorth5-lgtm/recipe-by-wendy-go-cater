@@ -271,21 +271,17 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="flex items-center space-x-6 mb-8 pt-8 md:pt-12">
-        <img
-          src="/wendylogo.jpg"
-          alt="Brand Logo"
-          className="w-32 h-auto object-contain drop-shadow-lg rounded-md"
-        />
-        <div className="flex flex-col">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white drop-shadow-md uppercase">
-            CATERING & EVENTS
-          </h1>
-          <p className="text-3xl text-amber-200/80 mt-2" style={{ fontFamily: "'Brush Script MT', 'Great Vibes', cursive" }}>
-            ~ By Wendy
-          </p>
+      <header className="-mx-6 mb-8 border-b border-slate-900/60 bg-[#0a1628] px-6 py-5 shadow-[inset_0_-1px_0_0_rgba(15,23,42,0.5)]">
+        <div className="flex items-start">
+          <img
+            src="/brand-hero-gold.png"
+            alt="Delicious Catering & Events by Wendy"
+            className="h-auto max-w-full w-72 min-w-64 sm:w-80 object-left object-contain select-none"
+            fetchPriority="high"
+            decoding="async"
+          />
         </div>
-      </div>
+      </header>
 
       {/* THREE DOORS UI */}
       <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto w-full mb-8">
