@@ -300,63 +300,12 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* THREE DOORS UI */}
-      <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto w-full mb-8">
-        {/* Door 1: Quick Drop-Off */}
-        <Card 
-          className="bg-slate-900/60 border border-slate-800 hover:border-[#fbbf24]/50 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] transition-all cursor-pointer group"
-          onClick={() => navigate('/events/beos')}
-        >
-          <CardHeader className="text-center pb-2">
-            <div className="mx-auto bg-slate-800 p-4 rounded-full mb-4 group-hover:bg-[#fbbf24]/20 transition-colors">
-              <Utensils className="w-8 h-8 text-slate-400 group-hover:text-[#fbbf24] transition-colors" />
-            </div>
-            <CardTitle className="text-xl font-serif text-white group-hover:text-[#fbbf24] transition-colors">RBW Drop-Off</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center text-slate-400 text-sm">
-            Minimalist view for simple deliveries. Access recipes and basic BEOs without the heavy logistics.
-          </CardContent>
-        </Card>
-
-        {/* Door 2: Staffed Buffet */}
-        <Card 
-          className="bg-slate-900/60 border border-slate-800 hover:border-[#fbbf24]/50 hover:shadow-[0_0_20px_rgba(251,191,36,0.15)] transition-all cursor-pointer group"
-          onClick={() => navigate('/logistics/beo-generator')}
-        >
-          <CardHeader className="text-center pb-2">
-            <div className="mx-auto bg-slate-800 p-4 rounded-full mb-4 group-hover:bg-[#fbbf24]/20 transition-colors">
-              <UserPlus className="w-8 h-8 text-slate-400 group-hover:text-[#fbbf24] transition-colors" />
-            </div>
-            <CardTitle className="text-xl font-serif text-white group-hover:text-[#fbbf24] transition-colors">RBW Staffing</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center text-slate-400 text-sm">
-            Adds labor, bartenders, and inventory toggles. Generate comprehensive BEOs with profit shields.
-          </CardContent>
-        </Card>
-
-        {/* Door 3: Visionary */}
-        <Card 
-          className="bg-slate-900/80 border border-[#fbbf24]/40 hover:border-[#fbbf24] hover:shadow-[0_0_30px_rgba(251,191,36,0.3)] transition-all cursor-pointer group relative overflow-hidden"
-          onClick={() => navigate('/venue-architect')}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-[#fbbf24]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <CardHeader className="text-center pb-2 relative z-10">
-            <div className="mx-auto bg-amber-500/20 p-4 rounded-full mb-4 group-hover:bg-[#fbbf24]/30 transition-colors shadow-[0_0_15px_rgba(251,191,36,0.2)]">
-              <Sparkles className="w-8 h-8 text-[#fbbf24]" />
-            </div>
-            <CardTitle className="text-xl font-serif text-[#fbbf24]">RBW Visionary</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center text-slate-300 text-sm relative z-10">
-            Full Production. Unlocks the Bird's-Eye Command Map, magnetic snap-to-grid, and safety hazard zones.
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto flex-1 w-full">
-        {/* Client Proposal Portal Card */}
-        <Card className="md:col-span-3 bg-slate-900/50 border border-[#fbbf24]/30 backdrop-blur-xl shadow-[0_0_30px_rgba(251,191,36,0.1)] rounded-2xl overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-1 h-full bg-[#fbbf24]"></div>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+      {/* Client Proposal Portal — directly under hero */}
+      <div className="w-full max-w-6xl mx-auto mb-8">
+        <Card className="bg-slate-900/80 border border-[#fbbf24]/40 backdrop-blur-xl shadow-[0_0_30px_rgba(251,191,36,0.12)] hover:shadow-[0_0_36px_rgba(251,191,36,0.22)] rounded-2xl overflow-hidden relative transition-all group">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#fbbf24]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+          <div className="absolute top-0 left-0 w-1.5 h-full bg-[#fbbf24]" />
+          <CardHeader className="relative z-10 flex flex-row flex-wrap items-center justify-between gap-4 pb-2">
             <div>
               <CardTitle className="text-2xl font-serif text-white flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-[#fbbf24]" />
@@ -409,9 +358,10 @@ const Dashboard = () => {
             </div>
           </CardHeader>
         </Card>
+      </div>
 
-        {/* Post-Event Audit Dialog */}
-        <Dialog open={isAuditDialogOpen} onOpenChange={setIsAuditDialogOpen}>
+      {/* Post-Event Audit Dialog */}
+      <Dialog open={isAuditDialogOpen} onOpenChange={setIsAuditDialogOpen}>
           <DialogContent className="bg-slate-950 border-slate-800 text-slate-50 sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle className="text-2xl font-serif text-[#fbbf24] flex items-center gap-2">
@@ -474,18 +424,21 @@ const Dashboard = () => {
           </DialogContent>
         </Dialog>
 
+      {/* Primary selection — Delicious Express, Staffed, MainVision */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto w-full flex-1 justify-items-stretch">
         {/* Door 1: Quick Drop-Off */}
-        <Link to="/events/bookings" className="block group">
-          <Card className="h-full bg-slate-900/30 border border-slate-700/50 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] rounded-2xl">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto bg-slate-800/50 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_25px_rgba(234,179,8,0.3)]">
+        <Link to="/events/bookings" className="block group h-full">
+          <Card className="h-full bg-slate-900/80 border border-[#fbbf24]/40 hover:border-[#fbbf24] hover:shadow-[0_0_32px_rgba(251,191,36,0.28)] transition-all duration-500 backdrop-blur-xl rounded-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#fbbf24]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl" />
+            <CardHeader className="text-center pb-4 relative z-10">
+              <div className="mx-auto bg-amber-500/15 border border-[#fbbf24]/25 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_18px_rgba(251,191,36,0.18)] group-hover:shadow-[0_0_28px_rgba(251,191,36,0.35)]">
                 <Utensils className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
               <CardTitle className="text-2xl font-serif text-white">
                 <span style={{ color: brand.primaryColor }}>RBW ~ </span>Delicious Express & Setup
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-center">
+            <CardContent className="text-center relative z-10">
               <p className="text-slate-400 leading-relaxed">
                 {t('dashboard.quickDropOffDesc')}
               </p>
@@ -494,17 +447,18 @@ const Dashboard = () => {
         </Link>
 
         {/* Door 2: Staffed Buffet */}
-        <Link to="/events/calendar" className="block group">
-          <Card className="h-full bg-slate-900/30 border border-slate-700/50 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] rounded-2xl">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto bg-slate-800/50 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_25px_rgba(234,179,8,0.3)]">
+        <Link to="/events/calendar" className="block group h-full">
+          <Card className="h-full bg-slate-900/80 border border-[#fbbf24]/40 hover:border-[#fbbf24] hover:shadow-[0_0_32px_rgba(251,191,36,0.28)] transition-all duration-500 backdrop-blur-xl rounded-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#fbbf24]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl" />
+            <CardHeader className="text-center pb-4 relative z-10">
+              <div className="mx-auto bg-amber-500/15 border border-[#fbbf24]/25 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_18px_rgba(251,191,36,0.18)] group-hover:shadow-[0_0_28px_rgba(251,191,36,0.35)]">
                 <UserPlus className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
               <CardTitle className="text-2xl font-serif text-white">
                 <span style={{ color: brand.primaryColor }}>RBW ~ </span>Delicious Staffed Events
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-center">
+            <CardContent className="text-center relative z-10">
               <p className="text-slate-400 leading-relaxed">
                 {t('dashboard.staffedBuffetDesc')}
               </p>
@@ -513,17 +467,18 @@ const Dashboard = () => {
         </Link>
 
         {/* Door 3: Full Production */}
-        <Link to="/logistics/venue-architect" className="block group">
-          <Card className="h-full bg-slate-900/30 border border-slate-700/50 hover:border-[#fbbf24]/50 transition-all duration-500 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] rounded-2xl">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto bg-slate-800/50 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_25px_rgba(234,179,8,0.3)]">
+        <Link to="/logistics/venue-architect" className="block group h-full">
+          <Card className="h-full bg-slate-900/80 border border-[#fbbf24]/40 hover:border-[#fbbf24] hover:shadow-[0_0_32px_rgba(251,191,36,0.28)] transition-all duration-500 backdrop-blur-xl rounded-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#fbbf24]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl" />
+            <CardHeader className="text-center pb-4 relative z-10">
+              <div className="mx-auto bg-amber-500/15 border border-[#fbbf24]/25 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_18px_rgba(251,191,36,0.18)] group-hover:shadow-[0_0_28px_rgba(251,191,36,0.35)]">
                 <Sparkles className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
               <CardTitle className="text-2xl font-serif text-white">
                 <span style={{ color: brand.primaryColor }}>RBW ~ </span>MainVision Productions
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-center">
+            <CardContent className="text-center relative z-10">
               <p className="text-slate-400 leading-relaxed">
                 {t('dashboard.fullProductionDesc')}
               </p>
