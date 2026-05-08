@@ -33,7 +33,8 @@ import MarketExpansion from "./pages/settings/MarketExpansion.tsx";
 import LegalEquity from "./pages/settings/LegalEquity.tsx";
 import EducationalBank from "./pages/EducationalBank.tsx";
 import MarketIntelligence from "./pages/MarketIntelligence.tsx"; // NEW Import
-import { VenueArchitect } from "./components/VenueMap/VenueArchitect.tsx";
+import { lazy, Suspense } from "react";
+const VenueArchitect = lazy(() => import("./components/VenueMap/VenueArchitect.tsx").then(m => ({ default: m.VenueArchitect })));
 import LiveStory from "./pages/LiveStory.tsx";
 import BEOGenerator from "./pages/logistics/BEOGenerator.tsx";
 import ExecutiveFeed from "./pages/ExecutiveFeed.tsx";
@@ -99,7 +100,11 @@ function AppShell() {
         <Route path="/educational-bank" element={<EducationalBank />} />
         <Route path="/market-pulse" element={<MarketIntelligence />} />
         <Route path="/logistics/beo-generator" element={<BEOGenerator />} />
-        <Route path="/venue-architect" element={<VenueArchitect />} />
+        <Route path="/venue-architect" element={
+          <Suspense fallback={<div className="flex h-full items-center justify-center bg-slate-950 text-[#fbbf24] font-bold">Initializing Architect Engine...</div>}>
+            <VenueArchitect />
+          </Suspense>
+        } />
 
         <Route path="/live-story" element={<LiveStory />} />
         <Route path="/executive" element={<ExecutiveFeed />} />

@@ -23,62 +23,45 @@ import { generateDiamondSnapElements } from "@/utils/geoMath";
 
 import type { ElementType, MapElementData } from "@/utils/geoMath";
 
-// Scale: 20px = 1 foot
-const PIXELS_PER_FOOT = 20;
-
-const ELEMENT_CONFIG: Record<ElementType, { label: string; icon: React.ElementType; width: number; height: number; shape: "circle" | "rect" | "line", color: string }> = {
-  table_round_60: { label: "60\" Round", icon: Users, width: 100, height: 100, shape: "circle", color: "bg-slate-800" }, // 5ft
-  table_rect: { label: "8ft Rect", icon: Users, width: 160, height: 60, shape: "rect", color: "bg-slate-800" }, // 8ft x 3ft
-  high_top: { label: "High-Top", icon: Wine, width: 60, height: 60, shape: "circle", color: "bg-slate-700" }, // 3ft
-  deuce: { label: "2-Top Deuce", icon: Users, width: 60, height: 60, shape: "rect", color: "bg-slate-700" }, // 3ft x 3ft
-  dance_floor: { label: "Dance Tile", icon: Square, width: 80, height: 80, shape: "rect", color: "bg-indigo-950 border-indigo-500/50" }, // 4ft x 4ft
-  bar: { label: "Bar Station", icon: Wine, width: 120, height: 40, shape: "rect", color: "bg-indigo-900/80" }, // 6ft x 2ft
-  buffet: { label: "Buffet", icon: Utensils, width: 160, height: 60, shape: "rect", color: "bg-emerald-900/80" }, // 8ft x 3ft
-  cake: { label: "Cake Table", icon: Utensils, width: 60, height: 60, shape: "circle", color: "bg-pink-900/80" }, // 3ft
-  stage: { label: "Stage", icon: Users, width: 240, height: 120, shape: "rect", color: "bg-amber-900/50" }, // 12ft x 6ft
-  pipe_drape: { label: "Pipe & Drape", icon: GripHorizontal, width: 160, height: 10, shape: "line", color: "bg-slate-600" }, // 8ft
-  floral_arch: { label: "Floral Arch", icon: Flower2, width: 80, height: 20, shape: "line", color: "bg-emerald-700" }, // 4ft
-  tent_40x60: { label: "40x60 Tent", icon: Tent, width: 1200, height: 800, shape: "rect", color: "bg-amber-50/5 border-4 border-dashed border-amber-200/30 backdrop-blur-[2px]" },
-  string_lights: { label: "String Lights", icon: Lightbulb, width: 400, height: 20, shape: "line", color: "bg-transparent border border-dashed border-amber-500/20" },
-  staging_kitchen: { label: "Staging Kitchen", icon: Flame, width: 200, height: 100, shape: "rect", color: "bg-red-950/80 border-red-500/50" },
-  power_drop: { label: "Power Drop", icon: Zap, width: 40, height: 40, shape: "circle", color: "bg-yellow-500 text-slate-900 border-yellow-400" },
-  audio_hub: { label: "Audio Hub", icon: Volume2, width: 40, height: 40, shape: "circle", color: "bg-blue-500 text-white border-blue-400" },
-  water_access: { label: "Water Access", icon: Droplets, width: 40, height: 40, shape: "circle", color: "bg-cyan-500 text-slate-900 border-cyan-400" },
-  bathroom: { label: "Bathroom", icon: Bath, width: 120, height: 120, shape: "rect", color: "bg-slate-200 text-slate-800 border-slate-400" },
-  exit_sign: { label: "EXIT", icon: DoorOpen, width: 60, height: 30, shape: "rect", color: "bg-red-600 text-white font-bold border-red-400" },
-  staff_member: { label: "Staff", icon: Users, width: 20, height: 20, shape: "circle", color: "bg-amber-400 text-slate-900 border-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.8)]" },
-};
-
-
-const CONST_DEMO_STATE: MapElementData[] = [
-  {
-    id: "demo-tent-1",
-    type: "tent_40x60",
-    x: 200,
-    y: 100,
-    rotation: 0,
-    guests: 0,
-    vendorAssigned: false,
-    selfPerform: false,
-  },
-  {
-    id: "demo-power-1",
-    type: "power_drop",
-    x: 200 + 600 - 20,
-    y: 100 + 400 - 20,
-    rotation: 0,
-    guests: 0,
-    vendorAssigned: false,
-    selfPerform: false,
-  }
-];
-
 const VenueArchitectContent = () => {
+  const { PIXELS_PER_FOOT, ELEMENT_CONFIG, CONST_DEMO_STATE } = useMemo(() => {
+    const PIXELS_PER_FOOT = 20;
+    const ELEMENT_CONFIG: Record<ElementType, { label: string; icon: React.ElementType; width: number; height: number; shape: "circle" | "rect" | "line", color: string }> = {
+      table_round_60: { label: "60\" Round", icon: Users, width: 100, height: 100, shape: "circle", color: "bg-slate-800" },
+      table_rect: { label: "8ft Rect", icon: Users, width: 160, height: 60, shape: "rect", color: "bg-slate-800" },
+      high_top: { label: "High-Top", icon: Wine, width: 60, height: 60, shape: "circle", color: "bg-slate-700" },
+      deuce: { label: "2-Top Deuce", icon: Users, width: 60, height: 60, shape: "rect", color: "bg-slate-700" },
+      dance_floor: { label: "Dance Tile", icon: Square, width: 80, height: 80, shape: "rect", color: "bg-indigo-950 border-indigo-500/50" },
+      bar: { label: "Bar Station", icon: Wine, width: 120, height: 40, shape: "rect", color: "bg-indigo-900/80" },
+      buffet: { label: "Buffet", icon: Utensils, width: 160, height: 60, shape: "rect", color: "bg-emerald-900/80" },
+      cake: { label: "Cake Table", icon: Utensils, width: 60, height: 60, shape: "circle", color: "bg-pink-900/80" },
+      stage: { label: "Stage", icon: Users, width: 240, height: 120, shape: "rect", color: "bg-amber-900/50" },
+      pipe_drape: { label: "Pipe & Drape", icon: GripHorizontal, width: 160, height: 10, shape: "line", color: "bg-slate-600" },
+      floral_arch: { label: "Floral Arch", icon: Flower2, width: 80, height: 20, shape: "line", color: "bg-emerald-700" },
+      tent_40x60: { label: "40x60 Tent", icon: Tent, width: 1200, height: 800, shape: "rect", color: "bg-amber-50/5 border-4 border-dashed border-amber-200/30 backdrop-blur-[2px]" },
+      string_lights: { label: "String Lights", icon: Lightbulb, width: 400, height: 20, shape: "line", color: "bg-transparent border border-dashed border-amber-500/20" },
+      staging_kitchen: { label: "Staging Kitchen", icon: Flame, width: 200, height: 100, shape: "rect", color: "bg-red-950/80 border-red-500/50" },
+      power_drop: { label: "Power Drop", icon: Zap, width: 40, height: 40, shape: "circle", color: "bg-yellow-500 text-slate-900 border-yellow-400" },
+      audio_hub: { label: "Audio Hub", icon: Volume2, width: 40, height: 40, shape: "circle", color: "bg-blue-500 text-white border-blue-400" },
+      water_access: { label: "Water Access", icon: Droplets, width: 40, height: 40, shape: "circle", color: "bg-cyan-500 text-slate-900 border-cyan-400" },
+      bathroom: { label: "Bathroom", icon: Bath, width: 120, height: 120, shape: "rect", color: "bg-slate-200 text-slate-800 border-slate-400" },
+      exit_sign: { label: "EXIT", icon: DoorOpen, width: 60, height: 30, shape: "rect", color: "bg-red-600 text-white font-bold border-red-400" },
+      staff_member: { label: "Staff", icon: Users, width: 20, height: 20, shape: "circle", color: "bg-amber-400 text-slate-900 border-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.8)]" },
+    };
+
+    const CONST_DEMO_STATE: MapElementData[] = [
+      { id: "demo-tent-1", type: "tent_40x60", x: 200, y: 100, rotation: 0, guests: 0, vendorAssigned: false, selfPerform: false },
+      { id: "demo-power-1", type: "power_drop", x: 200 + 600 - 20, y: 100 + 400 - 20, rotation: 0, guests: 0, vendorAssigned: false, selfPerform: false }
+    ];
+
+    return { PIXELS_PER_FOOT, ELEMENT_CONFIG, CONST_DEMO_STATE };
+  }, []);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const crosshairXRef = useRef<HTMLDivElement>(null);
   const crosshairYRef = useRef<HTMLDivElement>(null);
   const crosshairLabelRef = useRef<HTMLDivElement>(null);
-  const [elements, setElements] = useState<MapElementData[]>(CONST_DEMO_STATE);
+  const [elements, setElements] = useState<MapElementData[]>(() => CONST_DEMO_STATE);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isHoveringMap, setIsHoveringMap] = useState(false);
   const [isOutdoorMode, setIsOutdoorMode] = useState(false);
@@ -97,11 +80,16 @@ const VenueArchitectContent = () => {
   const [isFloorSnap, setIsFloorSnap] = useState(false);
   const warnedTablesRef = useRef<Set<string>>(new Set());
   const hasAutoSnapped = useRef(false);
-  const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [windowSize, setWindowSize] = useState({ width: 1200, height: 800 });
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Set initial window size once mounted
+    setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+
     let retryTimer: NodeJS.Timeout;
     let refreshTimer: NodeJS.Timeout;
     let resizeObserver: ResizeObserver | null = null;
@@ -2003,12 +1991,7 @@ export const VenueArchitect = () => {
 
   const handleReset = () => {
     localStorage.removeItem("venue_architect_elements");
-    setElements(CONST_DEMO_STATE);
-    setSelectedId(null);
-    setGlobalTime(16);
-    setIsOutdoorMode(false);
-    setShowInfraOverlay(false);
-    setIsRaining(false);
+    setResetKey(k => k + 1);
   };
 
   return (
