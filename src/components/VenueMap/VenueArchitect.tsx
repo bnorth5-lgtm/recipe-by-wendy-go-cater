@@ -9,6 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { BEO as BEOComponent } from "@/components/BEO";
 import { TARGET_MARGIN, REVENUE_PER_GUEST_DEFAULT, LABOR_PER_STAFF, FOOD_PER_TABLE } from "@/utils/geoMath";
 
+/** Saved Harrison layout presets (formerly stored under RBW key) */
+const EBW_HARRISON_TEMPLATE_KEY = "ebw_harrison_template";
+const LEGACY_RBW_HARRISON_TEMPLATE_KEY = "rbw_harrison_template";
+
 // De-coupled UI elements for Vercel build isolation
 const Tabs = ({ value, onValueChange, children, ...props }: any) => (
   <div {...props}>{React.Children.map(children, (child: any) => child ? React.cloneElement(child, { activeTab: value, onValueChange }) : null)}</div>
@@ -268,12 +272,14 @@ const VenueArchitectContent = () => {
 
   const handleSaveTemplate = () => {
     const template = JSON.stringify(elements);
-    localStorage.setItem("rbw_harrison_template", template);
-    toast.success("Blueprint Saved", { description: "Harrison layout saved as RBW Template." });
+    localStorage.setItem(EBW_HARRISON_TEMPLATE_KEY, template);
+    toast.success("Blueprint Saved", { description: "Harrison layout saved as EBW Template." });
   };
 
   const handleGlobalDrop = async () => {
-    const templateStr = localStorage.getItem("rbw_harrison_template");
+    const templateStr =
+      localStorage.getItem(EBW_HARRISON_TEMPLATE_KEY) ||
+      localStorage.getItem(LEGACY_RBW_HARRISON_TEMPLATE_KEY);
     if (!templateStr) {
       toast.error("No Template Found", { description: "Please save a layout first." });
       return;
@@ -321,7 +327,7 @@ const VenueArchitectContent = () => {
   };
 
   const handleRunFullTest = async () => {
-    toast.info("Initializing RBW Visionary Workflow...", { description: "Simulating $50k event generation." });
+    toast.info("Initializing EBW Visionary Workflow...", { description: "Simulating $50k event generation." });
     
     // Simulate 10 second generation
     const toastId = toast.loading("Generating Masterpiece PDF...");
@@ -1803,7 +1809,7 @@ const VenueArchitectContent = () => {
                 onClick={handleSaveTemplate}
               >
                 <Save className="w-4 h-4 mr-2" />
-                Save as RBW Template
+                Save as EBW Template
               </Button>
               <Button
                 variant="outline"

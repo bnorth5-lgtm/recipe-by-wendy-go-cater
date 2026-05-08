@@ -435,7 +435,7 @@ const Dashboard = () => {
                 <Utensils className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
               <CardTitle className="text-2xl font-serif text-white">
-                <span style={{ color: brand.primaryColor }}>RBW ~ </span>Delicious Express & Setup
+                <span style={{ color: brand.primaryColor }}>EBW ~ </span>Delicious Express & Setup
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center relative z-10">
@@ -455,7 +455,7 @@ const Dashboard = () => {
                 <UserPlus className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
               <CardTitle className="text-2xl font-serif text-white">
-                <span style={{ color: brand.primaryColor }}>RBW ~ </span>Delicious Staffed Events
+                <span style={{ color: brand.primaryColor }}>EBW ~ </span>Delicious Staffed Events
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center relative z-10">
@@ -475,7 +475,7 @@ const Dashboard = () => {
                 <Sparkles className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
               <CardTitle className="text-2xl font-serif text-white">
-                <span style={{ color: brand.primaryColor }}>RBW ~ </span>MainVision Productions
+                <span style={{ color: brand.primaryColor }}>EBW ~ </span>MainVision Productions
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center relative z-10">

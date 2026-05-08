@@ -27,7 +27,7 @@ export const ExportMasterpiecePDF = async (
   doc.setFont("helvetica", "bold");
   doc.setFontSize(24);
   doc.setTextColor(slate[0], slate[1], slate[2]);
-  doc.text("RBW MASTERPIECE", margin, currentY);
+  doc.text("EBW MASTERPIECE", margin, currentY);
   currentY += 0.4;
 
   doc.setFontSize(14);
@@ -135,7 +135,7 @@ export const ExportMasterpiecePDF = async (
   doc.text("Date", margin + 4, currentY + 0.2);
 
   // Save PDF
-  doc.save(`RBW_Masterpiece_${eventDetails.name.replace(/\s+/g, '_')}.pdf`);
+  doc.save(`EBW_Masterpiece_${eventDetails.name.replace(/\s+/g, '_')}.pdf`);
   return { success: true };
 };
 
@@ -193,10 +193,10 @@ export const generateProposalPDF = async (
   // For this local implementation, we'll use a generic "Event Blueprint" if not specified, 
   // but if they came from Door 3 (Full Production), it would say "MainVision Production Blueprint"
   const blueprintTitle = brandState?.selectedTier === "production" 
-    ? "RBW ~ MainVision Production Blueprint" 
+    ? "EBW ~ MainVision Production Blueprint" 
     : brandState?.selectedTier === "staffed"
-      ? "RBW ~ Delicious Staffed Events Blueprint"
-      : "RBW ~ Delicious Express & Setup Blueprint";
+      ? "EBW ~ Delicious Staffed Events Blueprint"
+      : "EBW ~ Delicious Express & Setup Blueprint";
 
   doc.text(`${contactInfo} · ${blueprintTitle}`, margin, currentY + 0.5);
 

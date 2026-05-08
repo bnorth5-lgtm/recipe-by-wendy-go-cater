@@ -19,21 +19,21 @@ interface Tab {
 
 const TABS: Tab[] = [
   {
-    label: "RBW Drop-Off",
+    label: "EBW Drop-Off",
     href: "/events/beos",
     icon: <CalendarCheck className="h-5 w-5" />,
     matchPrefix: "/events",
     adminOnly: false,
   },
   {
-    label: "RBW Staffing",
+    label: "EBW Staffing",
     href: "/menu/recipes",
     icon: <BookText className="h-5 w-5" />,
     matchPrefix: "/menu",
     adminOnly: false,
   },
   {
-    label: "RBW Visionary",
+    label: "EBW Visionary",
     href: "/venue-architect",
     icon: <Crown className="h-5 w-5" />,
     matchPrefix: "/venue-architect",
