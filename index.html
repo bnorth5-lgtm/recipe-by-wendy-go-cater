@@ -530,38 +530,11 @@
 
         <div class="nbs-chat__body" data-nbs-widget="concierge">
 
-          <!-- Route selector -->
-          <div class="nbs-chat__route">
-            <div class="nbs-chat__routeLabel">
-              Route this request (for contact / email):
-            </div>
-            <div class="nbs-chat__segmented" role="radiogroup" aria-label="Route">
-              <div>
-                <input
-                  type="radio"
-                  id="nbs-route-catering"
-                  name="nbs_route"
-                  value="catering"
-                  checked
-                />
-                <label class="nbs-chat__chip" for="nbs-route-catering">
-                  <span class="nbs-chat__chipDot"></span>
-                  Catering / Events (Wendy)
-                </label>
-              </div>
-              <div>
-                <input
-                  type="radio"
-                  id="nbs-route-business"
-                  name="nbs_route"
-                  value="business"
-                />
-                <label class="nbs-chat__chip" for="nbs-route-business">
-                  <span class="nbs-chat__chipDot"></span>
-                  Business / Merchant (Bill)
-                </label>
-              </div>
-            </div>
+          <!-- Email Link -->
+          <div class="nbs-chat__route" style="text-align: center; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <a href="mailto:northbusinessservices@gmail.com" style="color: #fbbf24; text-decoration: underline; font-weight: 500; font-size: 13px;">
+              Email us directly: northbusinessservices@gmail.com
+            </a>
           </div>
 
           <!-- Quick-question chips (populated by JS) -->
@@ -916,14 +889,6 @@
           messagesEl.scrollTop = messagesEl.scrollHeight;
         });
 
-        // Log routing payload for OpenClaw mailer integration
-        var route = (document.querySelector("input[name=\"nbs_route\"]:checked") || {}).value || "catering";
-        console.log("NBS Routing Payload:", {
-          to: "northbusinessservices@gmail.com",
-          subject: "NBS Lead: " + route.toUpperCase() + " Inquiry",
-          body: message,
-          assigned_to: route === "catering" ? "Wendy" : "Bill"
-        });
       }
 
       function escapeHtml(str) {

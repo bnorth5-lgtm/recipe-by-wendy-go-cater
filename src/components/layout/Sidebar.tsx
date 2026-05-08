@@ -158,27 +158,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isColl
         !isMobile && "translate-x-0" // Always show on desktop
       )}
     >
-      <div className="relative w-full shrink-0 border-b border-sidebar-border bg-muted/40 z-40">
-        <Link to="/" className="flex w-full items-center justify-start gap-3 px-3 py-4 sm:px-4 sm:py-5 relative group cursor-pointer transition-colors duration-300 hover:text-[#fbbf24]">
-          <img
-            src="/wendylogo.jpg"
-            alt="Delicious Catering & Events by Wendy Logo"
-            className="max-h-12 w-auto drop-shadow-sm object-contain"
-            fetchPriority="high"
-          />
-          <h1 
-            className="font-serif font-bold text-slate-800 dark:text-slate-200 transition-colors duration-300 group-hover:text-[#fbbf24] text-xl md:text-2xl lg:text-3xl"
-            style={{ fontSize: "clamp(1.125rem, 4vw, 1.875rem)" }}
-          >
-            Delicious Catering & Events by Wendy
-          </h1>
-        </Link>
+      <div className="relative w-full shrink-0 z-40 flex justify-end p-2">
         {/* Desktop Collapse Toggle */}
         {!isMobile && (
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-1/2 -translate-y-1/2 right-2 z-20 h-8 w-8 text-slate-500 hover:text-[#fbbf24] transition-colors"
+            className="h-8 w-8 text-slate-500 hover:text-[#fbbf24] transition-colors"
             onClick={onToggleCollapse}
             aria-label="Collapse menu"
           >
@@ -189,7 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isColl
           <Button
             variant="secondary"
             size="icon"
-            className="absolute top-2 right-2 z-20 h-9 w-9 shadow-md"
+            className="h-9 w-9 shadow-md"
             onClick={onClose}
             aria-label="Close menu"
           >

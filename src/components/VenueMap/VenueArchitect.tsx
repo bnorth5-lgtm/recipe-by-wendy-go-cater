@@ -5,6 +5,9 @@ import { dropGlobalPin } from "@/logic/ScoutNBS";
 import { toast } from "sonner";
 import { ExportMasterpiecePDF } from "@/logic/PDFGenerator";
 import { useNavigate } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BEO as BEOComponent } from "@/components/BEO";
+import { TARGET_MARGIN, REVENUE_PER_GUEST_DEFAULT, LABOR_PER_STAFF, FOOD_PER_TABLE } from "@/utils/geoMath";
 
 // De-coupled UI elements for Vercel build isolation
 const Tabs = ({ value, onValueChange, children, ...props }: any) => (
@@ -56,7 +59,8 @@ const Separator = (props: any) => <hr {...props} className={cn("shrink-0 bg-slat
 
 const Switch = ({ checked, onCheckedChange, ...props }: any) => <input type="checkbox" checked={checked} onChange={e => onCheckedChange?.(e.target.checked)} {...props} className={cn("cursor-pointer", props.className)} />;
 
-const ExecutionProgress = (props: any) => null;
+import { ExecutionProgress } from "@/components/ExecutionProgress";
+import { VenueArchitect3D } from "@/components/VenueMap/VenueArchitect3D";
 const ProcurementHUD = (props: any) => null;
 const BEOSidebar = (props: any) => null;
 import { useEventContext } from "@/context/EventContext";
@@ -127,10 +131,14 @@ const VenueArchitectContent = () => {
   const [windowSize, setWindowSize] = useState({ width: 1200, height: 800 });
   const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
+  const [isBEODialogOpen, setIsBEODialogOpen] = useState(false);
+  const [is3DView, setIs3DView] = useState(false);
+  const [guestSimulation, setGuestSimulation] = useState(false);
 
   const navigate = useNavigate();
   const { eventState, updateEventState } = useEventContext();
   const inventory = useCateringStore((state) => state.inventory);
+  const recipes = useCateringStore((state) => state.recipes);
   const updateInventoryItem = useCateringStore((state) => state.updateInventoryItem);
   const addInventoryItem = useCateringStore((state) => state.addInventoryItem);
 
@@ -444,23 +452,11 @@ const VenueArchitectContent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventState?.eventName]);
 
+  const [placementMode, setPlacementMode] = useState<ElementType | null>(null);
+
   const handleAddElement = (type: ElementType) => {
-    const snap = isGridMagnetism || isFloorSnap ? PIXELS_PER_FOOT * 3 : PIXELS_PER_FOOT;
-    const rawX = 100 + Math.random() * 50;
-    const rawY = 100 + Math.random() * 50;
-    
-    const newElement: MapElementData = {
-      id: crypto.randomUUID(),
-      type,
-      x: Math.round(rawX / snap) * snap,
-      y: Math.round(rawY / snap) * snap,
-      rotation: 0,
-      guests: type === "table_round_60" ? 8 : type === "table_rect" ? 8 : type === "deuce" ? 2 : type === "high_top" ? 4 : 0,
-      vendorAssigned: false,
-      selfPerform: false,
-    };
-    setElements([...elements, newElement]);
-    setSelectedId(newElement.id);
+    setPlacementMode(type);
+    toast.info(`Click on the map to place ${ELEMENT_CONFIG[type].label}`);
   };
 
   const updateElement = (id: string, updates: Partial<MapElementData>) => {
@@ -819,7 +815,19 @@ const VenueArchitectContent = () => {
 
   return (
     <div className="flex flex-col h-full bg-slate-950 text-slate-50 min-h-screen">
-      <ExecutionProgress percentage={progressPercentage} />
+      <ExecutionProgress
+        percentage={progressPercentage}
+        onOpenBEO={() => setIsBEODialogOpen(true)}
+        is3DView={is3DView}
+        onToggle3D={() => {
+          setIs3DView((v) => {
+            if (v) setGuestSimulation(false);
+            return !v;
+          });
+        }}
+        guestSimulation={guestSimulation}
+        onToggleGuestSimulation={() => setGuestSimulation((g) => !g)}
+      />
       
       <div className="flex flex-1 overflow-hidden">
         {!isZenMode && (
@@ -1185,6 +1193,34 @@ const VenueArchitectContent = () => {
           style={{ backgroundColor: isOutdoorMode ? '#064e3b' : '#0f172a', pointerEvents: 'auto' }}
           ref={containerRef} 
           onClick={(e) => {
+            if (placementMode && is3DView) {
+              toast.info("Switch to 2D blueprint to place elements on the grid.");
+              return;
+            }
+            if (placementMode) {
+              if (!containerRef.current) return;
+              const rect = containerRef.current.getBoundingClientRect();
+              const rawX = e.clientX - rect.left;
+              const rawY = e.clientY - rect.top;
+              const snap = isGridMagnetism || isFloorSnap ? PIXELS_PER_FOOT * 3 : PIXELS_PER_FOOT;
+              const x = Math.round(rawX / snap) * snap;
+              const y = Math.round(rawY / snap) * snap;
+              
+              const newElement: MapElementData = {
+                id: crypto.randomUUID(),
+                type: placementMode,
+                x,
+                y,
+                rotation: 0,
+                guests: placementMode === "table_round_60" ? 8 : placementMode === "table_rect" ? 8 : placementMode === "deuce" ? 2 : placementMode === "high_top" ? 4 : 0,
+                vendorAssigned: false,
+                selfPerform: false,
+              };
+              setElements(prev => [...prev, newElement]);
+              setSelectedId(newElement.id);
+              setPlacementMode(null);
+              return;
+            }
             setSelectedId(null);
             // Fallback for Staff Brush / Floor Snap if onMouseDown fails
             if (isStaffBrushActive) {
@@ -1229,7 +1265,9 @@ const VenueArchitectContent = () => {
             if (crosshairLabelRef.current) {
               crosshairLabelRef.current.style.left = `${x + 10}px`;
               crosshairLabelRef.current.style.top = `${y + 10}px`;
-              crosshairLabelRef.current.innerText = `${Math.round(x / PIXELS_PER_FOOT)}' , ${Math.round(y / PIXELS_PER_FOOT)}'`;
+              crosshairLabelRef.current.innerText = placementMode 
+                ? `Place ${ELEMENT_CONFIG[placementMode].label} (${Math.round(x / PIXELS_PER_FOOT)}' , ${Math.round(y / PIXELS_PER_FOOT)}')`
+                : `${Math.round(x / PIXELS_PER_FOOT)}' , ${Math.round(y / PIXELS_PER_FOOT)}'`;
             }
 
             // Staff Brush (Multi-Drop)
@@ -1325,6 +1363,17 @@ const VenueArchitectContent = () => {
               </div>
             </div>
           )}
+          {is3DView && (
+            <VenueArchitect3D
+              elements={elements}
+              pixelsPerFoot={PIXELS_PER_FOOT}
+              isDiamondSnapActive={isDiamondSnapActive}
+              guestSimulation={guestSimulation}
+              isOutdoorMode={isOutdoorMode}
+            />
+          )}
+          {!is3DView && (
+          <>
           {/* Blueprint Grid Background */}
           <div className="absolute inset-0 pointer-events-none transition-all duration-700" style={{
             backgroundImage: isOutdoorMode ? `
@@ -1987,7 +2036,8 @@ const VenueArchitectContent = () => {
             return null;
           }
         })()}
-        </div>
+          </>
+          )}
 
         {/* Global Clock Slider */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-xl border border-slate-700 p-4 rounded-xl shadow-2xl z-40 flex items-center gap-4 w-[400px]">
@@ -2010,8 +2060,39 @@ const VenueArchitectContent = () => {
           </div>
         </div>
       </div>
+      </div>
 
       
+      <Dialog open={isBEODialogOpen} onOpenChange={setIsBEODialogOpen}>
+        <DialogContent className="max-w-5xl h-[90vh] overflow-y-auto bg-slate-100">
+          <BEOComponent 
+            booking={{
+              id: eventState.eventId || "live-booking",
+              eventName: eventState.eventName || "Live Event",
+              clientName: "Live Client",
+              eventDate: new Date().toISOString(),
+              status: "pending",
+              estimatedValue: totalEstimatedValue,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            } as any}
+            recipes={recipes}
+            inventory={inventory}
+            beo={{
+              id: "live-beo",
+              bookingId: eventState.eventId || "live-booking",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              eventTime: "TBD",
+              venue: "Harrison Field",
+              specialInstructions: "Live generated from Venue Architect.",
+              customSections: [],
+              checklist: [],
+              status: "Draft"
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

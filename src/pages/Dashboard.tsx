@@ -271,13 +271,20 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="text-center space-y-4 mb-8 pt-12 md:pt-16">
-        <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white drop-shadow-md" style={{ fontFamily: "'Playfair Display', serif" }}>
-          {brand.companyName}
-        </h1>
-        <p className="text-xl text-amber-200/80 font-medium italic font-serif">
-          {brand.contactPhone} | {brand.contactEmail}
-        </p>
+      <div className="flex items-center space-x-6 mb-8 pt-8 md:pt-12">
+        <img
+          src="/wendylogo.jpg"
+          alt="Brand Logo"
+          className="w-32 h-auto object-contain drop-shadow-lg rounded-md"
+        />
+        <div className="flex flex-col">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white drop-shadow-md uppercase">
+            CATERING & EVENTS
+          </h1>
+          <p className="text-3xl text-amber-200/80 mt-2" style={{ fontFamily: "'Brush Script MT', 'Great Vibes', cursive" }}>
+            ~ By Wendy
+          </p>
+        </div>
       </div>
 
       {/* THREE DOORS UI */}
