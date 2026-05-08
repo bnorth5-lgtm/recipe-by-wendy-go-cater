@@ -34,7 +34,12 @@ import LegalEquity from "./pages/settings/LegalEquity.tsx";
 import EducationalBank from "./pages/EducationalBank.tsx";
 import MarketIntelligence from "./pages/MarketIntelligence.tsx"; // NEW Import
 import { lazy, Suspense } from "react";
-const VenueArchitect = lazy(() => import("./components/VenueMap/VenueArchitect.tsx").then(m => ({ default: m.VenueArchitect })));
+const VenueArchitect = lazy(() => {
+  if (typeof window === 'undefined') {
+    return Promise.resolve({ default: () => null });
+  }
+  return import("./components/VenueMap/VenueArchitect.tsx").then(m => ({ default: m.VenueArchitect }));
+});
 import LiveStory from "./pages/LiveStory.tsx";
 import BEOGenerator from "./pages/logistics/BEOGenerator.tsx";
 import ExecutiveFeed from "./pages/ExecutiveFeed.tsx";
