@@ -97,10 +97,22 @@ export default {
             height: "0",
           },
         },
+        "treasury-icon-pulse": {
+          "0%, 100%": { opacity: "0.8" },
+          "50%": { opacity: "1" },
+        },
+        "harrison-gps-scan": {
+          "0%": { transform: "translateY(0)", opacity: "0" },
+          "8%": { opacity: "0.9" },
+          "92%": { opacity: "0.9" },
+          "100%": { transform: "translateY(92px)", opacity: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "treasury-icon-pulse": "treasury-icon-pulse 2.75s ease-in-out infinite",
+        "harrison-gps-scan": "harrison-gps-scan 4s linear infinite",
       },
     },
   },

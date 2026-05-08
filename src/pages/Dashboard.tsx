@@ -17,7 +17,6 @@ import {
   CalendarCheck,
   Settings,
   Edit,
-  Trash2,
   PlusCircle,
   Printer,
   Lock,
@@ -29,6 +28,9 @@ import {
   Zap,
   Droplets,
   CheckCircle2,
+  MapPin,
+  Shield,
+  CircleDollarSign,
 } from "lucide-react";
 import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore";
 import { getVaultStatus } from "@/lib/cloudVault";
@@ -44,7 +46,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ClientForm, ClientFormData } from "@/components/ClientForm";
 import { CateringIntakeForm, CateringIntakeFormData } from "@/components/CateringIntakeForm";
-import { useState, useEffect } from "react";
+import { useId, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { NotesCard } from "@/components/NotesCard";
 import { DateDisplay } from "@/components/DateDisplay";
@@ -73,27 +75,47 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 function HarrisonVenueThumbnail({ className }: { className?: string }) {
+  const reactId = useId();
+  const clipId = `harrison-schematic-clip-${reactId.replace(/\W+/g, "")}`;
+  const gradId = `harrisonGold-${reactId.replace(/\W+/g, "")}`;
+
   return (
     <svg
       viewBox="0 0 200 140"
-      className={className}
+      className={cn(className, "relative overflow-visible")}
       aria-hidden
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <linearGradient id="harrisonGold" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#fde68a" />
           <stop offset="55%" stopColor="#fbbf24" />
           <stop offset="100%" stopColor="#b45309" />
         </linearGradient>
+        <clipPath id={clipId}>
+          <rect x="14" y="24" width="172" height="92" rx="4" />
+        </clipPath>
       </defs>
-      <rect width="200" height="140" rx="8" fill="#020617" stroke="url(#harrisonGold)" strokeWidth="1.25" opacity="0.9" />
+      <rect width="200" height="140" rx="8" fill="#020617" stroke={`url(#${gradId})`} strokeWidth="1.25" opacity="0.9" />
       <rect x="14" y="24" width="172" height="92" rx="4" stroke="#1e293b" strokeWidth="1.25" strokeDasharray="4 3" fill="#0a1628" />
-      <ellipse cx="102" cy="68" rx="44" ry="34" stroke="url(#harrisonGold)" strokeWidth="1.35" strokeOpacity="0.75" />
+      <ellipse cx="102" cy="68" rx="44" ry="34" stroke={`url(#${gradId})`} strokeWidth="1.35" strokeOpacity="0.75" />
       <rect x="40" y="46" width="28" height="18" rx="2" stroke="#64748b" strokeWidth="0.9" fill="#131f35" opacity="0.9" />
       <rect x="132" y="46" width="28" height="18" rx="2" stroke="#64748b" strokeWidth="0.9" fill="#131f35" opacity="0.9" />
-      <path d="M164 118 L170 132 M34 132 L174 132" stroke="url(#harrisonGold)" strokeWidth="1" strokeOpacity="0.55" strokeLinecap="round" />
+      <path d="M164 118 L170 132 M34 132 L174 132" stroke={`url(#${gradId})`} strokeWidth="1" strokeOpacity="0.55" strokeLinecap="round" />
+      <g clipPath={`url(#${clipId})`} pointerEvents="none">
+        <g className="animate-harrison-gps-scan" style={{ transformBox: "fill-box", transformOrigin: "50% 0%" }}>
+          <line
+            x1="12"
+            x2="188"
+            y1="25"
+            y2="25"
+            stroke="rgba(253, 224, 71, 0.72)"
+            strokeWidth={1.25}
+            strokeLinecap="round"
+          />
+        </g>
+      </g>
       <text x="100" y="128" fill="#94a3b8" fontSize="8" fontFamily="system-ui, sans-serif" textAnchor="middle">
         Harrison Field · Harrison, ME
       </text>
@@ -423,59 +445,106 @@ const Dashboard = () => {
                 className="relative z-10 border-t border-[#fbbf24]/22 bg-gradient-to-b from-[#060f1c]/96 via-[#080f1f]/92 to-transparent"
               >
                 <CardContent className="px-4 pb-6 pt-6 sm:px-6">
-                  <h3 className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.32em] text-[#fcd34d]/90">
+                  <h3 className="mb-6 text-center font-serif text-xs font-semibold uppercase tracking-[0.32em] text-[#fcd34d]/90">
                     Live Event Feed — Harrison Corridor
                   </h3>
 
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-12 md:items-stretch md:justify-center">
-                    {/* Left — venue thumbnail */}
+                    {/* Left — venue thumbnail + GPS verified */}
                     <div className="flex flex-col items-center gap-2 md:col-span-3">
-                      <HarrisonVenueThumbnail className="w-full max-w-[240px] rounded-lg shadow-[0_12px_40px_rgba(0,0,0,0.45)] ring-1 ring-[#fbbf24]/25" />
-                      <p className="text-center text-[11px] leading-snug text-slate-500">
+                      <div className="relative w-full max-w-[240px]">
+                        <HarrisonVenueThumbnail className="w-full rounded-lg shadow-[0_12px_40px_rgba(0,0,0,0.45)] ring-1 ring-[#fbbf24]/25" />
+                        <span className="pointer-events-none absolute right-2 top-2 inline-flex items-center gap-1 rounded-full border border-[#fbbf24]/55 bg-[#0a1628]/95 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-[#fde68a] shadow-md backdrop-blur-sm">
+                          <MapPin className="h-3 w-3 text-[#fbbf24]" aria-hidden />
+                          GPS Verified
+                        </span>
+                      </div>
+                      <p className="text-center font-serif text-[11px] italic leading-snug text-slate-500">
                         Mini-map · Harrison property footprint
                       </p>
                     </div>
 
-                    {/* Center — infrastructure */}
+                    {/* Center — hospitality infrastructure vitals */}
                     <div className="flex flex-col justify-center gap-3 rounded-xl border border-[#fbbf24]/15 bg-[#050d16]/80 px-4 py-5 md:col-span-5">
-                      <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-                        Infrastructure readiness
+                      <p className="mb-1 text-center font-serif text-xs font-semibold tracking-wide text-[#e2e8f0]">
+                        Operational vitals
                       </p>
-                      <div className="flex items-center gap-3 rounded-lg border border-emerald-500/20 bg-emerald-950/15 px-3 py-2.5">
-                        <Zap className="h-5 w-5 shrink-0 text-[#fbbf24]" />
+                      <p className="mb-3 text-center font-serif text-[10px] uppercase tracking-widest text-slate-500">
+                        Professional hospitality · Infrastructure-Zero readiness
+                      </p>
+                      <div className="flex items-center gap-3 rounded-lg border border-emerald-500/25 bg-emerald-950/15 px-3 py-2.5">
+                        <Zap className="h-5 w-5 shrink-0 text-[#fbbf24] drop-shadow-[0_0_8px_rgba(251,191,36,0.35)]" strokeWidth={2.25} />
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-slate-200">Power</p>
-                          <p className="text-xs text-emerald-400/90">100% — generator & shore-link nominal</p>
+                          <p className="font-serif text-sm font-semibold text-slate-100">
+                            Utility Integrity: <span className="text-[#fcd34d]">100%</span>{" "}
+                            <span className="font-normal text-slate-300">(Grid-Independent)</span>
+                          </p>
+                          <p className="font-serif text-xs text-emerald-400/90">
+                            Generator & shore-link nominal · islanded operations certified
+                          </p>
                         </div>
-                        <span className="shrink-0 rounded bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold tabular-nums text-emerald-300">
-                          100%
+                        <span className="shrink-0 rounded border border-[#fbbf24]/30 bg-[#fbbf24]/10 px-2 py-0.5 font-serif text-[10px] font-bold tabular-nums text-[#fde68a]">
+                          NOM
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 rounded-lg border border-sky-500/20 bg-sky-950/15 px-3 py-2.5">
-                        <Droplets className="h-5 w-5 shrink-0 text-[#fbbf24]" />
+                      <div className="flex items-center gap-3 rounded-lg border border-sky-500/25 bg-sky-950/15 px-3 py-2.5">
+                        <Droplets className="h-5 w-5 shrink-0 text-[#fbbf24] drop-shadow-[0_0_8px_rgba(251,191,36,0.35)]" strokeWidth={2.25} />
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-slate-200">Water</p>
-                          <p className="text-xs text-sky-300/90">Tank-Link Active · potable loop sealed</p>
+                          <p className="font-serif text-sm font-semibold text-slate-100">
+                            Hygienic Flow: Active
+                          </p>
+                          <p className="font-serif text-xs text-sky-200/95">
+                            (Certification Verified) · potable loop sealed
+                          </p>
                         </div>
-                        <span className="shrink-0 rounded border border-[#fbbf24]/35 bg-[#fbbf24]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#fcd34d]">
-                          LIVE
+                        <span className="shrink-0 rounded border border-[#fbbf24]/35 bg-[#fbbf24]/10 px-2 py-0.5 font-serif text-[10px] font-bold uppercase tracking-wide text-[#fcd34d]">
+                          CERT
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 rounded-lg border border-slate-600/35 bg-slate-950/50 px-3 py-2.5">
-                        <Trash2 className="h-5 w-5 shrink-0 text-[#fbbf24]" />
+                      <div className="flex items-center gap-3 rounded-lg border border-emerald-500/35 bg-slate-950/50 px-3 py-2.5">
+                        <Shield className="h-5 w-5 shrink-0 text-[#fbbf24] drop-shadow-[0_0_8px_rgba(251,191,36,0.35)]" strokeWidth={2.25} />
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-slate-200">Waste</p>
-                          <p className="text-xs text-slate-400">Zero-Flow staging · greywater diverted</p>
+                          <p className="font-serif text-sm font-semibold text-slate-100">
+                            Infrastructure-Zero: Certified Green
+                          </p>
+                          <p className="font-serif text-xs text-slate-400">
+                            Zero-flow waste staging · diverted greywater pathways
+                          </p>
                         </div>
-                        <span className="shrink-0 rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-300">
-                          GREEN
+                        <span className="shrink-0 rounded border border-emerald-400/35 bg-emerald-500/10 px-2 py-0.5 font-serif text-[10px] font-bold uppercase text-emerald-300">
+                          ISO-ready
                         </span>
                       </div>
                     </div>
 
-                    {/* Right — quick actions */}
-                    <div className="flex flex-col justify-center gap-3 md:col-span-4">
-                      <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-widest text-slate-500 md:text-left">
+                    {/* Right — treasury signal + quick actions */}
+                    <div className="flex flex-col justify-center gap-4 md:col-span-4">
+                      <div className="rounded-xl border border-[#fbbf24]/25 bg-gradient-to-br from-[#0a1628]/95 to-[#050d14]/95 px-3 py-4 shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
+                        <p className="mb-2 font-serif text-xs font-semibold tracking-wide text-[#fde68a]">
+                          Treasury & trust
+                        </p>
+                        <div className="flex gap-3">
+                          <CircleDollarSign
+                            className="mt-0.5 h-5 w-5 shrink-0 animate-treasury-icon-pulse text-[#fbbf24] drop-shadow-[0_0_6px_rgba(251,191,36,0.4)]"
+                            strokeWidth={2.25}
+                            aria-hidden
+                          />
+                          <div className="min-w-0 flex-1 space-y-2.5 font-serif text-sm leading-snug text-slate-100">
+                            <p className="rounded-lg border border-solid border-emerald-500/40 bg-emerald-950/25 px-2.5 py-1.5">
+                              <span className="text-slate-400">Merchant Risk Status:</span>{" "}
+                              <span className="font-semibold text-emerald-400">SECURE</span>
+                              <span className="text-slate-500">{" "}(Milestone 1/2 Funded)</span>
+                            </p>
+                            <p className="text-xs md:text-[13px] font-bold tracking-tight text-[#fde047] drop-shadow-[0_0_12px_rgba(253,224,71,0.22)]">
+                              Estimated Residual Yield:{" "}
+                              <span className="tabular-nums font-extrabold text-[#ffec92]">1.1%</span>{" "}
+                              <span className="font-normal text-slate-500">(Optimized)</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                      <p className="mb-2 text-center font-serif text-[10px] font-semibold uppercase tracking-widest text-slate-500 md:text-left">
                         Client quick-actions
                       </p>
                       <Button
@@ -507,8 +576,9 @@ const Dashboard = () => {
                           }
                         }}
                       >
-                        <Download className="w-4 h-4 mr-2" /> Generate PDF Proposal
+                        <Download className="w-4 h-4 mr-2 text-[#fbbf24]" /> Generate PDF Proposal
                       </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
