@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect, useTransition } from "react";
 import { motion } from "framer-motion";
-import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen, Volume2, Droplets, Bath, HardHat, CloudRain, Wind, ChevronLeft, Maximize, Minimize, Save, MapPin, FileCheck, Loader2 } from "lucide-react";
+import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen, Volume2, Droplets, Bath, HardHat, CloudRain, Wind, ChevronLeft, ChevronRight, Maximize, Minimize, Save, MapPin, FileCheck, Loader2 } from "lucide-react";
 import { dropGlobalPin } from "@/logic/ScoutNBS";
 import { toast } from "sonner";
 import { ExportMasterpiecePDF } from "@/logic/PDFGenerator";
@@ -117,6 +117,7 @@ const VenueArchitectContent = () => {
     
   const [isZenMode, setIsZenMode] = useState(false);
   const [isElementsPanelOpen, setIsElementsPanelOpen] = useState(true);
+  const [isConciergePanelOpen, setIsConciergePanelOpen] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isGridMagnetism, setIsGridMagnetism] = useState(false);
   const [isStaffBrushActive, setIsStaffBrushActive] = useState(false);
@@ -826,7 +827,22 @@ const VenueArchitectContent = () => {
             {/* Left Toolbar - Now the Live BEO Sidebar */}
         <BEOSidebar elements={elements} />
                 {/* Left Sidebar (Details) */}
-        <div className="w-80 bg-slate-900 border-r border-slate-800 p-4 flex flex-col gap-4 overflow-y-auto z-10 shadow-2xl h-full">
+        <div className={cn(
+          "bg-slate-900 border-slate-800 flex flex-col z-10 shadow-2xl h-full transition-all duration-300 relative",
+          (isConciergePanelOpen && !isZenMode) ? "w-80 border-r" : "w-0 border-r-0"
+        )}>
+          <div className={cn("absolute top-4 -right-10 z-50 transition-opacity duration-300", !isZenMode ? "opacity-100" : "opacity-0 pointer-events-none")}>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="rounded-r-md rounded-l-none border-y border-r border-slate-700 bg-slate-900 text-slate-400 hover:text-[#fbbf24] shadow-md"
+              onClick={(e) => { e.stopPropagation(); setIsConciergePanelOpen(!isConciergePanelOpen); }}
+            >
+              <ChevronRight className={cn("w-5 h-5 transition-transform duration-300", !isConciergePanelOpen && "rotate-180")} />
+            </Button>
+          </div>
+
+          <div className={cn("flex flex-col h-full gap-4 transition-opacity duration-300", (isConciergePanelOpen && !isZenMode) ? "opacity-100 p-4 overflow-y-auto" : "opacity-0 p-0 overflow-hidden")}>
           <Tabs value={rightSidebarTab} onValueChange={(v: any) => setRightSidebarTab(v)} className="w-full flex-1 flex flex-col">
             <TabsList className="grid w-full grid-cols-3 bg-slate-950 border border-slate-800 p-1 rounded-lg mb-4">
               <TabsTrigger value="properties" className="text-xs">Props</TabsTrigger>
@@ -1158,6 +1174,7 @@ const VenueArchitectContent = () => {
               </div>
             </TabsContent>
           </Tabs>
+          </div>
         </div>
           </>
         )}
