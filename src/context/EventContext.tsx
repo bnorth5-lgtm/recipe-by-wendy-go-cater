@@ -49,6 +49,9 @@ export interface EventState {
   actualCosts?: number;
   lessonsLearned?: string;
   isLegacy?: boolean;
+  /** Shared across proposal view + Dashboard via localStorage */
+  masterpieceContractSealed?: boolean;
+  masterpieceContractSealedAt?: string;
 }
 
 interface EventContextType {
@@ -76,10 +79,30 @@ const defaultState: EventState = {
   kitchenNotifications: [],
 };
 
+/** Persists EBW masterpiece seal across routes (ClientQuote + Dashboard use separate providers). */
+export const EBW_MASTERPIECE_SEAL_LS_KEY = "ebw_masterpiece_seal_v1";
+
+function readMasterpieceSealFromStorage(): Pick<EventState, "masterpieceContractSealed" | "masterpieceContractSealedAt"> {
+  try {
+    const raw = localStorage.getItem(EBW_MASTERPIECE_SEAL_LS_KEY);
+    if (!raw) return {};
+    const p = JSON.parse(raw) as { sealed?: boolean; at?: string };
+    if (p?.sealed && typeof p.at === "string") {
+      return { masterpieceContractSealed: true, masterpieceContractSealedAt: p.at };
+    }
+  } catch {
+    /* ignore */
+  }
+  return {};
+}
+
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
 export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [eventState, setEventState] = useState<EventState>(defaultState);
+  const [eventState, setEventState] = useState<EventState>(() => ({
+    ...defaultState,
+    ...readMasterpieceSealFromStorage(),
+  }));
   const [userId, setUserId] = useState<string | null>(null);
   const [eventId, setEventId] = useState<string | null>(null);
 
@@ -166,6 +189,17 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const updateEventState = async (updates: Partial<EventState>) => {
     const newState = { ...eventState, ...updates };
     setEventState(newState);
+
+    if (updates.masterpieceContractSealed === true && updates.masterpieceContractSealedAt) {
+      try {
+        localStorage.setItem(
+          EBW_MASTERPIECE_SEAL_LS_KEY,
+          JSON.stringify({ sealed: true, at: updates.masterpieceContractSealedAt })
+        );
+      } catch {
+        /* ignore */
+      }
+    }
 
     if (userId) {
       // If we don't have an eventId yet, we are creating the first one

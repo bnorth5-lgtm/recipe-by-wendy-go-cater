@@ -28,6 +28,7 @@ import {
   ChevronDown,
   Zap,
   Droplets,
+  CheckCircle2,
 } from "lucide-react";
 import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore";
 import { getVaultStatus } from "@/lib/cloudVault";
@@ -371,7 +372,14 @@ const Dashboard = () => {
                           {eventState.eventName || "Untitled Event"}
                         </span>
                       </CardDescription>
-                      <p className="text-xs text-slate-500">Open Live Event Feed</p>
+                      {eventState.masterpieceContractSealed ? (
+                        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-400">
+                          <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
+                          CONTRACT SIGNED — SECURED
+                        </p>
+                      ) : (
+                        <p className="text-xs text-slate-500">Open Live Event Feed</p>
+                      )}
                     </div>
                     <ChevronDown
                       className={cn(

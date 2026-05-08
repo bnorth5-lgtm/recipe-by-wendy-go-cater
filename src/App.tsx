@@ -142,7 +142,16 @@ const App = () => {
           {/*
            * Client Quote View — High-end client presentation
            */}
-          <Route path="/quote/:eventId" element={<ClientQuote />} />
+          <Route
+            path="/quote/:eventId"
+            element={
+              <BrandProvider>
+                <EventProvider>
+                  <ClientQuote />
+                </EventProvider>
+              </BrandProvider>
+            }
+          />
 
           {/*
            * Chef View — Kitchen Sync

@@ -3,6 +3,165 @@ import html2canvas from "html2canvas";
 import QRCode from "qrcode";
 import { EventState } from "@/context/EventContext";
 import { NBS_COMPANY_CONFIG } from "@/logic/PaymentOrchestrator";
+import { PACKET_01_12_GOLD_DATA_URI } from "@/branding/packet-01-12-gold-data-uri";
+
+const NAVY_RGB: [number, number, number] = [10, 22, 40]; // #0a1628 (dashboard hero strip)
+
+const EBW_SIGNATURE_LEGAL_FOOTER =
+  "This EBW Masterpiece is a binding agreement for the Harrison, Maine Infrastructure-Zero Demo.";
+
+/** Options for ceremonial seal timestamps on the Signature Block */
+export interface ProposalPdfOptions {
+  sealIssuedAtISO?: string;
+}
+
+function decodePacketForPdf(): { dataUrl: string; format: "JPEG" | "PNG" } | null {
+  const uri = PACKET_01_12_GOLD_DATA_URI.trim();
+  if (uri.includes("image/svg+xml")) return null;
+  if (uri.includes("image/png")) return { dataUrl: uri, format: "PNG" };
+  if (/image\/jpe?g/i.test(uri)) return { dataUrl: uri, format: "JPEG" };
+  return null;
+}
+
+function drawPacketHeaderBand(
+  doc: jsPDF,
+  margin: number,
+  contentWidth: number,
+  startY: number
+): number {
+  const bandH = 1.02;
+  doc.setFillColor(NAVY_RGB[0], NAVY_RGB[1], NAVY_RGB[2]);
+  doc.rect(margin, startY, contentWidth, bandH, "F");
+
+  const packet = decodePacketForPdf();
+  if (packet) {
+    try {
+      const props = doc.getImageProperties(packet.dataUrl);
+      const maxW = contentWidth - 0.45;
+      const maxH = bandH - 0.14;
+      const ratio = props.width / props.height;
+      let iw = maxW;
+      let ih = iw / ratio;
+      if (ih > maxH) {
+        ih = maxH;
+        iw = ih * ratio;
+      }
+      const ix = margin + (contentWidth - iw) / 2;
+      const iy = startY + (bandH - ih) / 2;
+      doc.addImage(packet.dataUrl, packet.format, ix, iy, iw, ih);
+    } catch {
+      /* fall through */
+    }
+  }
+
+  return startY + bandH + 0.16;
+}
+
+function appendEbWMasterpieceSignatureBlock(
+  doc: jsPDF,
+  margin: number,
+  contentWidth: number,
+  gold: number[],
+  slate: number[],
+  slateLight: number[],
+  companyName: string,
+  sealIssuedAtISO: string
+): void {
+  doc.addPage();
+  let y = margin;
+
+  doc.setFont("times", "bold");
+  doc.setFontSize(18);
+  doc.setTextColor(gold[0], gold[1], gold[2]);
+  doc.text("EBW Masterpiece — Signature Module", margin, y);
+  y += 0.35;
+
+  doc.setDrawColor(gold[0], gold[1], gold[2]);
+  doc.setLineWidth(0.02);
+  doc.line(margin, y, margin + contentWidth, y);
+  y += 0.35;
+
+  const humanStamp = new Intl.DateTimeFormat("en-US", {
+    dateStyle: "full",
+    timeStyle: "medium",
+  }).format(new Date(sealIssuedAtISO));
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(slate[0], slate[1], slate[2]);
+  doc.text("Client Acceptance", margin, y);
+  y += 0.22;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
+  const acceptBody =
+    `The undersigned acknowledges review of this EBW proposal and intends this document as authorization to proceed according to its investment schedule, amendments, ` +
+    `and venue allowances for ${companyName}.`;
+  doc.splitTextToSize(acceptBody, contentWidth).forEach((line: string) => {
+    doc.text(line, margin, y);
+    y += 0.16;
+  });
+  y += 0.06;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(gold[0], gold[1], gold[2]);
+  doc.text("Timestamp:", margin, y);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(slate[0], slate[1], slate[2]);
+  doc.text(humanStamp, margin + 0.82, y);
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(8);
+  doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
+  doc.text(`(UTC reference: ${sealIssuedAtISO})`, margin, y + 0.14);
+  y += 0.52;
+
+  doc.setDrawColor(slateLight[0], slateLight[1], slateLight[2]);
+  doc.line(margin, y, margin + 3.2, y);
+  y += 0.18;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
+  doc.text("Printed name & title (Client)", margin, y);
+  y += 0.55;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(slate[0], slate[1], slate[2]);
+  doc.text("EBW Authorized Signature", margin, y);
+  y += 0.22;
+
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(10);
+  doc.setTextColor(gold[0], gold[1], gold[2]);
+  doc.text("Delicious Catering & Events by Wendy — EBW brand authority", margin, y);
+  y += 0.35;
+
+  doc.setDrawColor(gold[0], gold[1], gold[2]);
+  doc.line(margin, y, margin + 3.5, y);
+  y += 0.18;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
+  doc.text("Wendy — EBW Culinary Command", margin, y);
+  y += 0.55;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(slate[0], slate[1], slate[2]);
+  doc.text("Legal notice", margin, y);
+  y += 0.18;
+
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(8.5);
+  doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
+  const legalLines = doc.splitTextToSize(EBW_SIGNATURE_LEGAL_FOOTER, contentWidth);
+  legalLines.forEach((line: string) => {
+    doc.text(line, margin, y);
+    y += 0.14;
+  });
+}
 
 export const ExportMasterpiecePDF = async (
   mapElementId: string,
@@ -17,23 +176,24 @@ export const ExportMasterpiecePDF = async (
   const margin = 0.5;
   const pageWidth = 8.5;
   const contentWidth = pageWidth - margin * 2;
-  let currentY = margin;
 
   // Colors
   const gold = [251, 191, 36];
   const slate = [15, 23, 42];
+  const slateLight = [100, 116, 139];
 
-  // --- HEADER ---
+  let currentY = drawPacketHeaderBand(doc, margin, contentWidth, margin);
+
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(24);
+  doc.setFontSize(20);
   doc.setTextColor(slate[0], slate[1], slate[2]);
-  doc.text("EBW MASTERPIECE", margin, currentY);
-  currentY += 0.4;
+  doc.text("EBW Masterpiece Ledger", margin, currentY);
+  currentY += 0.32;
 
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setTextColor(gold[0], gold[1], gold[2]);
   doc.text(`Event: ${eventDetails.name} | Region: ${eventDetails.region}`, margin, currentY);
-  currentY += 0.5;
+  currentY += 0.48;
 
   // --- 3D MAP VIEW (Harrison Field) ---
   doc.setFont("helvetica", "bold");
@@ -134,6 +294,17 @@ export const ExportMasterpiecePDF = async (
   doc.line(margin + 4, currentY, margin + 7, currentY);
   doc.text("Date", margin + 4, currentY + 0.2);
 
+  appendEbWMasterpieceSignatureBlock(
+    doc,
+    margin,
+    contentWidth,
+    gold,
+    slate,
+    slateLight,
+    NBS_COMPANY_CONFIG.legalName,
+    new Date().toISOString()
+  );
+
   // Save PDF
   doc.save(`EBW_Masterpiece_${eventDetails.name.replace(/\s+/g, '_')}.pdf`);
   return { success: true };
@@ -142,7 +313,8 @@ export const ExportMasterpiecePDF = async (
 export const generateProposalPDF = async (
   eventState: EventState,
   mapElementId: string,
-  brandState?: any
+  brandState?: any,
+  options?: ProposalPdfOptions
 ) => {
   // 1. Initialize PDF: Letter size (8.5 x 11 inches), 0.5 inch margins
   const doc = new jsPDF({
@@ -154,17 +326,16 @@ export const generateProposalPDF = async (
   const margin = 0.5;
   const pageWidth = 8.5;
   const contentWidth = pageWidth - margin * 2;
-  let currentY = margin;
+  const sealIssuedAtISO = options?.sealIssuedAtISO ?? new Date().toISOString();
 
   // Colors
   const gold = [251, 191, 36]; // #fbbf24
   const slate = [15, 23, 42]; // slate-950
   const slateLight = [100, 116, 139]; // slate-500
 
-  // --- HEADER ---
   const companyName = brandState?.companyName || NBS_COMPANY_CONFIG.legalName;
   const primaryColorHex = brandState?.primaryColor || "#fbbf24";
-  
+
   // Convert hex to rgb for jsPDF
   const hexToRgb = (hex: string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -176,41 +347,40 @@ export const generateProposalPDF = async (
   };
   const brandColor = hexToRgb(primaryColorHex);
 
-  // Company Name
-  doc.setFont("times", "bold");
-  doc.setFontSize(24);
-  doc.setTextColor(brandColor[0], brandColor[1], brandColor[2]);
-  doc.text(companyName, margin, currentY + 0.3);
-  
-  // Credentials
-  doc.setFont("helvetica", "italic");
-  doc.setFontSize(10);
-  doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
-  
   const contactInfo = brandState ? `${brandState.contactPhone} | ${brandState.contactEmail}` : "New Hampshire LLC";
-  
-  // Determine the Blueprint Title based on the selected door/tier
-  // For this local implementation, we'll use a generic "Event Blueprint" if not specified, 
-  // but if they came from Door 3 (Full Production), it would say "MainVision Production Blueprint"
-  const blueprintTitle = brandState?.selectedTier === "production" 
-    ? "EBW ~ MainVision Production Blueprint" 
+
+  const blueprintTitle = brandState?.selectedTier === "production"
+    ? "EBW ~ MainVision Production Blueprint"
     : brandState?.selectedTier === "staffed"
       ? "EBW ~ Delicious Staffed Events Blueprint"
       : "EBW ~ Delicious Express & Setup Blueprint";
 
-  doc.text(`${contactInfo} · ${blueprintTitle}`, margin, currentY + 0.5);
+  // --- HEADER — navy hero strip + PACKET brand art (dashboard parity)
+  let currentY = drawPacketHeaderBand(doc, margin, contentWidth, margin);
 
-  // Event Details
-  doc.setFont("helvetica", "bold");
+  doc.setFont("times", "bold");
   doc.setFontSize(14);
+  doc.setTextColor(brandColor[0], brandColor[1], brandColor[2]);
+  doc.text(companyName, margin, currentY);
+
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(9);
+  doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
+  currentY += 0.22;
+  doc.text(`${contactInfo} · ${blueprintTitle}`, margin, currentY);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
   doc.setTextColor(slate[0], slate[1], slate[2]);
-  doc.text(eventState.eventName, margin, currentY + 0.9);
-  
+  currentY += 0.32;
+  doc.text(eventState.eventName, margin, currentY);
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(`Guests: ${eventState.totalGuests} | Staff: ${eventState.staffCount}`, margin, currentY + 1.1);
+  currentY += 0.22;
+  doc.text(`Guests: ${eventState.totalGuests} | Staff: ${eventState.staffCount}`, margin, currentY);
 
-  currentY += 1.3;
+  currentY += 0.34;
 
   // --- MAP SNAPSHOT ---
   const mapElement = document.getElementById(mapElementId);
@@ -229,10 +399,10 @@ export const generateProposalPDF = async (
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       // Draw map title
-  doc.setFont("times", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(brandColor[0], brandColor[1], brandColor[2]);
-  doc.text("Venue Architecture & Atmosphere", margin, currentY);
+      doc.setFont("times", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(brandColor[0], brandColor[1], brandColor[2]);
+      doc.text("Venue Architecture & Atmosphere", margin, currentY);
       currentY += 0.2;
 
       // Draw image
@@ -368,6 +538,16 @@ Liability: The company's liability for any claim arising out of or relating to t
     console.error("Failed to generate QR code:", error);
   }
 
-  // Save the PDF
-  doc.save(`Proposal_${eventState.eventName.replace(/\s+/g, "_")}.pdf`);
+  appendEbWMasterpieceSignatureBlock(
+    doc,
+    margin,
+    contentWidth,
+    gold,
+    slate,
+    slateLight,
+    companyName,
+    sealIssuedAtISO
+  );
+
+  doc.save(`EBW_Masterpiece_${eventState.eventName.replace(/\s+/g, "_")}.pdf`);
 };
