@@ -261,7 +261,7 @@ const Dashboard = () => {
 
   return (
     <div
-      className="space-y-6 p-6 relative min-h-screen flex flex-col bg-slate-950 text-slate-50"
+      className="space-y-6 px-6 pb-6 pt-16 sm:pt-[4.5rem] relative min-h-screen flex flex-col bg-slate-950 text-slate-50"
     >
       {/* Global Status Badges */}
       {vaultStatus.isLocalOnly && (
@@ -274,16 +274,16 @@ const Dashboard = () => {
       )}
 
       <header
-        className="-mx-6 mb-8 border-b border-[#081924] bg-[#0a1628] px-6 py-3"
+        className="-mx-6 mb-8 border-b border-[#081924] bg-[#0a1628] px-6 py-6"
         style={{ backgroundColor: "#0a1628" }}
       >
         <div className="flex w-full items-center justify-center">
-          <div className="flex w-full max-w-2xl flex-col items-center justify-center leading-none">
+          <div className="flex w-full max-w-5xl flex-col items-center justify-center leading-none">
             {!heroImageError ? (
               <img
                 src={PACKET_01_12_GOLD_DATA_URI}
                 alt="Delicious Catering & Events by Wendy"
-                className="mx-auto block h-auto max-h-32 w-auto max-w-full object-contain object-center select-none"
+                className="mx-auto block h-auto max-h-64 w-auto max-w-full object-contain object-center select-none"
                 fetchPriority="high"
                 decoding="async"
                 onError={() => setHeroImageError(true)}

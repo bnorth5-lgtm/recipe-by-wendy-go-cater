@@ -109,9 +109,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div key={Date.now()} className="flex min-h-screen bg-background text-foreground max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 relative">
       <ProvenanceBio />
       
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
+      <div className="pointer-events-none absolute right-3 top-3 z-50 flex max-w-[min(100vw-1.5rem,28rem)] flex-nowrap items-center justify-end gap-2 sm:right-4 sm:top-4 sm:gap-3">
         <Button 
-          className="bg-[#fbbf24] hover:bg-amber-500 text-slate-950 font-bold shadow-[0_0_15px_rgba(251,191,36,0.4)] gap-2 border border-amber-300"
+          className="pointer-events-auto shrink-0 bg-[#fbbf24] hover:bg-amber-500 text-slate-950 font-bold shadow-[0_0_15px_rgba(251,191,36,0.4)] gap-1.5 border border-amber-300 sm:gap-2"
           size="sm"
           onClick={() => {
             navigate('/venue-architect');
@@ -130,13 +130,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Button>
         <Button 
           onClick={handleLockAndSave}
-          className="bg-slate-800 text-white hover:bg-slate-700 font-bold border border-slate-700 gap-2"
+          className="pointer-events-auto shrink-0 bg-slate-800 text-white hover:bg-slate-700 font-bold border border-slate-700 gap-1.5 sm:gap-2"
           size="sm"
         >
           <Lock className="w-4 h-4" />
           Lock & Save
         </Button>
-        <LanguageToggle />
+        <span className="pointer-events-auto shrink-0">
+          <LanguageToggle />
+        </span>
       </div>
 
       {/* Mobile Hamburger Menu Button (only visible when sidebar is closed) */}
