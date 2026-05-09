@@ -719,6 +719,87 @@ const VenueArchitectContent = () => {
   }, [elements, windDirection, isRaining, windGust, isStormMode]);
 
   const staffNudges = useMemo(() => {
+    const wallTypes: ElementType[] = ["pipe_drape", "bathroom", "tent_40x60", "staging_kitchen"];
+
+    const closestPointOnRectPerimeter = (
+      px: number,
+      py: number,
+      L: number,
+      T: number,
+      R: number,
+      B: number,
+    ) => {
+      if (px < L || px > R || py < T || py > B) {
+        const cx = Math.max(L, Math.min(px, R));
+        const cy = Math.max(T, Math.min(py, B));
+        return { x: cx, y: cy };
+      }
+      const dL = px - L;
+      const dR = R - px;
+      const dT = py - T;
+      const dB = B - py;
+      const m = Math.min(dL, dR, dT, dB);
+      if (m === dL) return { x: L, y: Math.max(T, Math.min(py, B)) };
+      if (m === dR) return { x: R, y: Math.max(T, Math.min(py, B)) };
+      if (m === dT) return { x: Math.max(L, Math.min(px, R)), y: T };
+      return { x: Math.max(L, Math.min(px, R)), y: B };
+    };
+
+    const nearestWallPoint = (px: number, py: number) => {
+      let best: { x: number; y: number } | null = null;
+      let bestD = Infinity;
+      for (const el of elements) {
+        if (!wallTypes.includes(el.type)) continue;
+        const d = ELEMENT_CONFIG[el.type];
+        const L = el.x;
+        const T = el.y;
+        const R = el.x + d.width;
+        const B = el.y + d.height;
+        const pt = closestPointOnRectPerimeter(px, py, L, T, R, B);
+        const dist = (pt.x - px) ** 2 + (pt.y - py) ** 2;
+        if (dist < bestD) {
+          bestD = dist;
+          best = pt;
+        }
+      }
+      return best;
+    };
+
+    const blendTowardWithWall = (
+      cx: number,
+      cy: number,
+      tx: number,
+      ty: number,
+      strength: number,
+      wallWeight: number,
+    ) => {
+      const baseScale = strength * 52;
+      const dx = tx - cx;
+      const dy = ty - cy;
+      const len = Math.hypot(dx, dy);
+      const wallPt = nearestWallPoint(cx, cy);
+
+      if (len < 0.75) {
+        if (!wallPt) return { x: 0, y: 0 };
+        const wx = wallPt.x - cx;
+        const wy = wallPt.y - cy;
+        const wlen = Math.hypot(wx, wy) || 1;
+        return { x: (wx / wlen) * baseScale, y: (wy / wlen) * baseScale };
+      }
+
+      let fx = (dx / len) * baseScale;
+      let fy = (dy / len) * baseScale;
+      if (wallPt && wallWeight > 0.01) {
+        const wx = wallPt.x - cx;
+        const wy = wallPt.y - cy;
+        const wlen = Math.hypot(wx, wy) || 1;
+        const w = wallWeight;
+        fx = fx * (1 - w) + (wx / wlen) * baseScale * w;
+        fy = fy * (1 - w) + (wy / wlen) * baseScale * w;
+      }
+      return { x: fx, y: fy };
+    };
+
     const out: Record<string, { x: number; y: number }> = {};
     const staffList = elements.filter((e) => e.type === "staff_member");
     if (!staffList.length) return out;
@@ -731,7 +812,21 @@ const VenueArchitectContent = () => {
       const cx = s.x + ELEMENT_CONFIG.staff_member.width / 2;
       const cy = s.y + ELEMENT_CONFIG.staff_member.height / 2;
 
-      if (staffCrisisPhase === "perimeter_check" || (staffCrisisPhase === "idle" && !stormShelter)) {
+      if (staffCrisisPhase === "perimeter_check") {
+        const wallPt = nearestWallPoint(cx, cy);
+        if (wallPt) {
+          const wx = wallPt.x - cx;
+          const wy = wallPt.y - cy;
+          const wlen = Math.hypot(wx, wy) || 1;
+          const sc = 0.48 * 52;
+          out[s.id] = { x: (wx / wlen) * sc, y: (wy / wlen) * sc };
+        } else {
+          out[s.id] = { x: 0, y: 0 };
+        }
+        continue;
+      }
+
+      if (staffCrisisPhase === "idle" && !stormShelter) {
         out[s.id] = { x: 0, y: 0 };
         continue;
       }
@@ -739,8 +834,10 @@ const VenueArchitectContent = () => {
       let tx = cx;
       let ty = cy;
       let strength = 0.26;
+      let wallW = 0.22;
 
       if (staffCrisisPhase === "storm_lockdown" || (stormShelter && staffCrisisPhase === "idle")) {
+        wallW = isStormMode ? 0.4 : 0.34;
         if (tents.length) {
           let best = tents[0];
           let bestD = Infinity;
@@ -756,11 +853,15 @@ const VenueArchitectContent = () => {
           tx = best.x + ELEMENT_CONFIG.tent_40x60.width / 2;
           ty = best.y + ELEMENT_CONFIG.tent_40x60.height / 2;
           strength = isStormMode ? 0.32 : 0.24;
+        } else {
+          strength = isStormMode ? 0.3 : 0.24;
+          wallW = 0.85;
         }
       } else if (staffCrisisPhase === "kitchen_hold" && kitchen) {
         tx = kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2;
         ty = kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2;
         strength = 0.36;
+        wallW = 0.26;
       } else if (staffCrisisPhase === "evacuate" && exits.length) {
         let best = exits[0];
         let bestD = Infinity;
@@ -776,18 +877,13 @@ const VenueArchitectContent = () => {
         tx = best.x + ELEMENT_CONFIG.exit_sign.width / 2;
         ty = best.y + ELEMENT_CONFIG.exit_sign.height / 2;
         strength = 0.4;
+        wallW = 0.2;
       } else {
         out[s.id] = { x: 0, y: 0 };
         continue;
       }
 
-      const dx = tx - cx;
-      const dy = ty - cy;
-      const len = Math.hypot(dx, dy) || 1;
-      out[s.id] = {
-        x: (dx / len) * strength * 52,
-        y: (dy / len) * strength * 52,
-      };
+      out[s.id] = blendTowardWithWall(cx, cy, tx, ty, strength, wallW);
     }
     return out;
   }, [elements, staffCrisisPhase, isStormMode, isRaining, windGust, ELEMENT_CONFIG]);
@@ -1330,7 +1426,7 @@ const VenueArchitectContent = () => {
         {/* Canvas Area */}
         <div 
           id="venue-map-canvas" 
-          className="flex-1 relative overflow-hidden cursor-crosshair transition-colors duration-700 pointer-events-auto" 
+          className="flex-1 relative z-0 isolate overflow-hidden cursor-crosshair transition-colors duration-700 pointer-events-auto" 
           style={{ backgroundColor: isOutdoorMode ? '#064e3b' : '#0f172a', pointerEvents: 'auto' }}
           ref={containerRef} 
           onClick={(e) => {
@@ -1470,7 +1566,7 @@ const VenueArchitectContent = () => {
           <Button
             variant="secondary"
             size="icon"
-            className="absolute top-4 right-4 z-50 bg-slate-900/80 backdrop-blur-md border-slate-700 text-slate-400 hover:text-[#fbbf24] shadow-lg"
+            className="absolute top-16 right-4 z-50 bg-slate-900/80 backdrop-blur-md border-slate-700 text-slate-400 hover:text-[#fbbf24] shadow-lg"
             onClick={(e) => {
               e.stopPropagation();
               if (!document.fullscreenElement) {
@@ -1536,19 +1632,24 @@ const VenueArchitectContent = () => {
           {(isRaining || isStormMode) && (
             <>
               <div
-                className={cn(
-                  "pointer-events-none absolute inset-0 z-[8] mix-blend-screen",
-                  isStormMode ? "opacity-[0.72] ebw-animate-wind-rain-storm" : "opacity-[0.48] ebw-animate-wind-rain",
+                className="pointer-events-none absolute inset-0 z-[6] isolate overflow-hidden contain-[paint]"
+                aria-hidden
+              >
+                <div
+                  className={cn(
+                    "pointer-events-none absolute inset-0 mix-blend-soft-light",
+                    isStormMode ? "opacity-[0.58] ebw-animate-wind-rain-storm" : "opacity-[0.38] ebw-animate-wind-rain",
+                  )}
+                  style={{
+                    backgroundImage: `repeating-linear-gradient(${rainSlantDeg}deg, transparent, transparent 5px, rgba(147,197,253,0.42) 5px, rgba(147,197,253,0.42) 6px)`,
+                  }}
+                />
+                {isStormMode && (
+                  <div className="pointer-events-none absolute inset-0 ebw-animate-lightning bg-white" />
                 )}
-                style={{
-                  backgroundImage: `repeating-linear-gradient(${rainSlantDeg}deg, transparent, transparent 5px, rgba(147,197,253,0.5) 5px, rgba(147,197,253,0.5) 6px)`,
-                }}
-              />
-              {isStormMode && (
-                <div className="pointer-events-none absolute inset-0 z-[11] mix-blend-overlay ebw-animate-lightning bg-slate-100" />
-              )}
+              </div>
               <div
-                className="pointer-events-none absolute right-3 top-14 z-[12] flex items-center gap-1 rounded-md border border-slate-700/80 bg-slate-950/80 px-2 py-1 text-[10px] font-bold text-slate-200 shadow-lg"
+                className="pointer-events-none absolute bottom-24 left-3 z-30 flex max-w-[calc(100%-1.5rem)] items-center gap-1 rounded-md border border-slate-700/90 bg-slate-950/95 px-2 py-1 text-[10px] font-bold text-slate-200 shadow-lg backdrop-blur-md"
                 aria-hidden
               >
                 <Wind className="h-3 w-3 shrink-0 text-cyan-400" />

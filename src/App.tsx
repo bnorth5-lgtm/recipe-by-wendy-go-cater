@@ -130,7 +130,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <BrandingInjector /> {/* Add BrandingInjector here */}
-      <Toaster position="top-right" />
+      <Toaster position="top-right" style={{ zIndex: 600 }} />
       <ErrorBoundary>
         <Routes>
           {/*

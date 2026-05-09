@@ -121,6 +121,10 @@
     @apply border-border;
   }
 
+  [data-sonner-toaster] {
+    z-index: 600;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--brand-font-primary); /* Apply primary font globally */
@@ -175,5 +179,6 @@
   }
   .ebw-animate-lightning {
     animation: ebw-lightning-flash 4.5s ease-in-out infinite;
+    will-change: opacity;
   }
 }
