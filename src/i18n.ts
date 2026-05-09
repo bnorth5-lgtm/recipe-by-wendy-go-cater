@@ -1,6 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { PWA_LANGUAGE_CODES } from "@/lib/pwaLanguageEngine";
+import { PWA_LANG_SYNC_STORAGE_KEY } from "@/lib/crisisEvents";
 
 const dashboardEn = {
   title: "The Three Doors",
@@ -71,12 +72,127 @@ const dashboardLocalized: Partial<Record<string, typeof dashboardEn>> = {
   },
 };
 
+const crisisEn = {
+  menuLabel: "Crisis Command",
+  menuShort: "Crisis",
+  menuHint: "PWA field protocols — broadcasts to Visionary Map and toasts crew.",
+  cmdStorm: "Storm lockdown",
+  cmdStormDesc: "Wind + rain sim, shelter staff toward tent anchors",
+  cmdKitchen: "Kitchen hold",
+  cmdKitchenDesc: "Pause floor traffic — staff rally to kitchen",
+  cmdPerimeter: "Perimeter sweep",
+  cmdPerimeterDesc: "Oscillating checks along runways / edge",
+  cmdEvac: "Evacuate to exits",
+  cmdEvacDesc: "Staff vectors toward exit signage",
+  cmdLang: "Sync language pack",
+  cmdLangDesc: "Store locale + broadcast to open clients",
+  cmdClear: "All clear",
+  toastStorm: "STORM LOCKDOWN — Anchor tents, kill uplighters if unsafe.",
+  toastKitchen: "KITCHEN HOLD — Servers pause outbound, expediter only.",
+  toastPerimeter: "PERIMETER — Sweep guy lines, sandbags, power drops.",
+  toastEvac: "EVACUATE — Calm guests to marked exits; staff last.",
+  toastClear: "ALL CLEAR — Resume normal service timing.",
+  toastLanguageSynced: "Language sync pushed to PWA clients on this device.",
+} as const;
+
+const crisisLocalized: Partial<Record<string, typeof crisisEn>> = {
+  es: {
+    menuLabel: "Mando de crisis",
+    menuShort: "Crisis",
+    menuHint: "Protocolos PWA — avisos al mapa y al equipo.",
+    cmdStorm: "Cierre por tormenta",
+    cmdStormDesc: "Viento + lluvia; personal hacia carpas",
+    cmdKitchen: "Alto en cocina",
+    cmdKitchenDesc: "Congelar piso — equipo a cocina",
+    cmdPerimeter: "Perímetro",
+    cmdPerimeterDesc: "Barridos en perímetro/pistas",
+    cmdEvac: "Evacuación",
+    cmdEvacDesc: "Personal hacia salidas señalizadas",
+    cmdLang: "Sincronizar idioma",
+    cmdLangDesc: "Guardar idioma y difundir",
+    cmdClear: "Fin de alerta",
+    toastStorm: "CIERRE POR TORMENTA — Anclar carpas.",
+    toastKitchen: "ALTO COCINA — Solo expedición.",
+    toastPerimeter: "PERÍMETRO — Revisar líneas y tomas.",
+    toastEvac: "EVACUAR — Salidas marcadas.",
+    toastClear: "FIN DE ALERTA — Servicio normal.",
+    toastLanguageSynced: "Idioma sincronizado en clientes PWA.",
+  },
+  pt: {
+    menuLabel: "Comando de crise",
+    menuShort: "Crise",
+    menuHint: "Protocolos PWA — avisos ao mapa e à equipe.",
+    cmdStorm: "Encerramento por tempestade",
+    cmdStormDesc: "Vento + chuva; equipe para tendas",
+    cmdKitchen: "Parada na cozinha",
+    cmdKitchenDesc: "Congelar salão — equipe na cozinha",
+    cmdPerimeter: "Perímetro",
+    cmdPerimeterDesc: "Varredura nas bordas/pistas",
+    cmdEvac: "Evacuar",
+    cmdEvacDesc: "Equipe em direção às saídas",
+    cmdLang: "Sincronizar idioma",
+    cmdLangDesc: "Salvar e difundir locale",
+    cmdClear: "Situação normalizada",
+    toastStorm: "TEMPESTADE — Ancorar tendas.",
+    toastKitchen: "PARADA NA COZINHA — Só expedição.",
+    toastPerimeter: "PERÍMETRO — Verificar cabos e energia.",
+    toastEvac: "EVACUAR — Saídas marcadas.",
+    toastClear: "SITUAÇÃO NORMALIZADA.",
+    toastLanguageSynced: "Idioma sincronizado nos clientes PWA.",
+  },
+  fr: {
+    menuLabel: "Commandement crise",
+    menuShort: "Crise",
+    menuHint: "Protocoles PWA — alertes carte et équipe.",
+    cmdStorm: "Verrouillage tempête",
+    cmdStormDesc: "Vent + pluie — personnel vers chapiteaux",
+    cmdKitchen: "Stop cuisine",
+    cmdKitchenDesc: "Pause salle — équipe cuisine",
+    cmdPerimeter: "Périmètre",
+    cmdPerimeterDesc: "Balayage des bords et allées",
+    cmdEvac: "Évacuation",
+    cmdEvacDesc: "Personnel vers sorties balisées",
+    cmdLang: "Sync langue",
+    cmdLangDesc: "Enregistrer et diffuser la langue",
+    cmdClear: "Fin d’alerte",
+    toastStorm: "TEMPÊTE — Ancrer tentes.",
+    toastKitchen: "STOP CUISINE — Expédition seule.",
+    toastPerimeter: "PÉRIMÈTRE — Vérifier lignes et prises.",
+    toastEvac: "ÉVACUER — Sorties balisées.",
+    toastClear: "FIN D’ALERTE — Service normal.",
+    toastLanguageSynced: "Langue synchronisée sur les clients PWA.",
+  },
+  zh: {
+    menuLabel: "危机指挥",
+    menuShort: "危机",
+    menuHint: "PWA 现场协议 — 同步地图与提示。",
+    cmdStorm: "暴风雨封锁",
+    cmdStormDesc: "风雨模拟，人员靠近帐篷锚点",
+    cmdKitchen: "厨房暂停",
+    cmdKitchenDesc: "楼面停动 — 人员集结厨房",
+    cmdPerimeter: "外围巡查",
+    cmdPerimeterDesc: "沿跑道/边缘摆动巡查",
+    cmdEvac: "疏散至出口",
+    cmdEvacDesc: "人员朝向出口标识",
+    cmdLang: "同步语言包",
+    cmdLangDesc: "保存语言并广播到客户端",
+    cmdClear: "解除警报",
+    toastStorm: "暴风雨封锁 — 固定帐篷，注意用电。",
+    toastKitchen: "厨房暂停 — 仅出菜口通行。",
+    toastPerimeter: "外围巡查 — 检查缆绳与电源。",
+    toastEvac: "疏散 — 引导至标明出口。",
+    toastClear: "解除警报 — 恢复正常服务。",
+    toastLanguageSynced: "语言已同步到本机 PWA 客户端。",
+  },
+};
+
 const resources = Object.fromEntries(
   PWA_LANGUAGE_CODES.map((code) => [
     code,
     {
       translation: {
         dashboard: dashboardLocalized[code] ?? dashboardEn,
+        crisis: crisisLocalized[code] ?? crisisEn,
       },
     },
   ])
@@ -88,6 +204,16 @@ function syncDocumentLanguage(lng: string) {
   const rtl =
     lng === "ar" || lng.startsWith("ar-");
   document.documentElement.dir = rtl ? "rtl" : "ltr";
+  try {
+    if (typeof localStorage !== "undefined") {
+      const code = lng.split("-")[0];
+      if ((PWA_LANGUAGE_CODES as readonly string[]).includes(code)) {
+        localStorage.setItem(PWA_LANG_SYNC_STORAGE_KEY, code);
+      }
+    }
+  } catch {
+    /* private mode */
+  }
 }
 
 i18n.use(initReactI18next).init({
@@ -101,6 +227,17 @@ i18n.use(initReactI18next).init({
     escapeValue: false,
   },
 });
+
+try {
+  if (typeof localStorage !== "undefined") {
+    const stored = localStorage.getItem(PWA_LANG_SYNC_STORAGE_KEY);
+    if (stored && (PWA_LANGUAGE_CODES as readonly string[]).includes(stored)) {
+      void i18n.changeLanguage(stored);
+    }
+  }
+} catch {
+  /* private mode */
+}
 
 syncDocumentLanguage(i18n.language);
 i18n.on("languageChanged", syncDocumentLanguage);

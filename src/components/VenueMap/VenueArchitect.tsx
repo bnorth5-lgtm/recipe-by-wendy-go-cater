@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect, useTransition } from "react";
 import { motion } from "framer-motion";
-import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen, Volume2, Droplets, Bath, HardHat, CloudRain, Wind, ChevronLeft, ChevronRight, Maximize, Minimize, Save, MapPin, FileCheck, Loader2 } from "lucide-react";
+import { Plus, Copy, Trash2, Users, Wine, Utensils, Flower2, GripHorizontal, Square, Crosshair, Tent, Lightbulb, Flame, Zap, Clock, ListChecks, ChefHat, Send, DoorOpen, Volume2, Droplets, Bath, HardHat, CloudRain, CloudLightning, Wind, ChevronLeft, ChevronRight, Maximize, Minimize, Save, MapPin, FileCheck, Loader2 } from "lucide-react";
 import { dropGlobalPin } from "@/logic/ScoutNBS";
 import { toast } from "sonner";
 import { ExportMasterpiecePDF } from "@/logic/PDFGenerator";
@@ -73,6 +73,13 @@ import { cn } from "@/lib/utils";
 import { generateDiamondSnapElements } from "@/utils/geoMath";
 
 import type { ElementType, MapElementData } from "@/utils/geoMath";
+import {
+  CRISIS_COMMAND_EVENT,
+  LANGUAGE_BROADCAST_EVENT,
+  type CrisisCommandDetail,
+  type LanguageBroadcastDetail,
+  type StaffCrisisPhase,
+} from "@/lib/crisisEvents";
 
 const VenueArchitectContent = () => {
   const { PIXELS_PER_FOOT, ELEMENT_CONFIG, CONST_DEMO_STATE } = useMemo(() => {
@@ -118,6 +125,9 @@ const VenueArchitectContent = () => {
   const [isOutdoorMode, setIsOutdoorMode] = useState(false);
   const [showInfraOverlay, setShowInfraOverlay] = useState(false);
   const [isRaining, setIsRaining] = useState(false);
+  const [isStormMode, setIsStormMode] = useState(false);
+  const [windGust, setWindGust] = useState(0.35);
+  const [staffCrisisPhase, setStaffCrisisPhase] = useState<StaffCrisisPhase>("idle");
   const [windDirection, setWindDirection] = useState<string>("SE"); // Default blowing SE
   const [globalTime, setGlobalTime] = useState<number>(16); // 16.0 = 4:00 PM, 22.0 = 10:00 PM
   const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "timeline" | "logistics">("properties");
@@ -260,6 +270,57 @@ const VenueArchitectContent = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (!isRaining && !isStormMode) return;
+    const id = window.setInterval(() => {
+      setWindGust((g) => Math.min(1, Math.max(0, g + (Math.random() - 0.5) * 0.22)));
+    }, 260);
+    return () => clearInterval(id);
+  }, [isRaining, isStormMode]);
+
+  useEffect(() => {
+    const onCrisis = (ev: Event) => {
+      const cmd = (ev as CustomEvent<CrisisCommandDetail>).detail?.command;
+      if (!cmd || cmd === "language_sync") return;
+      switch (cmd) {
+        case "all_clear":
+          setStaffCrisisPhase("idle");
+          setIsStormMode(false);
+          break;
+        case "storm_lockdown":
+          setStaffCrisisPhase("storm_lockdown");
+          setIsStormMode(true);
+          setIsRaining(true);
+          break;
+        case "kitchen_hold":
+          setStaffCrisisPhase("kitchen_hold");
+          break;
+        case "perimeter_check":
+          setStaffCrisisPhase("perimeter_check");
+          break;
+        case "evacuate":
+          setStaffCrisisPhase("evacuate");
+          break;
+        default:
+          break;
+      }
+    };
+    window.addEventListener(CRISIS_COMMAND_EVENT, onCrisis);
+    return () => window.removeEventListener(CRISIS_COMMAND_EVENT, onCrisis);
+  }, []);
+
+  useEffect(() => {
+    const onLang = (ev: Event) => {
+      const lang = (ev as CustomEvent<LanguageBroadcastDetail>).detail?.lang;
+      if (!lang) return;
+      void import("@/i18n").then(({ default: i18nMod }) => {
+        void i18nMod.changeLanguage(lang);
+      });
+    };
+    window.addEventListener(LANGUAGE_BROADCAST_EVENT, onLang);
+    return () => window.removeEventListener(LANGUAGE_BROADCAST_EVENT, onLang);
   }, []);
 
   const formatTime = (decimalTime: number) => {
@@ -573,6 +634,11 @@ const VenueArchitectContent = () => {
     return map[dir] || 0;
   };
 
+  const rainSlantDeg = useMemo(() => {
+    const rad = getWindAngle(windDirection);
+    return 72 + (rad * 180) / Math.PI * 0.42 + windGust * 26 + (isStormMode ? 8 : 0);
+  }, [windDirection, windGust, isStormMode]);
+
   const isPointInTriangle = (p: {x:number, y:number}, p0: {x:number, y:number}, p1: {x:number, y:number}, p2: {x:number, y:number}) => {
     const A = 0.5 * (-p1.y * p2.x + p0.y * (-p1.x + p2.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y);
     const sign = A < 0 ? -1 : 1;
@@ -613,8 +679,8 @@ const VenueArchitectContent = () => {
       
       // Smoke
       const angle = getWindAngle(windDirection);
-      const L = 800; // 40ft plume
-      const spread = Math.PI / 6; // 30 deg half-spread
+      const L = 800 + windGust * 120 + (isStormMode ? 200 : 0); // 40ft plume — shear elongates in gusts
+      const spread = Math.PI / 6 + windGust * 0.12 + (isStormMode ? 0.12 : 0);
       triangle = {
         p1: { x: kX, y: kY },
         p2: { x: kX + L * Math.cos(angle - spread), y: kY + L * Math.sin(angle - spread) },
@@ -650,7 +716,81 @@ const VenueArchitectContent = () => {
       });
     }
     return { smokedElementIds: smoked, muddyPathTableIds: muddy, smokeTriangle: triangle };
-  }, [elements, windDirection, isRaining]);
+  }, [elements, windDirection, isRaining, windGust, isStormMode]);
+
+  const staffNudges = useMemo(() => {
+    const out: Record<string, { x: number; y: number }> = {};
+    const staffList = elements.filter((e) => e.type === "staff_member");
+    if (!staffList.length) return out;
+    const tents = elements.filter((e) => e.type === "tent_40x60");
+    const kitchen = elements.find((e) => e.type === "staging_kitchen");
+    const exits = elements.filter((e) => e.type === "exit_sign");
+    const stormShelter = isStormMode || (isRaining && windGust > 0.62);
+
+    for (const s of staffList) {
+      const cx = s.x + ELEMENT_CONFIG.staff_member.width / 2;
+      const cy = s.y + ELEMENT_CONFIG.staff_member.height / 2;
+
+      if (staffCrisisPhase === "perimeter_check" || (staffCrisisPhase === "idle" && !stormShelter)) {
+        out[s.id] = { x: 0, y: 0 };
+        continue;
+      }
+
+      let tx = cx;
+      let ty = cy;
+      let strength = 0.26;
+
+      if (staffCrisisPhase === "storm_lockdown" || (stormShelter && staffCrisisPhase === "idle")) {
+        if (tents.length) {
+          let best = tents[0];
+          let bestD = Infinity;
+          for (const t of tents) {
+            const tcx = t.x + ELEMENT_CONFIG.tent_40x60.width / 2;
+            const tcy = t.y + ELEMENT_CONFIG.tent_40x60.height / 2;
+            const d = (cx - tcx) ** 2 + (cy - tcy) ** 2;
+            if (d < bestD) {
+              bestD = d;
+              best = t;
+            }
+          }
+          tx = best.x + ELEMENT_CONFIG.tent_40x60.width / 2;
+          ty = best.y + ELEMENT_CONFIG.tent_40x60.height / 2;
+          strength = isStormMode ? 0.32 : 0.24;
+        }
+      } else if (staffCrisisPhase === "kitchen_hold" && kitchen) {
+        tx = kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2;
+        ty = kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2;
+        strength = 0.36;
+      } else if (staffCrisisPhase === "evacuate" && exits.length) {
+        let best = exits[0];
+        let bestD = Infinity;
+        for (const ex of exits) {
+          const ecx = ex.x + ELEMENT_CONFIG.exit_sign.width / 2;
+          const ecy = ex.y + ELEMENT_CONFIG.exit_sign.height / 2;
+          const d = (cx - ecx) ** 2 + (cy - ecy) ** 2;
+          if (d < bestD) {
+            bestD = d;
+            best = ex;
+          }
+        }
+        tx = best.x + ELEMENT_CONFIG.exit_sign.width / 2;
+        ty = best.y + ELEMENT_CONFIG.exit_sign.height / 2;
+        strength = 0.4;
+      } else {
+        out[s.id] = { x: 0, y: 0 };
+        continue;
+      }
+
+      const dx = tx - cx;
+      const dy = ty - cy;
+      const len = Math.hypot(dx, dy) || 1;
+      out[s.id] = {
+        x: (dx / len) * strength * 52,
+        y: (dy / len) * strength * 52,
+      };
+    }
+    return out;
+  }, [elements, staffCrisisPhase, isStormMode, isRaining, windGust, ELEMENT_CONFIG]);
 
   // Logistics & Setup Timer Math
   const {
@@ -1393,6 +1533,32 @@ const VenueArchitectContent = () => {
             backgroundPosition: '-1px -1px, -1px -1px, -1px -1px, -1px -1px'
           }} />
 
+          {(isRaining || isStormMode) && (
+            <>
+              <div
+                className={cn(
+                  "pointer-events-none absolute inset-0 z-[8] mix-blend-screen",
+                  isStormMode ? "opacity-[0.72] ebw-animate-wind-rain-storm" : "opacity-[0.48] ebw-animate-wind-rain",
+                )}
+                style={{
+                  backgroundImage: `repeating-linear-gradient(${rainSlantDeg}deg, transparent, transparent 5px, rgba(147,197,253,0.5) 5px, rgba(147,197,253,0.5) 6px)`,
+                }}
+              />
+              {isStormMode && (
+                <div className="pointer-events-none absolute inset-0 z-[11] mix-blend-overlay ebw-animate-lightning bg-slate-100" />
+              )}
+              <div
+                className="pointer-events-none absolute right-3 top-14 z-[12] flex items-center gap-1 rounded-md border border-slate-700/80 bg-slate-950/80 px-2 py-1 text-[10px] font-bold text-slate-200 shadow-lg"
+                aria-hidden
+              >
+                <Wind className="h-3 w-3 shrink-0 text-cyan-400" />
+                <span>{windDirection}</span>
+                <span className="font-mono text-cyan-300/90">{(windGust * 100).toFixed(0)}%</span>
+                {isStormMode && <span className="text-amber-400">STORM</span>}
+              </div>
+            </>
+          )}
+
           {/* Weather Overlay SVG */}
           <svg className="absolute inset-0 pointer-events-none z-10" style={{ width: '100%', height: '100%' }}>
             {/* Drip Zones */}
@@ -1749,6 +1915,12 @@ const VenueArchitectContent = () => {
 
             <div className="flex flex-col gap-2 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
               <div className="flex items-center justify-between">
+                <Label className="text-xs text-slate-300 cursor-pointer flex items-center gap-1" htmlFor="storm-mode">
+                  <CloudLightning className="w-3 h-3 text-amber-400" /> Storm
+                </Label>
+                <Switch id="storm-mode" checked={isStormMode} onCheckedChange={setIsStormMode} />
+              </div>
+              <div className="flex items-center justify-between mt-2">
                 <Label className="text-xs text-slate-300 cursor-pointer flex items-center gap-1" htmlFor="rain-mode">
                   <CloudRain className="w-3 h-3 text-blue-400" /> Rain Sim
                 </Label>
@@ -1911,6 +2083,8 @@ const VenueArchitectContent = () => {
             const isActiveEvent = el.timeEventTime !== undefined && globalTime >= el.timeEventTime && globalTime < el.timeEventTime + 1; // Active for 1 hour
             const isSmoked = smokedElementIds.has(el.id);
             const isAnchor = el.type === "stage" || el.type === "power_drop";
+            const staffPull =
+              el.type === "staff_member" ? staffNudges[el.id] ?? { x: 0, y: 0 } : { x: 0, y: 0 };
             
             return (
               <motion.div
@@ -1930,8 +2104,8 @@ const VenueArchitectContent = () => {
                 }}
                 className="absolute cursor-move origin-center"
                 style={{
-                  x: el.x,
-                  y: el.y,
+                  x: el.x + staffPull.x,
+                  y: el.y + staffPull.y,
                   rotate: el.rotation,
                   width: config.width,
                   height: config.height,
@@ -1947,6 +2121,7 @@ const VenueArchitectContent = () => {
                   "w-full h-full flex items-center justify-center transition-colors relative",
                   el.type !== "tent_40x60" && el.type !== "string_lights" && el.type !== "exit_sign" && "border-2 border-slate-600",
                   el.type === "tent_40x60" && el.hasSidewalls ? "bg-amber-50/5 border-4 border-solid border-white backdrop-blur-[2px]" : config.color,
+                  el.type === "tent_40x60" && isStormMode && "ring-2 ring-cyan-400/50 motion-safe:animate-pulse",
                   config.shape === "circle" ? "rounded-full" : "rounded-md",
                   isSelected && "border-[#fbbf24] border-solid border-2",
                   isSmoked && "border-orange-500 border-4 shadow-[0_0_20px_rgba(249,115,22,0.6)] bg-orange-900/50",
@@ -1971,7 +2146,20 @@ const VenueArchitectContent = () => {
                   <span className={cn("font-bold z-10", el.type === "tent_40x60" ? "text-amber-200/40 text-4xl" : "text-xs text-white/70")}>
                     {config.label.split(" ")[0]}
                   </span>
+                  {el.type === "staff_member" && staffCrisisPhase === "perimeter_check" && (
+                    <motion.div
+                      className="pointer-events-none absolute -inset-3 rounded-full border border-cyan-400/70"
+                      animate={{ x: [-5, 6, -4, 5, 0], y: [4, -5, 3, -4, 0] }}
+                      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
                 </div>
+
+                {el.type === "staff_member" && staffCrisisPhase !== "idle" && (
+                  <div className="absolute -top-7 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded bg-slate-950/90 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-cyan-300 shadow border border-cyan-700/50">
+                    {staffCrisisPhase.replace(/_/g, " ")}
+                  </div>
+                )}
 
                 {/* Active Event Label */}
                 {isActiveEvent && el.timeEventName && (

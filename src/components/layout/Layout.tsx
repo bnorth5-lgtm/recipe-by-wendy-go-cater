@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ProvenanceBio } from "@/components/ProvenanceBio";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { CrisisCommandMenu } from "@/components/CrisisCommandMenu";
 import { saveToVault } from "@/logic/persistence";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -136,6 +137,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Lock className="w-4 h-4" />
           Lock & Save
         </Button>
+        <span className="pointer-events-auto shrink-0">
+          <CrisisCommandMenu />
+        </span>
         <span className="pointer-events-auto shrink-0">
           <LanguageToggle />
         </span>
