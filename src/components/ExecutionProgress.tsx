@@ -79,7 +79,7 @@ export const ExecutionProgress: React.FC<ExecutionProgressProps> = ({
             )}
           >
             <UsersRound className="h-4 w-4 shrink-0" aria-hidden />
-            Guests
+            Social Heatmap
           </button>
         )}
         {onOpenBEO && (

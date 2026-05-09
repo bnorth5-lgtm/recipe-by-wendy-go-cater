@@ -137,7 +137,7 @@ const VenueArchitectContent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isBEODialogOpen, setIsBEODialogOpen] = useState(false);
   const [is3DView, setIs3DView] = useState(false);
-  const [guestSimulation, setGuestSimulation] = useState(false);
+  const [guestSimulation, setGuestSimulation] = useState(true);
 
   const navigate = useNavigate();
   const { eventState, updateEventState } = useEventContext();
@@ -825,12 +825,7 @@ const VenueArchitectContent = () => {
         percentage={progressPercentage}
         onOpenBEO={() => setIsBEODialogOpen(true)}
         is3DView={is3DView}
-        onToggle3D={() => {
-          setIs3DView((v) => {
-            if (v) setGuestSimulation(false);
-            return !v;
-          });
-        }}
+        onToggle3D={() => setIs3DView((v) => !v)}
         guestSimulation={guestSimulation}
         onToggleGuestSimulation={() => setGuestSimulation((g) => !g)}
       />
@@ -1376,6 +1371,7 @@ const VenueArchitectContent = () => {
               isDiamondSnapActive={isDiamondSnapActive}
               guestSimulation={guestSimulation}
               isOutdoorMode={isOutdoorMode}
+              globalTime={globalTime}
             />
           )}
           {!is3DView && (

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { ElementType, MapElementData } from "@/utils/geoMath";
@@ -224,6 +224,8 @@ export interface VenueArchitect3DProps {
   isDiamondSnapActive: boolean;
   guestSimulation: boolean;
   isOutdoorMode: boolean;
+  /** Decimal hours (16 = 4:00 PM). Dramatic evening lighting ramps 6:00–7:00 PM and holds from 7:00 PM. */
+  globalTime: number;
 }
 
 export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
@@ -232,8 +234,13 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
   isDiamondSnapActive,
   guestSimulation,
   isOutdoorMode,
+  globalTime,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const globalTimeRef = useRef(globalTime);
+  useLayoutEffect(() => {
+    globalTimeRef.current = globalTime;
+  }, [globalTime]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -248,8 +255,13 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
 
     const scene = new THREE.Scene();
 
-    scene.background = new THREE.Color(isOutdoorMode ? 0x0f3d2e : 0x0f172a);
-    scene.fog = new THREE.FogExp2(isOutdoorMode ? 0x0a2a22 : 0x0f172a, 0.006);
+    const bgDay = new THREE.Color(isOutdoorMode ? 0x0f3d2e : 0x0f172a);
+    const bgNight = new THREE.Color(isOutdoorMode ? 0x050a08 : 0x070a12);
+    scene.background = bgDay.clone();
+    const fogDay = isOutdoorMode ? 0x0a2a22 : 0x0f172a;
+    const fogNight = isOutdoorMode ? 0x020806 : 0x05070f;
+    const fog = new THREE.FogExp2(fogDay, 0.006);
+    scene.fog = fog;
 
     const camera = new THREE.PerspectiveCamera(50, 1, 0.5, 5000);
 
@@ -259,7 +271,8 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
     controls.maxPolarAngle = Math.PI / 2 - 0.06;
     controls.minPolarAngle = 0.55;
 
-    scene.add(new THREE.AmbientLight(0xfff4e8, isOutdoorMode ? 0.45 : 0.35));
+    const ambient = new THREE.AmbientLight(0xfff4e8, isOutdoorMode ? 0.45 : 0.35);
+    scene.add(ambient);
 
     const sun = new THREE.DirectionalLight(0xffffff, 1.05);
     sun.position.set(-80, 120, -40);
@@ -271,10 +284,18 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
     fill.position.set(60, 40, 40);
     scene.add(fill);
 
+    const rim = new THREE.DirectionalLight(0x6b8cff, 0);
+    rim.position.set(40, 55, -95);
+    scene.add(rim);
+
     const root = new THREE.Group();
     scene.add(root);
 
     const { cx, cz, span } = bboxFromElements(elements, ppf);
+
+    const warmAccent = new THREE.PointLight(0xffb366, 0, span * 4.5, 2);
+    warmAccent.position.set(cx, span * 0.35, cz);
+    scene.add(warmAccent);
     const groundSize = span * 1.85;
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(groundSize + 120, groundSize + 120),
@@ -420,6 +441,20 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
       root.add(defaultMesh);
     }
 
+    /** Social heatmap anchors — guests bias movement toward these zones (bar, floor, stage, etc.) */
+    const socialHotspots: THREE.Vector3[] = [];
+    for (const el of elements) {
+      if (el.type === "bar" || el.type === "dance_floor" || el.type === "stage" || el.type === "buffet" || el.type === "high_top") {
+        const dims = ELEMENT_DIMS_PX[el.type];
+        const hx = pxToFoot(el.x + dims.w / 2, ppf);
+        const hz = pxToFoot(el.y + dims.h / 2, ppf);
+        socialHotspots.push(new THREE.Vector3(hx, 0, hz));
+      }
+    }
+    if (socialHotspots.length === 0) {
+      socialHotspots.push(new THREE.Vector3(cx, 0, cz));
+    }
+
     /* Guest walkers along runways — simple “sprite” figures */
     const guestMeshes: THREE.Group[] = [];
     const guestOffsets: number[] = [];
@@ -462,6 +497,31 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
 
     const tick = () => {
       const t = clock.getElapsedTime();
+      const gt = globalTimeRef.current;
+      const eveningT = THREE.MathUtils.clamp((gt - 18) / 1, 0, 1);
+
+      const dayAmb = isOutdoorMode ? 0.45 : 0.35;
+      ambient.intensity = THREE.MathUtils.lerp(dayAmb, 0.065, eveningT);
+      const ambDay = new THREE.Color(0xfff4e8);
+      const ambNight = new THREE.Color(0x2e2638);
+      ambient.color.copy(ambDay).lerp(ambNight, eveningT);
+
+      const sunDayC = new THREE.Color(0xffffff);
+      const sunWarmC = new THREE.Color(0xffc4a8);
+      sun.color.copy(sunDayC).lerp(sunWarmC, eveningT);
+      sun.intensity = THREE.MathUtils.lerp(1.05, 0.42, eveningT);
+
+      const fillDay = isOutdoorMode ? 0.2 : 0.28;
+      fill.intensity = THREE.MathUtils.lerp(fillDay, 0.06, eveningT);
+      rim.intensity = THREE.MathUtils.lerp(0, 0.95, eveningT);
+
+      scene.background.copy(bgDay).lerp(bgNight, eveningT);
+      const fogColDay = new THREE.Color(fogDay);
+      const fogColNight = new THREE.Color(fogNight);
+      fog.color.copy(fogColDay).lerp(fogColNight, eveningT);
+      fog.density = THREE.MathUtils.lerp(0.006, 0.014, eveningT);
+
+      warmAccent.intensity = eveningT * 480 * (isOutdoorMode ? 0.85 : 1);
 
       guestMeshes.forEach((fig, i) => {
         const ri = runwayIndex[i];
@@ -471,14 +531,29 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
         const phase = (Math.sin(guestOffsets[i] + t * guestSpeeds[i]) + 1) / 2;
         const pos = sa.clone().lerp(sb, phase);
         pos.y = 0;
-        fig.position.copy(pos);
+
+        if (guestSimulation) {
+          let nearest = socialHotspots[0];
+          let best = pos.distanceToSquared(nearest);
+          for (let k = 1; k < socialHotspots.length; k++) {
+            const d = pos.distanceToSquared(socialHotspots[k]);
+            if (d < best) {
+              best = d;
+              nearest = socialHotspots[k];
+            }
+          }
+          const pulse = 0.5 + 0.5 * Math.sin(t * 0.85 + guestOffsets[i] * 1.2);
+          const pullAmt = (0.09 + 0.11 * eveningT) * pulse;
+          pos.x = THREE.MathUtils.lerp(pos.x, nearest.x, pullAmt);
+          pos.z = THREE.MathUtils.lerp(pos.z, nearest.z, pullAmt);
+        }
 
         fig.rotation.y =
           THREE.MathUtils.degToRad(rotationFromDirection(sb.x - sa.x, sb.z - sa.z)) +
           Math.sin(t * 4 + i) * 0.08;
 
         const bob = Math.sin(t * 7 + guestOffsets[i]) * 0.08;
-        fig.position.y += 0.12 + bob;
+        fig.position.set(pos.x, 0.12 + bob, pos.z);
       });
 
       controls.update();
