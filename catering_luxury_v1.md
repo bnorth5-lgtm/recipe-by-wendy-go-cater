@@ -1,6 +1,6 @@
 ## Services & Menu
 
-Catering By Wendy is reimagined for evenings that feel like film—where every course carries meaning, and every detail honors a legacy. From Stonington’s coastal air to the Cronkhite family table, our work is heritage-forward, impeccably paced, and designed to look as extraordinary as it tastes.
+Delicious Catering & Events is reimagined for evenings that feel like film—where every course carries meaning, and every detail honors a legacy. From Stonington’s coastal air to the Cronkhite family table, our work is heritage-forward, impeccably paced, and designed to look as extraordinary as it tastes.
 
 We cater **Luxury Galas** and **Weddings** with a quiet confidence: refined hospitality, seasonal sourcing, and menus built to be remembered.
 

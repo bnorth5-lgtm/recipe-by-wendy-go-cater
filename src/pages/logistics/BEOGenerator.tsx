@@ -200,13 +200,13 @@ function BEODocumentView({ doc }: BEODocumentViewProps) {
 
           {doc.menuSections.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground italic">
-              No recipes selected.
+              No menu dishes selected.
             </p>
           ) : (
             <div className="mt-3 space-y-5">
               {doc.menuSections.map((section) => (
                 <div key={section.recipeId} className="rounded-lg border">
-                  {/* Recipe header */}
+                  {/* Dish row header */}
                   <div className="flex items-center justify-between gap-4 px-4 py-3 bg-slate-50 dark:bg-slate-800/30 print:bg-gray-100 rounded-t-lg border-b">
                     <div>
                       <p className="font-semibold text-sm">{section.recipeName}</p>
@@ -461,7 +461,7 @@ function BEODocumentView({ doc }: BEODocumentViewProps) {
               />
               <FinRow
                 label="Logistics &amp; Transport"
-                value={fmt$(doc.overheadCost - (doc.totalCOGS * 0.1))} // Extracting logistics from overhead
+                value={fmt$(Math.max(0, doc.overheadCost - doc.totalCOGS * 0.1))}
               />
               <FinRow
                 label="Overhead &amp; Misc. (10%)"
@@ -939,7 +939,7 @@ const BEOGenerator = () => {
               </Badge>
             </div>
             <p className="text-muted-foreground max-w-xl">
-              Select recipes, enter your event details, and generate a
+              Select dishes, enter your event details, and generate a
               professional Banquet Event Order with live market-rate cost
               estimates, auto-calculated equipment lists, and a day-of timeline.
             </p>
@@ -1089,30 +1089,30 @@ const BEOGenerator = () => {
                   </CardContent>
                 </Card>
 
-                {/* Recipe Selection */}
+                {/* Menu dish selection */}
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
                       <UtensilsCrossed className="h-4 w-4 text-primary" />
-                      Select Recipes *
+                      Select menu dishes *
                     </CardTitle>
                     <CardDescription className="text-xs">
                       {selectedRecipeIds.size} selected ·{" "}
-                      {recipes.length} in cookbook
+                      {recipes.length} in your menu library
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <Input
                       value={recipeSearch}
                       onChange={(e) => setRecipeSearch(e.target.value)}
-                      placeholder="Search recipes…"
+                      placeholder="Search menu…"
                       className="h-8 text-sm"
                     />
                     {recipes.length === 0 ? (
                       <p className="text-xs text-muted-foreground text-center py-4">
-                        No recipes in your cookbook yet.
+                        No dishes in your menu library yet.
                         <br />
-                        Add recipes via the Recipes page first.
+                        Add dishes via Delicious Menu first.
                       </p>
                     ) : (
                       <ScrollArea className="h-48">

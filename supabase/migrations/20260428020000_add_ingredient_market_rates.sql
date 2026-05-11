@@ -1,5 +1,5 @@
 -- Ingredient-level market rates — Live Market Rate badge source
--- Catering By Wendy — 2026-04-28
+-- Delicious Catering & Events — 2026-04-28
 --
 -- Adds per-unit purchase-price rows to `competitor_pricing` using
 -- category = 'ingredient_rate'.  These are the wholesale / foodservice

@@ -390,16 +390,16 @@ const Proposals = () => {
                       />
                     </div>
 
-                    {/* Items (Recipes & Inventory Items) */}
+                    {/* Items (menu dishes & inventory items) */}
                     <div>
                       <h3 className="text-lg font-medium mb-2">Items Included</h3>
                       <div className="flex gap-2 mb-3">
                         <Select onValueChange={(value) => handleAddItem("recipe", value)}>
                           <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Add Recipe" />
+                            <SelectValue placeholder="Add dish" />
                           </SelectTrigger>
                           <SelectContent>
-                            {recipes.length === 0 && <p className="p-2 text-sm text-muted-foreground">No recipes available.</p>}
+                            {recipes.length === 0 && <p className="p-2 text-sm text-muted-foreground">No menu dishes available.</p>}
                             {recipes.map((recipe) => (
                               <SelectItem key={recipe.id} value={recipe.id}>
                                 {recipe.name} ({currencySymbol}{recipe.baseCost.toFixed(2)}/serving)
@@ -423,7 +423,7 @@ const Proposals = () => {
                       </div>
 
                       {itemFields.length === 0 ? (
-                        <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add recipes or inventory items.</p>
+                        <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add menu dishes or inventory items.</p>
                       ) : (
                         <div className="space-y-2">
                           {itemFields.map((item, index) => {

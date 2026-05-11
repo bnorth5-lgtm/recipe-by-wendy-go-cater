@@ -1,5 +1,5 @@
 -- Competitor pricing feed, master menu price history, and pricing rules
--- Catering By Wendy — 2026-04-28
+-- Delicious Catering & Events — 2026-04-28
 
 -- -----------------------------------------------------------------------
 -- 1. Competitor pricing feed

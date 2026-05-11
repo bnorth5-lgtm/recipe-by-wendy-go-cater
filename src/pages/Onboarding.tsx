@@ -50,7 +50,7 @@ export const Onboarding = () => {
         <div className="max-w-md w-full mx-auto space-y-8">
           
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome to EBW</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome to Delicious Catering & Events</h1>
             <p className="text-slate-400">Let's set up your white-label SaaS environment.</p>
           </div>
 
@@ -226,7 +226,7 @@ export const Onboarding = () => {
                     {formData.contactPhone || "(555) 123-4567"} | {formData.contactEmail || "email@domain.com"}
                   </p>
                   <p className="text-slate-500 italic text-sm mt-0.5">
-                    {formData.stateOfIncorporation || "New Hampshire"} LLC · EBW ~ MainVision Production Blueprint
+                    {formData.stateOfIncorporation || "New Hampshire"} LLC · DCE ~ MainVision Production Blueprint
                   </p>
                 </div>
               </div>

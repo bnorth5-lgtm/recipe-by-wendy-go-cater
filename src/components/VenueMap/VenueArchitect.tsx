@@ -334,7 +334,7 @@ const VenueArchitectContent = () => {
   const handleSaveTemplate = () => {
     const template = JSON.stringify(elements);
     localStorage.setItem(EBW_HARRISON_TEMPLATE_KEY, template);
-    toast.success("Blueprint Saved", { description: "Harrison layout saved as EBW Template." });
+    toast.success("Blueprint Saved", { description: "Harrison layout saved as DCE Template." });
   };
 
   const handleGlobalDrop = async () => {
@@ -388,7 +388,7 @@ const VenueArchitectContent = () => {
   };
 
   const handleRunFullTest = async () => {
-    toast.info("Initializing EBW Visionary Workflow...", { description: "Simulating $50k event generation." });
+    toast.info("Initializing DCE Visionary Workflow...", { description: "Simulating $50k event generation." });
     
     // Simulate 10 second generation
     const toastId = toast.loading("Generating Masterpiece PDF...");
@@ -1959,7 +1959,7 @@ const VenueArchitectContent = () => {
           {/* Right Elements Panel */}
         <div 
           className={cn(
-            "bg-slate-900/95 backdrop-blur-xl border-slate-700 flex flex-col z-50 shadow-2xl transition-all duration-300 relative",
+            "elements-sidebar bg-slate-900/95 backdrop-blur-xl border-slate-700 flex flex-col z-50 shadow-2xl transition-all duration-300 relative",
             (isElementsPanelOpen && !isZenMode) ? "w-64 border-l" : "w-0 border-l-0"
           )}
         >
@@ -2078,7 +2078,7 @@ const VenueArchitectContent = () => {
                 onClick={handleSaveTemplate}
               >
                 <Save className="w-4 h-4 mr-2" />
-                Save as EBW Template
+                Save as DCE Template
               </Button>
               <Button
                 variant="outline"

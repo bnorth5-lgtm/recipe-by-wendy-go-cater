@@ -19,21 +19,21 @@ interface Tab {
 
 const TABS: Tab[] = [
   {
-    label: "EBW Drop-Off",
+    label: "DCE Drop-Off",
     href: "/events/beos",
     icon: <CalendarCheck className="h-5 w-5" />,
     matchPrefix: "/events",
     adminOnly: false,
   },
   {
-    label: "EBW Staffing",
+    label: "DCE Staffing",
     href: "/menu/recipes",
     icon: <BookText className="h-5 w-5" />,
     matchPrefix: "/menu",
     adminOnly: false,
   },
   {
-    label: "EBW Visionary",
+    label: "DCE Visionary",
     href: "/venue-architect",
     icon: <Crown className="h-5 w-5" />,
     matchPrefix: "/venue-architect",
@@ -99,7 +99,7 @@ export function BottomNav() {
                   /* Default (inactive) */
                   "text-muted-foreground/70",
 
-                  /* Active — events / recipes */
+                  /* Active — events / menu */
                   !isExecTab && isActive && "text-foreground",
 
                   /* Active — executive (amber luxury accent) */

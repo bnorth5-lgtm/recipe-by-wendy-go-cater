@@ -8,13 +8,13 @@ const dashboardEn = {
   subtitle: "Select your operational path",
   quickDropOff: "Quick Drop-Off",
   quickDropOffDesc:
-    "Events By Wendy: Minimalist view for simple deliveries. Recipes and basic BEOs without heavy logistics.",
+    "Delicious Catering & Events: Minimalist view for simple deliveries. Menu dishes and basic BEOs without heavy logistics.",
   staffedBuffet: "Staffed Buffet",
   staffedBuffetDesc:
-    "Events By Wendy: Adds labor, bartenders, and inventory toggles—comprehensive BEOs with profit shields.",
+    "Delicious Catering & Events: Adds labor, bartenders, and inventory toggles—comprehensive BEOs with profit shields.",
   fullProduction: "Full Production",
   fullProductionDesc:
-    "Events By Wendy: Unlocks the Bird's-Eye Command Map, magnetic layouts, atmosphere layer, and full production tooling.",
+    "Delicious Catering & Events: Unlocks the Bird's-Eye Command Map, magnetic layouts, atmosphere layer, and full production tooling.",
 } as const;
 
 const dashboardLocalized: Partial<Record<string, typeof dashboardEn>> = {
@@ -23,52 +23,52 @@ const dashboardLocalized: Partial<Record<string, typeof dashboardEn>> = {
     subtitle: "Seleccione su ruta operativa",
     quickDropOff: "Entrega Rápida",
     quickDropOffDesc:
-      "Events By Wendy: Vista minimalista para entregas simples. Recetas y BEOs básicos sin logística pesada.",
+      "Delicious Catering & Events: Vista minimalista para entregas simples. Platos del menú y BEOs básicos sin logística pesada.",
     staffedBuffet: "Buffet con Personal",
     staffedBuffetDesc:
-      "Events By Wendy: Agrega mano de obra, camareros y controles de inventario; BEOs completos con escudos de beneficio.",
+      "Delicious Catering & Events: Agrega mano de obra, camareros y controles de inventario; BEOs completos con escudos de beneficio.",
     fullProduction: "Producción Completa",
     fullProductionDesc:
-      "Events By Wendy: Desbloquea el mapa de comando desde el aire, trazados magnéticos, capa de atmósfera y herramientas de producción completa.",
+      "Delicious Catering & Events: Desbloquea el mapa de comando desde el aire, trazados magnéticos, capa de atmósfera y herramientas de producción completa.",
   },
   pt: {
     title: "As Três Portas",
     subtitle: "Selecione seu caminho operacional",
     quickDropOff: "Entrega Rápida",
     quickDropOffDesc:
-      "Events By Wendy: Visão minimalista para entregas simples. Receitas e BEOs básicos sem logística pesada.",
+      "Delicious Catering & Events: Visão minimalista para entregas simples. Pratos do cardápio e BEOs básicos sem logística pesada.",
     staffedBuffet: "Buffet com Equipe",
     staffedBuffetDesc:
-      "Events By Wendy: Adiciona mão de obra, bartenders e controles de inventário—BEOs completos com escudos de margem.",
+      "Delicious Catering & Events: Adiciona mão de obra, bartenders e controles de inventário—BEOs completos com escudos de margem.",
     fullProduction: "Produção Completa",
     fullProductionDesc:
-      "Events By Wendy: Desbloqueia o mapa de comando aéreo, layouts magnéticos, camada de atmosfera e ferramentas de produção completa.",
+      "Delicious Catering & Events: Desbloqueia o mapa de comando aéreo, layouts magnéticos, camada de atmosfera e ferramentas de produção completa.",
   },
   fr: {
     title: "Les Trois Portes",
     subtitle: "Sélectionnez votre voie opérationnelle",
     quickDropOff: "Livraison Rapide",
     quickDropOffDesc:
-      "Events By Wendy : vue minimaliste pour les livraisons simples — recettes et BEO légers sans logistique lourde.",
+      "Delicious Catering & Events : vue minimaliste pour les livraisons simples — plats du menu et BEO légers sans logistique lourde.",
     staffedBuffet: "Buffet avec Personnel",
     staffedBuffetDesc:
-      "Events By Wendy : ajoute la main-d'œuvre, les barmans et les inventaires ; BEO complets avec barrières de marge.",
+      "Delicious Catering & Events : ajoute la main-d'œuvre, les barmans et les inventaires ; BEO complets avec barrières de marge.",
     fullProduction: "Production Complète",
     fullProductionDesc:
-      "Events By Wendy : débloque la carte de commandement aérienne, les plans magnétiques, la couche d'ambiance et l'outilage production complète.",
+      "Delicious Catering & Events : débloque la carte de commandement aérienne, les plans magnétiques, la couche d'ambiance et l'outilage production complète.",
   },
   zh: {
     title: "三扇门",
     subtitle: "选择您的运营路径",
     quickDropOff: "快速送达",
     quickDropOffDesc:
-      "Events By Wendy：简单送货的极简视图；食谱与轻量宴会活动单（BEO），无需繁重物流。",
+      "Delicious Catering & Events：简单送货的极简视图；菜品与轻量宴会活动单（BEO），无需繁重物流。",
     staffedBuffet: "员工自助餐",
     staffedBuffetDesc:
-      "Events By Wendy：增加人手、调酒师与库存控制；完整宴会活动单与利润护盾。",
+      "Delicious Catering & Events：增加人手、调酒师与库存控制；完整宴会活动单与利润护盾。",
     fullProduction: "全面生产",
     fullProductionDesc:
-      "Events By Wendy：解锁鸟瞰指挥地图、磁吸排版、氛围层及全套制片工具。",
+      "Delicious Catering & Events：解锁鸟瞰指挥地图、磁吸排版、氛围层及全套制片工具。",
   },
 };
 

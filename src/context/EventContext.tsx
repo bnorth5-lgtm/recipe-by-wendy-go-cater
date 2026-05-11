@@ -79,7 +79,7 @@ const defaultState: EventState = {
   kitchenNotifications: [],
 };
 
-/** Persists EBW masterpiece seal across routes (ClientQuote + Dashboard use separate providers). */
+/** Persists DCE masterpiece seal across routes (ClientQuote + Dashboard use separate providers). */
 export const EBW_MASTERPIECE_SEAL_LS_KEY = "ebw_masterpiece_seal_v1";
 
 function readMasterpieceSealFromStorage(): Pick<EventState, "masterpieceContractSealed" | "masterpieceContractSealedAt"> {

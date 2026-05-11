@@ -7,7 +7,7 @@ const LiveStory = () => {
   return (
     <div className="min-h-screen">
       <HeroStory
-        title="Catering By Wendy"
+        title="Delicious Catering & Events"
         subtitle="High-end, heritage-focused, cinematic catering for luxury galas and weddings."
       />
       <StoryScroll title="Live Story" />

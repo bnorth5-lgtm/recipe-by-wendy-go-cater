@@ -147,7 +147,7 @@ const PricingEngine = () => {
   // ── Run analysis ──
   const runAnalysis = useCallback(() => {
     if (!recipes.length) {
-      toast.warning("No recipes in the cookbook to analyze.");
+      toast.warning("No dishes in the menu library to analyze.");
       return;
     }
     const currentOverrides: Record<string, number> = {};
@@ -169,7 +169,7 @@ const PricingEngine = () => {
           .map((r) => r.itemId)
       )
     );
-    toast.success(`Analyzed ${result.length} recipes.`);
+    toast.success(`Analyzed ${result.length} dishes.`);
   }, [recipes, competitorData, pricingRules, menuPriceOverrides]);
 
   // ── Load history ──
@@ -427,7 +427,7 @@ const PricingEngine = () => {
                 </Button>
                 <Button onClick={runAnalysis} size="sm" disabled={!recipes.length}>
                   <Play className="mr-2 h-4 w-4" />
-                  Run Analysis ({recipes.length} recipes)
+                  Run Analysis ({recipes.length} dishes)
                 </Button>
                 {analysis.length > 0 && selectedCount > 0 && (
                   <Button
@@ -476,7 +476,7 @@ const PricingEngine = () => {
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <CardTitle className="text-lg">
-                        {analysis.length} Recipes Analyzed
+                        {analysis.length} Menu dishes analyzed
                       </CardTitle>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Checkbox
@@ -496,7 +496,7 @@ const PricingEngine = () => {
                         <TableHeader>
                           <TableRow>
                             <TableHead className="w-10 pl-4" />
-                            <TableHead>Recipe</TableHead>
+                            <TableHead>Dish</TableHead>
                             <TableHead className="text-right">Cost/Serving</TableHead>
                             <TableHead className="text-right">Current Price</TableHead>
                             <TableHead className="text-right">Comp. Avg</TableHead>
@@ -779,7 +779,7 @@ const PricingEngine = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Recipe</TableHead>
+                            <TableHead>Dish</TableHead>
                             <TableHead className="text-right">Old Price</TableHead>
                             <TableHead className="text-right">New Price</TableHead>
                             <TableHead className="text-right">Comp. Avg</TableHead>

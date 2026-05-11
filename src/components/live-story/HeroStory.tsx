@@ -8,7 +8,7 @@ interface HeroStoryProps {
 }
 
 export const HeroStory: React.FC<HeroStoryProps> = ({
-  title = "Catering By Wendy",
+  title = "Delicious Catering & Events",
   subtitle = "Heritage-forward catering for luxury galas and weddings.",
   imageUrl = "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?q=80&w=2400&auto=format&fit=crop",
 }) => {

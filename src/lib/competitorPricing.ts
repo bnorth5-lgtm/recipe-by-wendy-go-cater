@@ -1,5 +1,5 @@
 /**
- * Competitor Pricing Engine — Catering By Wendy
+ * Competitor Pricing Engine — Delicious Catering & Events
  *
  * Connects to the Supabase `competitor_pricing`, `pricing_rules`, and
  * `menu_price_history` tables, applies the custom price multiplier to

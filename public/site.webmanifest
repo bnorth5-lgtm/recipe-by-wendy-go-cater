@@ -1,7 +1,7 @@
 {
   "name": "Delicious Catering & Events by Wendy",
-  "short_name": "EBW",
-  "description": "Events By Wendy catering operations — 20-slot language engine.",
+  "short_name": "DCE",
+  "description": "Delicious Catering & Events — catering operations and 20-slot language engine.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

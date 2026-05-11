@@ -7,8 +7,8 @@ import { PACKET_01_12_GOLD_DATA_URI } from "@/branding/packet-01-12-gold-data-ur
 
 const NAVY_RGB: [number, number, number] = [10, 22, 40]; // #0a1628 (dashboard hero strip)
 
-const EBW_SIGNATURE_LEGAL_FOOTER =
-  "This EBW Masterpiece is a binding agreement for the Harrison, Maine Infrastructure-Zero Demo.";
+const DCE_SIGNATURE_LEGAL_FOOTER =
+  "This DCE Masterpiece is a binding agreement for the Harrison, Maine Infrastructure-Zero Demo.";
 
 /** Options for ceremonial seal timestamps on the Signature Block */
 export interface ProposalPdfOptions {
@@ -73,7 +73,7 @@ function appendEbWMasterpieceSignatureBlock(
   doc.setFont("times", "bold");
   doc.setFontSize(18);
   doc.setTextColor(gold[0], gold[1], gold[2]);
-  doc.text("EBW Masterpiece — Signature Module", margin, y);
+  doc.text("DCE Masterpiece — Signature Module", margin, y);
   y += 0.35;
 
   doc.setDrawColor(gold[0], gold[1], gold[2]);
@@ -96,7 +96,7 @@ function appendEbWMasterpieceSignatureBlock(
   doc.setFontSize(10);
   doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
   const acceptBody =
-    `The undersigned acknowledges review of this EBW proposal and intends this document as authorization to proceed according to its investment schedule, amendments, ` +
+    `The undersigned acknowledges review of this DCE proposal and intends this document as authorization to proceed according to its investment schedule, amendments, ` +
     `and venue allowances for ${companyName}.`;
   doc.splitTextToSize(acceptBody, contentWidth).forEach((line: string) => {
     doc.text(line, margin, y);
@@ -129,13 +129,13 @@ function appendEbWMasterpieceSignatureBlock(
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
   doc.setTextColor(slate[0], slate[1], slate[2]);
-  doc.text("EBW Authorized Signature", margin, y);
+  doc.text("DCE Authorized Signature", margin, y);
   y += 0.22;
 
   doc.setFont("helvetica", "italic");
   doc.setFontSize(10);
   doc.setTextColor(gold[0], gold[1], gold[2]);
-  doc.text("Delicious Catering & Events by Wendy — EBW brand authority", margin, y);
+  doc.text("Delicious Catering & Events by Wendy — DCE brand authority", margin, y);
   y += 0.35;
 
   doc.setDrawColor(gold[0], gold[1], gold[2]);
@@ -144,7 +144,7 @@ function appendEbWMasterpieceSignatureBlock(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
-  doc.text("Wendy — EBW Culinary Command", margin, y);
+  doc.text("Wendy — DCE Culinary Command", margin, y);
   y += 0.55;
 
   doc.setFont("helvetica", "bold");
@@ -156,7 +156,7 @@ function appendEbWMasterpieceSignatureBlock(
   doc.setFont("helvetica", "italic");
   doc.setFontSize(8.5);
   doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
-  const legalLines = doc.splitTextToSize(EBW_SIGNATURE_LEGAL_FOOTER, contentWidth);
+  const legalLines = doc.splitTextToSize(DCE_SIGNATURE_LEGAL_FOOTER, contentWidth);
   legalLines.forEach((line: string) => {
     doc.text(line, margin, y);
     y += 0.14;
@@ -187,7 +187,7 @@ export const ExportMasterpiecePDF = async (
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
   doc.setTextColor(slate[0], slate[1], slate[2]);
-  doc.text("EBW Masterpiece Ledger", margin, currentY);
+  doc.text("DCE Masterpiece Ledger", margin, currentY);
   currentY += 0.32;
 
   doc.setFontSize(13);
@@ -306,7 +306,7 @@ export const ExportMasterpiecePDF = async (
   );
 
   // Save PDF
-  doc.save(`EBW_Masterpiece_${eventDetails.name.replace(/\s+/g, '_')}.pdf`);
+  doc.save(`DCE_Masterpiece_${eventDetails.name.replace(/\s+/g, '_')}.pdf`);
   return { success: true };
 };
 
@@ -350,10 +350,10 @@ export const generateProposalPDF = async (
   const contactInfo = brandState ? `${brandState.contactPhone} | ${brandState.contactEmail}` : "New Hampshire LLC";
 
   const blueprintTitle = brandState?.selectedTier === "production"
-    ? "EBW ~ MainVision Production Blueprint"
+    ? "DCE ~ MainVision Production Blueprint"
     : brandState?.selectedTier === "staffed"
-      ? "EBW ~ Delicious Staffed Events Blueprint"
-      : "EBW ~ Delicious Express & Setup Blueprint";
+      ? "DCE ~ Delicious Staffed Events Blueprint"
+      : "DCE ~ Delicious Express & Setup Blueprint";
 
   // --- HEADER — navy hero strip + PACKET brand art (dashboard parity)
   let currentY = drawPacketHeaderBand(doc, margin, contentWidth, margin);
@@ -474,7 +474,7 @@ export const generateProposalPDF = async (
     `Transport & Setup: $${logisticsCost.toFixed(2)}`
   ]);
 
-  // Total Investment
+  // Totals — bucket amounts sum to totalCost; client baseline quote is separate (avoids looking like a sign / math error)
   currentY += 0.1;
   doc.setLineWidth(0.02);
   doc.setDrawColor(brandColor[0], brandColor[1], brandColor[2]);
@@ -482,12 +482,31 @@ export const generateProposalPDF = async (
   currentY += 0.3;
 
   doc.setFont("times", "bold");
+  doc.setFontSize(15);
+  doc.setTextColor(slate[0], slate[1], slate[2]);
+  doc.text("Total estimated delivery cost", margin, currentY);
+  doc.setTextColor(slate[0], slate[1], slate[2]);
+  doc.text(`$${totalCost.toFixed(2)}`, margin + contentWidth - 1, currentY, { align: "right" });
+  currentY += 0.32;
+
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(9);
+  doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
+  doc.text("Matches Culinary + Atmosphere + Logistics above.", margin, currentY);
+  currentY += 0.36;
+
+  doc.setFont("times", "bold");
   doc.setFontSize(16);
   doc.setTextColor(slate[0], slate[1], slate[2]);
-  doc.text("Total Estimated Investment", margin, currentY);
+  doc.text("Illustrative client quote (baseline)", margin, currentY);
   doc.setTextColor(brandColor[0], brandColor[1], brandColor[2]);
   doc.text(`$${estimatedRevenue.toFixed(2)}`, margin + contentWidth - 1, currentY, { align: "right" });
-  currentY += 0.5;
+  currentY += 0.22;
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(9);
+  doc.setTextColor(slateLight[0], slateLight[1], slateLight[2]);
+  doc.text(`$125 × ${eventState.totalGuests} guests (planning estimate).`, margin, currentY);
+  currentY += 0.42;
 
   // --- LEGAL FOOTER & QR CODE ---
   // Ensure footer is at the bottom of the page or on a new page
@@ -520,14 +539,17 @@ Liability: The company's liability for any claim arising out of or relating to t
 
   // Generate and add QR Code
   try {
-    const qrDataUrl = await QRCode.toDataURL(`Event Profit Blueprint: ${eventState.eventName}\nTotal: $${estimatedRevenue.toFixed(2)}`, {
-      width: 100,
-      margin: 1,
-      color: {
-        dark: "#0f172a", // slate-950
-        light: "#ffffff"
+    const qrDataUrl = await QRCode.toDataURL(
+      `Event Profit Blueprint: ${eventState.eventName}\nDelivery cost: $${totalCost.toFixed(2)}\nClient quote: $${estimatedRevenue.toFixed(2)}`,
+      {
+        width: 100,
+        margin: 1,
+        color: {
+          dark: "#0f172a",
+          light: "#ffffff",
+        },
       }
-    });
+    );
     
     // Place QR code in the bottom right corner
     doc.addImage(qrDataUrl, "PNG", margin + contentWidth - 1.2, currentY - 0.2, 1.2, 1.2);
@@ -549,5 +571,5 @@ Liability: The company's liability for any claim arising out of or relating to t
     sealIssuedAtISO
   );
 
-  doc.save(`EBW_Masterpiece_${eventState.eventName.replace(/\s+/g, "_")}.pdf`);
+  doc.save(`DCE_Masterpiece_${eventState.eventName.replace(/\s+/g, "_")}.pdf`);
 };

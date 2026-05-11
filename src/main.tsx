@@ -2,6 +2,8 @@ import { createRoot } from "react-dom/client";
 import React from "react";
 import App from "./App"; // Import the App component
 import "./globals.css";
+import "./index.css";
+import "./App.css";
 
 console.log("main.tsx is executing!");
 

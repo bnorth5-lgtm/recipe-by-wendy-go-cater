@@ -69,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isColl
       children: [],
     },
     {
-      name: "Recipes",
+      name: "Delicious Menu",
       href: "/menu/recipes",
       icon: BookText,
       children: [],

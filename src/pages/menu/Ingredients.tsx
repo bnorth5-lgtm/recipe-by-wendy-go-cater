@@ -18,7 +18,7 @@ const Ingredients = () => {
               Add to Estimate
             </Link>
             <Link to="/menu/recipes" className="text-xs text-purple-500 hover:underline">
-              Find Recipes
+              Find dishes
             </Link>
           </div>
         </li>

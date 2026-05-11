@@ -142,28 +142,28 @@ const PrepSchedule = () => {
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-3">
       <div className="text-center mb-4">
-        <h1 className="text-4xl font-bold mb-2">Recipe Prep Schedule</h1>
+        <h1 className="text-4xl font-bold mb-2">Kitchen prep schedule</h1>
         <p className="text-xl text-muted-foreground">
-          Manage your kitchen workflow with interactive timers and quick recipe specs.
+          Manage your kitchen workflow with interactive timers and quick dish specs.
         </p>
       </div>
 
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Column 1: Recipe List & Search */}
+        {/* Column 1: Dish list & search */}
         <Card className="lg:col-span-1 bg-card p-3 rounded-lg shadow-md">
           <CardHeader className="pb-3">
             <CardTitle className="text-xl font-semibold text-primary flex items-center gap-2">
-              <Utensils className="h-5 w-5" /> Recipe Directory
+              <Utensils className="h-5 w-5" /> Menu directory
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              Search and select recipes to start timers.
+              Search and select dishes to start timers.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="relative mb-3 px-3">
               <Search className="absolute left-6 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search recipes by name or category..."
+                placeholder="Search dishes by name or category..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -172,7 +172,7 @@ const PrepSchedule = () => {
             <ScrollArea className="h-[600px] px-3">
               <div className="space-y-2">
                 {filteredRecipes.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">No recipes found matching "{searchTerm}".</p>
+                  <p className="text-muted-foreground text-center py-4">No dishes found matching "{searchTerm}".</p>
                 ) : (
                   filteredRecipes.map((recipe) => (
                     <div key={recipe.id} className="border p-2 rounded-md bg-secondary/20 flex flex-col space-y-2">

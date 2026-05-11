@@ -1,5 +1,5 @@
 -- Migration: Add subscription tier and usage tracking tables
--- Catering By Wendy — 2026-04-28
+-- Delicious Catering & Events — 2026-04-28
 
 -- -----------------------------------------------------------------------
 -- 1. Reference table: subscription tier definitions

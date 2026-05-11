@@ -293,10 +293,10 @@ const Estimates = () => {
                       <div className="flex gap-2 mb-3"> {/* Reduced mb-4 to mb-3 */}
                         <Select onValueChange={(value) => handleAddItem("recipe", value)}>
                           <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Add Recipe" />
+                            <SelectValue placeholder="Add dish" />
                           </SelectTrigger>
                           <SelectContent>
-                            {recipes.length === 0 && <p className="p-2 text-sm text-muted-foreground">No recipes available.</p>}
+                            {recipes.length === 0 && <p className="p-2 text-sm text-muted-foreground">No menu dishes available.</p>}
                             {recipes.map((recipe) => (
                               <SelectItem key={recipe.id} value={recipe.id}>
                                 {recipe.name} ({currencySymbol}{recipe.baseCost.toFixed(2)}/serving)
@@ -320,7 +320,7 @@ const Estimates = () => {
                       </div>
 
                       {itemFields.length === 0 ? (
-                        <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add recipes or inventory items.</p>
+                        <p className="text-muted-foreground text-sm">No items added yet. Use the dropdowns above to add menu dishes or inventory items.</p>
                       ) : (
                         <div className="overflow-x-auto">
                           <Table>

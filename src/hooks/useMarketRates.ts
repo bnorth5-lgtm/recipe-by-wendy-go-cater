@@ -1,7 +1,7 @@
 /**
  * useMarketRates — shared hook for live ingredient market rate lookups.
  *
- * All agents (Recipes page, PricingEngine, BEO) that call this hook share the
+ * All agents (Delicious Menu page, PricingEngine, BEO) that call this hook share the
  * same module-level fetch promise so Supabase is hit only once per tab session.
  *
  * Usage:

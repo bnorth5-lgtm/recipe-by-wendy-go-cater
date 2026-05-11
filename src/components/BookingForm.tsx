@@ -82,7 +82,7 @@ export const bookingFormSchema = z.object({ // Exported the schema
     required_error: "An event date is required.",
   }),
   numberOfGuests: z.coerce.number().min(1, "Number of guests must be at least 1"),
-  selectedRecipeIds: z.array(z.string()).min(1, "At least one recipe must be selected"),
+  selectedRecipeIds: z.array(z.string()).min(1, "At least one menu dish must be selected"),
 });
 
 type BookingFormData = z.infer<typeof bookingFormSchema>;
@@ -207,7 +207,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({ initialData, onSubmit,
           name="selectedRecipeIds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Select Recipes</FormLabel>
+              <FormLabel>Select menu dishes</FormLabel>
               <FormControl>
                 <MultiSelect
                   options={recipeOptions}

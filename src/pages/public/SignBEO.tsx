@@ -107,7 +107,7 @@ function ConfirmationScreen({
           <p className="text-stone-500 text-sm leading-relaxed">
             Thank you{signerName ? `, ${signerName}` : ""}. Your signature for{" "}
             <strong className="text-stone-700">{doc.eventName}</strong> has been
-            recorded and sent to Catering By Wendy.
+            recorded and sent to Delicious Catering & Events.
           </p>
         </div>
 
@@ -234,7 +234,7 @@ export default function SignBEO() {
         <div className="max-w-lg mx-auto px-6 py-8 flex items-start justify-between gap-6">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-400 mb-2">
-              Catering By Wendy
+              Delicious Catering & Events
             </p>
             <h1 className="text-2xl font-bold tracking-tight">
               Event Proposal
@@ -300,7 +300,7 @@ export default function SignBEO() {
           <div className="px-6 py-5 space-y-5">
             <p className="text-sm text-stone-500 leading-relaxed">
               By signing below you confirm your agreement to the event details
-              and pricing above. Catering By Wendy will be notified immediately.
+              and pricing above. Delicious Catering & Events will be notified immediately.
             </p>
 
             {/* Printed name */}
@@ -340,7 +340,7 @@ export default function SignBEO() {
             <p className="text-[11px] text-gray-400 leading-relaxed">
               By clicking "Accept" you acknowledge that this constitutes a legal
               electronic signature and agree to the terms outlined in this
-              proposal. Catering By Wendy · northbusinessservices@gmail.com
+              proposal. Delicious Catering & Events · northbusinessservices@gmail.com
             </p>
 
             {/* Accept button */}
@@ -373,7 +373,7 @@ export default function SignBEO() {
         {/* Footer */}
         <div className="py-4 text-center space-y-1">
           <p className="text-xs text-stone-400">
-            Catering By Wendy · Professional Catering Services
+            Delicious Catering & Events · Professional Catering Services
           </p>
           <p className="text-xs text-stone-400">
             Questions?{" "}

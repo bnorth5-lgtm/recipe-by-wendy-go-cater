@@ -127,7 +127,7 @@ const Bookings = () => {
                       <TableHead className="px-3 py-2">Client</TableHead>
                       <TableHead className="px-3 py-2">Date</TableHead>
                       <TableHead className="px-3 py-2">Guests</TableHead>
-                      <TableHead className="px-3 py-2">Recipes</TableHead>
+                      <TableHead className="px-3 py-2">Dishes</TableHead>
                       <TableHead className="px-3 py-2 text-center">Status</TableHead>
                       <TableHead className="px-3 py-2 text-right">Actions</TableHead>
                     </TableRow>
@@ -153,7 +153,7 @@ const Bookings = () => {
                               return recipe ? (
                                 <Badge key={recipeId} variant="secondary">{recipe.name}</Badge>
                               ) : (
-                                <Badge key={recipeId} variant="destructive">Unknown Recipe</Badge>
+                                <Badge key={recipeId} variant="destructive">Unknown dish</Badge>
                               );
                             })}
                           </div>

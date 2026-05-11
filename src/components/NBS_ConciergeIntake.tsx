@@ -55,7 +55,7 @@ export function NBS_ConciergeIntake() {
               <Input
                 value={config.legalName}
                 onChange={(e) => setConfig({ ...config, legalName: e.target.value })}
-                placeholder="e.g., Catering By Wendy"
+                placeholder="e.g., Delicious Catering & Events"
               />
             </div>
             <div className="flex justify-end pt-4">

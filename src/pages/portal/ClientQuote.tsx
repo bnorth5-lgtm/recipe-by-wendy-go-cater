@@ -36,14 +36,14 @@ export const ClientQuote = () => {
   const handleSealMasterpiece = async () => {
     if (sealBusy) return;
     setSealBusy(true);
-    const toastId = toast.loading("Sealing EBW Masterpiece PDF…");
+    const toastId = toast.loading("Sealing DCE Masterpiece PDF…");
     try {
       const sealAt = new Date().toISOString();
       await generateProposalPDF(eventState, "venue-map-canvas", brand, {
         sealIssuedAtISO: sealAt,
       });
       toast.dismiss(toastId);
-      toast.success("EBW Masterpiece sealed", {
+      toast.success("DCE Masterpiece sealed", {
         description: "Signature module captured in your download.",
       });
 
@@ -149,7 +149,7 @@ export const ClientQuote = () => {
             <div>
               <h3 className="text-2xl font-bold font-serif mb-1">Total Investment</h3>
               <p className="text-slate-400 text-sm">
-                Includes culinary, staffing, rentals, and logistics (EBW estimate baseline).
+                Includes culinary, staffing, rentals, and logistics (DCE estimate baseline).
               </p>
             </div>
             <div className="text-right">
@@ -162,7 +162,7 @@ export const ClientQuote = () => {
 
         <div className="bg-white rounded-2xl p-8 shadow-lg border border-slate-100 space-y-6">
           <h3 className="text-2xl font-bold font-serif text-center">
-            Final seal — EBW Masterpiece
+            Final seal — DCE Masterpiece
           </h3>
 
           <div className="max-w-xl mx-auto flex flex-col gap-3">
@@ -174,7 +174,7 @@ export const ClientQuote = () => {
               className="w-full h-14 text-base font-bold uppercase tracking-wide bg-[#fbbf24] hover:bg-amber-500 text-slate-950 shadow-[0_0_28px_rgba(251,191,36,0.55)] border-2 border-amber-300/80"
             >
               <FileCheck2 className="w-5 h-5 mr-2" />
-              {sealBusy ? "Sealing…" : "Seal & Sign EBW Masterpiece"}
+              {sealBusy ? "Sealing…" : "Seal & Sign DCE Masterpiece"}
             </Button>
             {eventState.masterpieceContractSealed && (
               <p className="text-center text-sm text-emerald-600 font-semibold flex items-center justify-center gap-2">
@@ -200,14 +200,14 @@ export const ClientQuote = () => {
               </div>
               <h4 className="text-2xl font-bold text-slate-900">Signature captured</h4>
               <p className="text-slate-500 max-w-md">
-                Your wet signature is on file for this review. Use &ldquo;Seal &amp; Sign EBW
+                Your wet signature is on file for this review. Use &ldquo;Seal &amp; Sign DCE
                 Masterpiece&rdquo; above to issue the binding PDF with the Harrison legal footer.
               </p>
             </div>
           ) : (
             <div className="max-w-xl mx-auto">
               <p className="text-sm text-slate-500 mb-6 text-center">
-                By sealing the EBW Masterpiece you accept the investment and infrastructure
+                By sealing the DCE Masterpiece you accept the investment and infrastructure
                 narrative for {eventState.eventName}.
               </p>
               <SignaturePad onSave={handleSign} />

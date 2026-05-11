@@ -37,7 +37,7 @@ import { RecipeNarrativeView } from "@/components/recipes/RecipeNarrativeView";
 
 // Define the main schema for a recipe
 const recipeFormSchema = z.object({
-  name: z.string().min(1, "Recipe name is required"),
+  name: z.string().min(1, "Dish name is required"),
   description: z.string().min(1, "Description is required"),
   prepTime: z.string().min(1, "Preparation time is required"),
   cookTime: z.string().min(1, "Cook time is required"),
@@ -125,11 +125,11 @@ function normalizeDraftForSave(d: ParsedRecipeDraft): RecipeDraft {
   const instructions =
     rawSteps.length > 0
       ? rawSteps.map((step) => ({ step }))
-      : [{ step: "Review and finish preparation steps in your cookbook." }];
+      : [{ step: "Review and finish preparation steps on this dish." }];
 
   return {
     name: String(d.name ?? "").trim(),
-    description: String(d.description ?? "").trim() || "Imported recipe.",
+    description: String(d.description ?? "").trim() || "Imported dish.",
     prepTime: typeof d.prepTime === "object" ? d.prepTime : parseTimeQuantity(String(d.prepTime ?? "")),
     cookTime: typeof d.cookTime === "object" ? d.cookTime : parseTimeQuantity(String(d.cookTime ?? "")),
     servings: typeof d.servings === "object" ? d.servings : parseServingQuantity(String(d.servings ?? "")),
@@ -304,7 +304,7 @@ const Recipes = () => {
       lastParsedTextRef.current = trimmed;
       setParsed(cloneParsedDraft(draft));
     } catch (err: any) {
-      toast.error(err?.message ?? "Couldn’t read that recipe. Try pasting a cleaner copy.");
+      toast.error(err?.message ?? "Couldn't read that dish. Try pasting a cleaner copy.");
     } finally {
       setIsBulkParsing(false);
     }
@@ -328,12 +328,12 @@ const Recipes = () => {
 
   const handleDeleteRecipe = (id: string) => {
     deleteRecipe(id);
-    toast.info("Recipe deleted.");
+    toast.info("Dish removed.");
   };
 
   const forceRecipeFromText = (text: string): Omit<Recipe, "id" | "baseCost"> => {
     const t = text.trim();
-    const firstLine = t.split(/\r?\n/).map((s) => s.trim()).find(Boolean) ?? "Untitled Recipe";
+    const firstLine = t.split(/\r?\n/).map((s) => s.trim()).find(Boolean) ?? "Untitled dish";
     return {
       name: firstLine.slice(0, 120),
       description: "Imported from Quick Paste.",
@@ -444,7 +444,7 @@ const Recipes = () => {
       if (/cloud vault offline/i.test(reason)) reason = "Cloud Vault offline.";
       if (/key rejected/i.test(reason)) reason = "Cloud Vault key rejected.";
       if (/table missing/i.test(reason)) reason = "Cloud Vault table missing.";
-      if (/Paste a recipe first/i.test(reason)) reason = "Missing text.";
+      if (/Paste a dish first/i.test(reason)) reason = "Missing text.";
       setLastSaveErrorReason(reason);
       setSaveFlash("error");
       window.setTimeout(() => setSaveFlash("idle"), 900);
@@ -496,9 +496,9 @@ const Recipes = () => {
       ) : null}
       <div className="w-full max-w-5xl space-y-6">
         <div className="mb-8">
-          <h1 className="text-4xl font-semibold tracking-tight">Recipes</h1>
+          <h1 className="text-4xl font-semibold tracking-tight">Delicious Menu</h1>
           <p className="mt-2 text-lg text-muted-foreground">
-            Add recipes your way — paste it, grab it from a website, or Smart Scan a photo or document. Everything stays in your Local Vault.
+            Add dishes your way — paste it, grab it from a website, or Smart Scan a photo or document. Everything stays in your Local Vault.
           </p>
         </div>
 
@@ -507,7 +507,7 @@ const Recipes = () => {
             <CardHeader className="space-y-1 pb-3">
               <CardTitle className="text-2xl font-semibold tracking-tight">Quick Paste</CardTitle>
               <CardDescription className="text-muted-foreground">
-                Paste a recipe below.
+                Paste a dish below.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 p-5 pt-0 md:p-6 md:pt-0">
@@ -520,7 +520,7 @@ const Recipes = () => {
                   scheduleBulkParseFromChange(next);
                 }}
                 onPaste={bulkPasteAndParse}
-                placeholder="Paste recipe text here…"
+                placeholder="Paste dish text here…"
                 className={cn(
                   "min-h-[420px] rounded-2xl border bg-white px-5 py-4 text-lg leading-relaxed text-slate-900",
                   "shadow-md shadow-black/10 placeholder:text-slate-400",
@@ -544,7 +544,7 @@ const Recipes = () => {
                   : "bg-muted text-muted-foreground shadow-none disabled:opacity-100",
               )}
             >
-              ADD TO COOKBOOK
+              ADD TO MENU
             </Button>
           </div>
         </TierGate>
@@ -555,8 +555,8 @@ const Recipes = () => {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search Your Cookbook..."
-              aria-label="Search Your Cookbook"
+              placeholder="Search your menu…"
+              aria-label="Search your menu"
               className={cn(
                 "h-14 w-full rounded-2xl border-2 bg-background pl-12 pr-4",
                 "text-lg shadow-md shadow-black/5",
@@ -566,19 +566,19 @@ const Recipes = () => {
           </div>
         </div>
 
-        {/* Display Existing Recipes */}
+        {/* Display saved menu dishes */}
         <Card className="bg-card/60 backdrop-blur supports-[backdrop-filter]:bg-card/50 rounded-2xl border shadow-sm">
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <CardTitle className="text-2xl font-semibold text-primary">Existing Recipes</CardTitle>
-                <CardDescription className="text-muted-foreground">A list of all your managed recipes.</CardDescription>
+                <CardTitle className="text-2xl font-semibold text-primary">Your menu dishes</CardTitle>
+                <CardDescription className="text-muted-foreground">Everything in your Delicious menu library.</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             {filteredRecipes.length === 0 ? (
-              <p className="text-muted-foreground text-center">No recipes added yet. Start by adding one above!</p>
+              <p className="text-muted-foreground text-center">No dishes added yet. Start by adding one above!</p>
             ) : (
               <ScrollArea className="h-[400px] w-full rounded-md border p-3">
                 <div className="space-y-3">

@@ -1,5 +1,5 @@
 /**
- * BEO Generator — Catering By Wendy
+ * BEO Generator — Delicious Catering & Events
  *
  * Core logic for the Automated BEO Generator (/logistics/beo-generator).
  *

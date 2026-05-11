@@ -3,7 +3,7 @@
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   DollarSign,
   ClipboardList,
@@ -46,7 +46,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ClientForm, ClientFormData } from "@/components/ClientForm";
 import { CateringIntakeForm, CateringIntakeFormData } from "@/components/CateringIntakeForm";
-import { useId, useState, useEffect } from "react";
+import { useId, useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { NotesCard } from "@/components/NotesCard";
 import { DateDisplay } from "@/components/DateDisplay";
@@ -69,10 +69,10 @@ import { generateProposalPDF } from "@/logic/PDFGenerator";
 import { saveToVault } from "@/logic/persistence";
 import { logSystemAlert } from "@/lib/switchboardHook";
 import { supabase } from "@/logic/supabaseClient";
-import { PACKET_01_12_GOLD_DATA_URI } from "@/branding/packet-01-12-gold-data-uri";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { Header } from "@/components/Header";
 
 function HarrisonVenueThumbnail({ className }: { className?: string }) {
   const reactId = useId();
@@ -128,6 +128,7 @@ const Dashboard = () => {
 
   const { noteId } = useParams<{ noteId?: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { brand } = useBrand();
   const { eventState, updateEventState } = useEventContext();
 
@@ -154,6 +155,25 @@ const Dashboard = () => {
     return margin < (item.margin_goal || 70.00);
   });
 
+  /** Event-level margin for header; null when guest count is 0 (no ghost %) */
+  const headerProfitMarginPct = useMemo((): number | null => {
+    const activeEventName = eventState.eventName;
+    if (activeEventName?.includes('Demo')) return null;
+    if (!eventState.totalGuests || eventState.totalGuests <= 0) return null;
+    const laborCost = eventState.staffCount * eventState.hourlyRate * eventState.estimatedHours;
+    const baseLogistics = eventState.mileage * 2 * 0.725;
+    const remoteSurcharge = eventState.mileage > 30 ? 250 : 0;
+    const logisticsCost = baseLogistics + remoteSurcharge;
+    const foodCost =
+      eventState.menuItems.reduce((sum, item) => sum + item.price * (item.quantity ?? 1), 0) *
+      eventState.totalGuests;
+    const culinaryCost = foodCost + laborCost;
+    const totalCost = culinaryCost + eventState.inventoryCosts + logisticsCost;
+    const estimatedRevenue = eventState.totalGuests * 125;
+    if (estimatedRevenue <= 0) return null;
+    return ((estimatedRevenue - totalCost) / estimatedRevenue) * 100;
+  }, [eventState]);
+
   // Trigger Switchboard hook for Profit Alerts
   useEffect(() => {
     if (profitWarnings.length > 0) {
@@ -173,6 +193,15 @@ const Dashboard = () => {
       });
     }
   }, [profitWarnings.length]);
+
+  // /three-door: force-hide global HTML Concierge (sibling of #root); never activate Visionary-only widgets here
+  useEffect(() => {
+    if (location.pathname !== "/three-door") return;
+    document.body.classList.add("nbs-three-door");
+    return () => {
+      document.body.classList.remove("nbs-three-door");
+    };
+  }, [location.pathname]);
 
   const [isClientFormDialogOpen, setIsClientFormDialogOpen] = useState(false);
   const [isCateringIntakeDialogOpen, setIsCateringIntakeDialogOpen] = useState(false);
@@ -332,32 +361,12 @@ const Dashboard = () => {
         </div>
       )}
 
-      <header
-        className="-mx-6 mb-8 border-b border-[#081924] bg-[#0a1628] px-6 py-6"
-        style={{ backgroundColor: "#0a1628" }}
-      >
-        <div className="flex w-full items-center justify-center">
-          <div className="flex w-full max-w-5xl flex-col items-center justify-center leading-none">
-            {!heroImageError ? (
-              <img
-                src={PACKET_01_12_GOLD_DATA_URI}
-                alt="Delicious Catering & Events by Wendy"
-                className="mx-auto block h-auto max-h-64 w-auto max-w-full object-contain object-center select-none"
-                fetchPriority="high"
-                decoding="async"
-                onError={() => setHeroImageError(true)}
-              />
-            ) : (
-              <p
-                className="w-full max-w-md text-center font-serif text-xl font-bold uppercase leading-snug tracking-wide text-[#fbbf24] drop-shadow-sm sm:text-2xl"
-                aria-live="polite"
-              >
-                {"DELICIOUS CATERING & EVENTS ~ BY WENDY"}
-              </p>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header
+        totalGuests={eventState.totalGuests}
+        headerProfitMarginPct={headerProfitMarginPct}
+        heroImageError={heroImageError}
+        onHeroImageError={() => setHeroImageError(true)}
+      />
 
       {/* Client Proposal Portal — drawer expands for Live Event Feed */}
       <div className="w-full max-w-6xl mx-auto mb-8">
@@ -652,21 +661,22 @@ const Dashboard = () => {
           </DialogContent>
         </Dialog>
 
-      {/* Primary selection — Delicious Express, Staffed, MainVision */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto w-full flex-1 justify-items-stretch">
-        {/* Door 1: Quick Drop-Off */}
-        <Link to="/events/bookings" className="block group h-full">
-          <Card className="h-full bg-slate-900/80 border border-[#fbbf24]/40 hover:border-[#fbbf24] hover:shadow-[0_0_32px_rgba(251,191,36,0.28)] transition-all duration-500 backdrop-blur-xl rounded-2xl relative overflow-hidden">
+      {/* Three Door — centered in viewport (hero is absolute; does not shift this block) */}
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="grid w-full max-w-5xl grid-cols-1 gap-6 px-2 sm:px-4 md:grid-cols-3 md:auto-rows-fr items-stretch">
+        {/* Door 1: Delicious Express */}
+        <Link to="/events/bookings" className="group flex h-full min-h-0">
+          <Card className="flex h-full w-full flex-col bg-slate-900/80 border border-[#fbbf24]/40 hover:border-[#fbbf24] hover:shadow-[0_0_32px_rgba(251,191,36,0.28)] transition-all duration-500 backdrop-blur-xl rounded-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-[#fbbf24]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl" />
-            <CardHeader className="text-center pb-4 relative z-10">
+            <CardHeader className="text-center pb-4 relative z-10 shrink-0">
               <div className="mx-auto bg-amber-500/15 border border-[#fbbf24]/25 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_18px_rgba(251,191,36,0.18)] group-hover:shadow-[0_0_28px_rgba(251,191,36,0.35)]">
                 <Utensils className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
               <CardTitle className="text-2xl font-serif text-white">
-                <span style={{ color: brand.primaryColor }}>EBW ~ </span>Delicious Express & Setup
+                <span style={{ color: brand.primaryColor }}>DCE ~ </span>Delicious Express & Setup
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-center relative z-10">
+            <CardContent className="flex flex-1 flex-col text-center relative z-10">
               <p className="text-slate-400 leading-relaxed">
                 {t('dashboard.quickDropOffDesc')}
               </p>
@@ -674,19 +684,19 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        {/* Door 2: Staffed Buffet */}
-        <Link to="/events/calendar" className="block group h-full">
-          <Card className="h-full bg-slate-900/80 border border-[#fbbf24]/40 hover:border-[#fbbf24] hover:shadow-[0_0_32px_rgba(251,191,36,0.28)] transition-all duration-500 backdrop-blur-xl rounded-2xl relative overflow-hidden">
+        {/* Door 2: Staffed Events */}
+        <Link to="/events/calendar" className="group flex h-full min-h-0">
+          <Card className="flex h-full w-full flex-col bg-slate-900/80 border border-[#fbbf24]/40 hover:border-[#fbbf24] hover:shadow-[0_0_32px_rgba(251,191,36,0.28)] transition-all duration-500 backdrop-blur-xl rounded-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-[#fbbf24]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl" />
-            <CardHeader className="text-center pb-4 relative z-10">
+            <CardHeader className="text-center pb-4 relative z-10 shrink-0">
               <div className="mx-auto bg-amber-500/15 border border-[#fbbf24]/25 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_18px_rgba(251,191,36,0.18)] group-hover:shadow-[0_0_28px_rgba(251,191,36,0.35)]">
                 <UserPlus className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
               <CardTitle className="text-2xl font-serif text-white">
-                <span style={{ color: brand.primaryColor }}>EBW ~ </span>Delicious Staffed Events
+                <span style={{ color: brand.primaryColor }}>DCE ~ </span>Delicious Staffed Events
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-center relative z-10">
+            <CardContent className="flex flex-1 flex-col text-center relative z-10">
               <p className="text-slate-400 leading-relaxed">
                 {t('dashboard.staffedBuffetDesc')}
               </p>
@@ -694,25 +704,26 @@ const Dashboard = () => {
           </Card>
         </Link>
 
-        {/* Door 3: Full Production */}
-        <Link to="/logistics/venue-architect" className="block group h-full">
-          <Card className="h-full bg-slate-900/80 border border-[#fbbf24]/40 hover:border-[#fbbf24] hover:shadow-[0_0_32px_rgba(251,191,36,0.28)] transition-all duration-500 backdrop-blur-xl rounded-2xl relative overflow-hidden">
+        {/* Door 3: MainVision */}
+        <Link to="/venue-architect" className="group flex h-full min-h-0">
+          <Card className="flex h-full w-full flex-col bg-slate-900/80 border border-[#fbbf24]/40 hover:border-[#fbbf24] hover:shadow-[0_0_32px_rgba(251,191,36,0.28)] transition-all duration-500 backdrop-blur-xl rounded-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-[#fbbf24]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl" />
-            <CardHeader className="text-center pb-4 relative z-10">
+            <CardHeader className="text-center pb-4 relative z-10 shrink-0">
               <div className="mx-auto bg-amber-500/15 border border-[#fbbf24]/25 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500 shadow-[0_0_18px_rgba(251,191,36,0.18)] group-hover:shadow-[0_0_28px_rgba(251,191,36,0.35)]">
                 <Sparkles className="w-10 h-10" style={{ color: brand.primaryColor }} />
               </div>
               <CardTitle className="text-2xl font-serif text-white">
-                <span style={{ color: brand.primaryColor }}>EBW ~ </span>MainVision Productions
+                <span style={{ color: brand.primaryColor }}>DCE ~ </span>MainVision Productions
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-center relative z-10">
+            <CardContent className="flex flex-1 flex-col text-center relative z-10">
               <p className="text-slate-400 leading-relaxed">
                 {t('dashboard.fullProductionDesc')}
               </p>
             </CardContent>
           </Card>
         </Link>
+        </div>
       </div>
 
       <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto w-full">
@@ -744,7 +755,7 @@ const Dashboard = () => {
         <Link to="/menu/recipes" className="block">
           <Card className="bg-slate-900/80 border-slate-800 hover:border-slate-700 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-300">Recipes</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-300">Delicious Menu</CardTitle>
               <BookText className="h-4 w-4 text-slate-500" />
             </CardHeader>
             <CardContent>
@@ -784,6 +795,7 @@ const Dashboard = () => {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {profitWarnings.map(item => {
                   const currentMargin = ((item.market_scraped_cost! - item.costPerUnit) / item.market_scraped_cost!) * 100;
+                  const marginNegative = currentMargin < 0;
                   return (
                     <div key={item.id} className="bg-slate-900/50 border border-red-900/30 p-4 rounded-lg">
                       <div className="font-bold text-white mb-1">{item.name}</div>
@@ -800,8 +812,18 @@ const Dashboard = () => {
                         <span className="text-slate-300">${item.market_scraped_cost?.toFixed(2)}</span>
                       </div>
                       <div className="text-sm font-medium mt-2 pt-2 border-t border-slate-800 flex justify-between">
-                        <span className="text-red-400">Current Margin:</span>
-                        <span className="text-red-400">{currentMargin.toFixed(1)}%</span>
+                        <span
+                          className={marginNegative ? "" : "text-red-400"}
+                          style={marginNegative ? { color: "#fbbf24" } : undefined}
+                        >
+                          {marginNegative ? "Development Phase" : "Profit Margin"}:
+                        </span>
+                        <span
+                          className={marginNegative ? "" : "text-red-400"}
+                          style={marginNegative ? { color: "#fbbf24" } : undefined}
+                        >
+                          {Math.abs(currentMargin).toFixed(1)}%
+                        </span>
                       </div>
                       <div className="text-xs text-slate-500 flex justify-between mt-1">
                         <span>Target Margin:</span>

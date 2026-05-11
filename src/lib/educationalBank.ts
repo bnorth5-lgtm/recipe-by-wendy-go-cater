@@ -1,5 +1,5 @@
 /**
- * Educational Bank — Catering By Wendy Knowledge Base
+ * Educational Bank — Delicious Catering & Events Knowledge Base
  *
  * Authoritative Q&A content for the NBS Concierge chat widget and the
  * in-app Educational Bank page.  All answers are written in the
@@ -122,7 +122,7 @@ Should you receive your BEO and have questions about any section, I am most deli
   // ─── Service Tiers ──────────────────────────────────────────────────────────
   {
     id: "service-tiers",
-    title: "Catering By Wendy Service Tiers",
+    title: "Delicious Catering & Events Service Tiers",
     category: "Service Tiers",
     keywords: [
       "tier",
@@ -144,17 +144,17 @@ Should you receive your BEO and have questions about any section, I am most deli
     ],
     shortAnswer:
       "We offer three service levels — Basic (browse), Professional (pricing intelligence), and Enterprise (full agent suite) — each designed for a distinct stage of catering engagement.",
-    fullAnswer: `Catering By Wendy offers three thoughtfully designed service levels to match precisely where you are in your catering journey.
+    fullAnswer: `Delicious Catering & Events offers three thoughtfully designed service levels to match precisely where you are in your catering journey.
 
 <strong>Basic — Browse &amp; Explore</strong>
-Our introductory level grants full read access to our menu collection, recipe library, and ingredient search. It is ideally suited for prospective clients reviewing our offerings or new team members familiarizing themselves with our repertoire. No import or pricing tools are included.
+Our introductory level grants full read access to our menu collection, menu library, and ingredient search. It is ideally suited for prospective clients reviewing our offerings or new team members familiarizing themselves with our repertoire. No import or pricing tools are included.
 
 <strong>Professional — Price Intelligence</strong>
 Our most-selected plan for active caterers and event coordinators. Professional encompasses everything in Basic, and adds:
 <ul>
-<li>Recipe import from any URL, PDF, or image (OCR)</li>
+<li>Dish import from any URL, PDF, or image (OCR)</li>
 <li>Live local market ingredient pricing and cost comparisons</li>
-<li>Full cost-per-serving analysis and recipe scaling</li>
+<li>Full cost-per-serving analysis and portion scaling</li>
 </ul>
 
 <strong>Enterprise — Full Agent Suite</strong>
@@ -216,7 +216,7 @@ To discuss which level best serves your operation, or to arrange an upgrade, ple
 </ul>
 
 <strong>What We Bring vs. What Is Rented:</strong>
-Catering By Wendy arrives fully equipped for food preparation — including all chafing dishes, serving platters, carving stations, and kitchen tools. Guest-facing items — tables, chairs, linens, china, and glassware — are typically rented and invoiced separately unless explicitly included in your proposal.
+Delicious Catering & Events arrives fully equipped for food preparation — including all chafing dishes, serving platters, carving stations, and kitchen tools. Guest-facing items — tables, chairs, linens, china, and glassware — are typically rented and invoiced separately unless explicitly included in your proposal.
 
 <strong>Day-of Delivery &amp; Return:</strong>
 All rentals are coordinated to arrive at least one hour before our crew begins setup. We receive, inventory, and stage every piece. At the event's conclusion, our team cleans, consolidates, and prepares all rental items for pickup — leaving you with nothing to coordinate.
@@ -512,7 +512,7 @@ Last-minute accommodations can sometimes be arranged — please ask, and we will
     ],
     shortAnswer:
       "For remote or 'Infrastructure-Zero' sites in Maine, we mandate specific power, water, and health department compliance protocols.",
-    fullAnswer: `When executing events at remote or "Infrastructure-Zero" locations (sites lacking built-in commercial kitchens, municipal water, or sufficient power), Catering By Wendy adheres to a strict <strong>Maine Compliance & Permit</strong> protocol.
+    fullAnswer: `When executing events at remote or "Infrastructure-Zero" locations (sites lacking built-in commercial kitchens, municipal water, or sufficient power), Delicious Catering & Events adheres to a strict <strong>Maine Compliance & Permit</strong> protocol.
 
 <strong>Power & Electrical Limits:</strong>
 To satisfy local fire marshals and ensure uninterrupted service, no primary power run (from generator to staging kitchen) may exceed 100 feet. Runs exceeding this limit suffer voltage drops that can damage heating elements and refrigeration.
@@ -588,7 +588,7 @@ export function getEscalationMessage(): string {
 export function getConciergeGreeting(): string {
   const hour = new Date().getHours();
   const period = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
-  return `Good ${period}. I am your Catering By Wendy concierge — at your service.\n\nYou may ask me about <strong>Banquet Event Orders</strong>, <strong>service tiers</strong>, <strong>rental logistics</strong>, <strong>setup timelines</strong>, <strong>staffing</strong>, <strong>pricing</strong>, or <strong>dietary accommodations</strong>. I am here to assist.`;
+  return `Good ${period}. I am your Delicious Catering & Events concierge — at your service.\n\nYou may ask me about <strong>Banquet Event Orders</strong>, <strong>service tiers</strong>, <strong>rental logistics</strong>, <strong>setup timelines</strong>, <strong>staffing</strong>, <strong>pricing</strong>, or <strong>dietary accommodations</strong>. I am here to assist.`;
 }
 
 /** Returns categories grouped for display. */

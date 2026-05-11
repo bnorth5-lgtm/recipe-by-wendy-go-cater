@@ -2,7 +2,7 @@
  * partnershipLedger.ts
  *
  * Defines the NBS Role-Based Access Control (RBAC) system and the canonical
- * legal ownership record for the "Catering By Wendy" business entity.
+ * legal ownership record for the Delicious Catering & Events business entity.
  *
  * This is intentionally a separate module from subscriptionTiers.ts so that
  * business authority (who owns the entity and can touch legal/financial data)
@@ -57,7 +57,7 @@ export const NBS_ROLE_DEFINITIONS: Record<NbsRole, NbsRoleDefinition> = {
     badge: "Exec Chef",
     badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300",
     summary:
-      "Full access to the Recipe Vault, Menu Engineering, BEO Generation, and the Educational Bank. No access to legal, financial, or ownership settings.",
+      "Full access to the Delicious Vault, Menu Engineering, BEO Generation, and the Educational Bank. No access to legal, financial, or ownership settings.",
     hasExecutiveAccess: false,
     isSystemAdmin: false,
   },
@@ -104,7 +104,7 @@ export function nbsRoleLabel(role: NbsRole | undefined | null): string {
 // ── Legal Ownership Record ────────────────────────────────────────────────────
 
 /**
- * Canonical ownership record for the Catering By Wendy business entity.
+ * Canonical ownership record for the Delicious Catering & Events business entity.
  * This is the source of truth for the Partnership Ledger page and any
  * Supabase `legal_ownership` table entries.
  */
@@ -120,7 +120,7 @@ export interface LegalOwnershipRecord {
 }
 
 export const PRIMARY_OWNERSHIP: LegalOwnershipRecord = {
-  entityName: "Catering By Wendy",
+  entityName: "Delicious Catering & Events",
   entityType: "Sole Proprietorship / DBA",
   ownerName: "William North",
   ownerEmail: "northbusinessservices@gmail.com",
@@ -128,7 +128,7 @@ export const PRIMARY_OWNERSHIP: LegalOwnershipRecord = {
   roleTitle: "Sole Owner & System Administrator",
   effectiveDate: "2024-01-01",
   notes:
-    "William North holds 100% ownership of the Catering By Wendy business entity and the NBS Engine platform. All legal, financial, and system-level decisions require his Executive Access authorisation.",
+    "William North holds 100% ownership of the Delicious Catering & Events business entity and the NBS Engine platform. All legal, financial, and system-level decisions require his Executive Access authorisation.",
 };
 
 // ── Canonical user seeds (authoritative NBS user definitions) ─────────────────

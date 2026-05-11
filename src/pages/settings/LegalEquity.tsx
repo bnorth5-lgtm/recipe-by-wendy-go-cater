@@ -137,8 +137,8 @@ function RoleDefinitionCard({ role }: { role: NbsRole }) {
   const def = NBS_ROLE_DEFINITIONS[role];
   const permissionMap: Record<NbsRole, string[]> = {
     system_admin: [
-      "Full access to all menus, recipes, and ingredient data",
-      "Recipe Vault & Menu Engineering",
+      "Full access to all menus, dishes, and ingredient data",
+      "Delicious Vault & Menu Engineering",
       "BEO Generator & event history",
       "Educational Bank",
       "Competitor Pricing Engine",
@@ -149,8 +149,8 @@ function RoleDefinitionCard({ role }: { role: NbsRole }) {
       "All application data — read and write",
     ],
     executive_chef: [
-      "Full access to all menus, recipes, and ingredient data",
-      "Recipe Vault & Menu Engineering",
+      "Full access to all menus, dishes, and ingredient data",
+      "Delicious Vault & Menu Engineering",
       "BEO Generator & event history",
       "Educational Bank",
       "Live Market Rate badges",
@@ -158,7 +158,7 @@ function RoleDefinitionCard({ role }: { role: NbsRole }) {
       "Market Expansion — Marketing Launchpad",
     ],
     staff: [
-      "Menu browsing & recipe search",
+      "Menu browsing & dish search",
       "Event calendar view",
       "Day-of logistics reference",
     ],

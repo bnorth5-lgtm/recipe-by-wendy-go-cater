@@ -1,12 +1,14 @@
+﻿# Delicious Catering & Events — Content Pack (v1)
+
 ## Services & Menu
 
-Wendy Go Cater delivers thoughtful, crowd-pleasing food with polished presentation and reliable service—perfect for offices, intimate gatherings, and events of any size. Below are a few popular ways to order, along with sample offerings to inspire your menu.
+Delicious Catering & Events delivers thoughtful, crowd-pleasing food with polished presentation and reliable serviceΓÇöperfect for offices, intimate gatherings, and events of any size. Below are a few popular ways to order, along with sample offerings to inspire your menu.
 
 ---
 
 ## Corporate Lunch
 
-Elevate meetings, trainings, and team celebrations with fresh, professional catering that arrives on time and ready to serve. Menus are designed for easy setup, minimal disruption, and maximum variety—great for dietary needs and mixed preferences.
+Elevate meetings, trainings, and team celebrations with fresh, professional catering that arrives on time and ready to serve. Menus are designed for easy setup, minimal disruption, and maximum varietyΓÇögreat for dietary needs and mixed preferences.
 
 **Popular formats**
 - **Individually boxed lunches** (labeled and meeting-friendly)
@@ -18,7 +20,7 @@ Elevate meetings, trainings, and team celebrations with fresh, professional cate
 - **Signature sandwich & wrap platter**
   - Turkey pesto, chicken salad croissants, veggie hummus wraps
 - **Fresh salad selection**
-  - Caesar, garden, Greek, seasonal chef’s salad (dressings on the side)
+  - Caesar, garden, Greek, seasonal chefΓÇÖs salad (dressings on the side)
 - **Hot lunch favorites**
   - Pasta bake, herb-roasted chicken, pulled pork sliders, vegetable primavera
 - **Sides**
@@ -32,12 +34,12 @@ Elevate meetings, trainings, and team celebrations with fresh, professional cate
 
 ## Private Dinners
 
-Host a memorable in-home or small-venue meal with a menu that feels special, personal, and effortlessly executed. Choose a comforting family-style dinner or a more elevated multi-course experience—tailored to your occasion and guest preferences.
+Host a memorable in-home or small-venue meal with a menu that feels special, personal, and effortlessly executed. Choose a comforting family-style dinner or a more elevated multi-course experienceΓÇötailored to your occasion and guest preferences.
 
 **Great for**
 - Anniversaries, milestone birthdays, holidays
 - Small celebrations and intimate gatherings
-- “Host without the stress” dinner parties
+- ΓÇ£Host without the stressΓÇ¥ dinner parties
 
 **Sample offerings**
 - **Starter options**
@@ -46,7 +48,7 @@ Host a memorable in-home or small-venue meal with a menu that feels special, per
   - Herb-roasted chicken with pan sauce
   - Garlic butter steak tips (or carving-style roast by request)
   - Baked salmon with lemon-dill
-  - Vegetarian entrée (seasonal—ask for current options)
+  - Vegetarian entr├⌐e (seasonalΓÇöask for current options)
 - **Sides**
   - Mashed potatoes, rice pilaf, roasted vegetables, glazed carrots, pasta salad
 - **Desserts**
@@ -56,7 +58,7 @@ Host a memorable in-home or small-venue meal with a menu that feels special, per
 
 ## Event Trays
 
-Easy, generous trays made for sharing—perfect for parties, showers, game days, and community events. Order a few crowd favorites or build a full spread that’s ready to set out and enjoy.
+Easy, generous trays made for sharingΓÇöperfect for parties, showers, game days, and community events. Order a few crowd favorites or build a full spread thatΓÇÖs ready to set out and enjoy.
 
 **Sample offerings**
 - **Appetizer trays**
@@ -78,7 +80,7 @@ Easy, generous trays made for sharing—perfect for parties, showers, game days,
 
 ## How to Order
 
-Ready to plan your menu? Share a few details and we’ll help you choose the best options for your event.
+Ready to plan your menu? Share a few details and weΓÇÖll help you choose the best options for your event.
 
 **To get started, send:**
 - **Date & time**
@@ -87,5 +89,6 @@ Ready to plan your menu? Share a few details and we’ll help you choose the bes
 - **Service style** (boxed lunches, buffet, trays, etc.)
 - **Dietary needs** (vegetarian, gluten-free preferences, allergies)
 
-We’ll confirm availability, recommend quantities, and provide a clear quote and timeline so everything is smooth from first message to final bite.
+WeΓÇÖll confirm availability, recommend quantities, and provide a clear quote and timeline so everything is smooth from first message to final bite.
+
 

@@ -209,7 +209,7 @@ export default function MarketExpansion() {
         <h1 className="text-2xl font-bold tracking-tight">Market Expansion</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Regional sourcing intelligence and AI-powered marketing tools to grow
-          Catering By Wendy's reach.
+          the reach of Delicious Catering & Events.
         </p>
       </div>
 

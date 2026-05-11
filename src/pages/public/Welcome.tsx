@@ -58,7 +58,7 @@ const Welcome = () => {
             <Shield className="w-10 h-10 text-[#fbbf24] mb-6 group-hover:scale-110 transition-transform duration-500" />
             <h3 className="text-xl font-semibold mb-3 font-serif">Absolute Privacy</h3>
             <p className="text-slate-400 leading-relaxed">
-              Your recipes, your clients, your margins. Everything runs locally on your device. Zero external databases.
+              Your menu stays yours—your clients, your margins. Everything runs locally on your device. Zero external databases.
             </p>
           </motion.div>
 
@@ -69,7 +69,7 @@ const Welcome = () => {
             <BookOpen className="w-10 h-10 text-[#fbbf24] mb-6 group-hover:scale-110 transition-transform duration-500" />
             <h3 className="text-xl font-semibold mb-3 font-serif">Progressive Narrative</h3>
             <p className="text-slate-400 leading-relaxed">
-              Turn a list of ingredients into an heirloom. Interactive recipe views guide your execution and preserve your heritage.
+              Turn a list of ingredients into an heirloom. Interactive dish narratives guide your execution and preserve your heritage.
             </p>
           </motion.div>
 

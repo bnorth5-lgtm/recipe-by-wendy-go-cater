@@ -13,7 +13,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { CrisisCommandMenu } from "@/components/CrisisCommandMenu";
 import { saveToVault } from "@/logic/persistence";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -30,6 +30,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { eventState } = useEventContext();
   const [isPending, startTransition] = useTransition();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  /** Visionary Map route — enables global HTML widgets (e.g. index.html NBS Concierge) only here */
+  const isVisionaryMapRoute =
+    location.pathname === "/venue-architect" ||
+    location.pathname.startsWith("/venue-architect/");
+
+  useEffect(() => {
+    document.body.classList.toggle("nbs-visionary-map-active", isVisionaryMapRoute);
+    return () => {
+      document.body.classList.remove("nbs-visionary-map-active");
+    };
+  }, [isVisionaryMapRoute]);
 
   // Watch for new kitchen notifications
   useEffect(() => {

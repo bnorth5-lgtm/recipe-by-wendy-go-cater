@@ -63,11 +63,11 @@ function AppShell() {
       <EventProvider>
         <Layout>
           <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Dashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/notes/:noteId" element={<Dashboard />} /> {/* NEW: Route for individual notes */}
 
-        {/* Menu & Recipes Routes (now direct) */}
+        {/* Menu · Delicious Menu route (technical path `/menu/recipes`) */}
         {/* Removed /menu top-level route */}
         <Route path="/menu/inventory" element={<Inventory />} />
         <Route path="/menu/ingredients" element={<Ingredients />} />
@@ -105,6 +105,10 @@ function AppShell() {
         <Route path="/educational-bank" element={<EducationalBank />} />
         <Route path="/market-pulse" element={<MarketIntelligence />} />
         <Route path="/logistics/beo-generator" element={<BEOGenerator />} />
+        <Route
+          path="/logistics/venue-architect"
+          element={<Navigate to="/venue-architect" replace />}
+        />
         <Route path="/venue-architect" element={
           <Suspense fallback={<div className="flex h-full items-center justify-center bg-slate-950 text-[#fbbf24] font-bold">Initializing Architect Engine...</div>}>
             <VenueArchitect />
@@ -185,6 +189,20 @@ const App = () => {
            * No sidebar, no auth. Client receives a link like /sign/<uuid>.
            */}
           <Route path="/sign/:eventId" element={<SignBEO />} />
+
+          {/*
+           * Same Dashboard page as /dashboard but without Layout (no sidebar, top action bar, or mobile bottom nav).
+           */}
+          <Route
+            path="/three-door"
+            element={
+              <BrandProvider>
+                <EventProvider>
+                  <Dashboard />
+                </EventProvider>
+              </BrandProvider>
+            }
+          />
 
           {/* Everything else uses the full authenticated app shell */}
           <Route path="/*" element={<AppShell />} />

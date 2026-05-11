@@ -391,7 +391,7 @@ const Menus = () => {
 
                       {/* Categorized Recipe Selection - Conditional based on Menu Type */}
                       <h3 className="text-lg font-medium mt-3">
-                        Select Recipes by Category {watchedCategory === "Plated" && "(Choose 1-2 per category)"}
+                        Select dishes by category {watchedCategory === "Plated" && "(Choose 1-2 per category)"}
                         {watchedCategory === "Buffet" && "(Select multiple offerings per category)"}
                       </h3>
                       {watchedCategory === "Plated" && (

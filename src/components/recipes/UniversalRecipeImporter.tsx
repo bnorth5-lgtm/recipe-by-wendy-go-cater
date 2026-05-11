@@ -53,7 +53,7 @@ export function UniversalRecipeImporter({ onParsed }: Props) {
 
   const run = async () => {
     if (!can("price_scraping")) {
-      toast.error("Recipe import requires a Professional or Enterprise subscription.");
+      toast.error("Dish import requires a Professional or Enterprise subscription.");
       return;
     }
     setIsWorking(true);
@@ -155,7 +155,7 @@ export function UniversalRecipeImporter({ onParsed }: Props) {
           <div className="space-y-1">
             <CardTitle className="text-2xl font-semibold tracking-tight">Universal Importer</CardTitle>
             <CardDescription className="text-muted-foreground">
-              OCR, URL JSON recipes, or Magic Paste — parsed locally and stored in SQLite.
+              OCR, URL JSON-LD menus, or Magic Paste — parsed locally and stored in SQLite.
             </CardDescription>
           </div>
           <Button onClick={run} disabled={!canRun || isWorking} className="h-11 px-5 text-base">
@@ -221,7 +221,7 @@ export function UniversalRecipeImporter({ onParsed }: Props) {
           </TabsContent>
 
           <TabsContent value="url" className="mt-4 space-y-2">
-            <Label htmlFor="urlInput">Recipe URL</Label>
+            <Label htmlFor="urlInput">Menu / dish URL</Label>
             <Input
               id="urlInput"
               value={url}

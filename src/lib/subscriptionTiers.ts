@@ -1,10 +1,10 @@
-// Subscription tier definitions for Catering By Wendy
+// Subscription tier definitions for Delicious Catering & Events
 // Basic → Professional → Enterprise feature ladder
 
 export type SubscriptionTier = "basic" | "professional" | "enterprise";
 
 export type TierFeature =
-  | "menu_browse"           // View menus, recipes, search — everyone
+  | "menu_browse"           // View menus, dish library & search — everyone
   | "recipe_search"         // Full search & filter — everyone
   | "price_scraping"        // URL JSON-LD scrape, OCR import, local market price pull
   | "local_market_pricing"  // Ingredient cost comparisons from local sources
@@ -50,7 +50,7 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
     label: "Basic",
     tagline: "Browse & Explore",
     description:
-      "Read-only access to all menus and recipes. Perfect for clients and staff who need to browse offerings.",
+      "Read-only access to all menus and dish library. Perfect for clients and staff who need to browse offerings.",
     badge: "bg-slate-100 text-slate-700 border-slate-300",
     features: ["menu_browse", "recipe_search"],
   },
@@ -59,7 +59,7 @@ export const TIER_DEFINITIONS: TierDefinition[] = [
     label: "Professional",
     tagline: "Price Intelligence",
     description:
-      "Everything in Basic plus URL/OCR recipe scraping and local market ingredient price lookups.",
+      "Everything in Basic plus URL/OCR dish import and local market ingredient price lookups.",
     badge: "bg-blue-100 text-blue-700 border-blue-300",
     features: [
       "menu_browse",
@@ -98,9 +98,9 @@ export const ALL_FEATURES: TierFeature[] = [
 ];
 
 export const FEATURE_LABELS: Record<TierFeature, string> = {
-  menu_browse: "Browse menus & recipes",
-  recipe_search: "Recipe search & filtering",
-  price_scraping: "Recipe import (URL, OCR, paste) & local price scraping",
+  menu_browse: "Browse menus & dish library",
+  recipe_search: "Menu search & filtering",
+  price_scraping: "Dish import (URL, OCR, paste) & local price scraping",
   local_market_pricing: "Local market ingredient price comparisons",
   agent_tools: "AI agent tools (NBS chat, local LLM)",
   market_pricing: "Broad market pricing analysis",
@@ -108,14 +108,14 @@ export const FEATURE_LABELS: Record<TierFeature, string> = {
 };
 
 export const FEATURE_DESCRIPTIONS: Record<TierFeature, string> = {
-  menu_browse: "View all menus, recipes, and ingredient lists.",
-  recipe_search: "Full-text fuzzy search across all recipes and categories.",
+  menu_browse: "View all menus, dishes, and ingredient lists.",
+  recipe_search: "Full-text fuzzy search across all dishes and categories.",
   price_scraping:
-    "Import recipes from URLs (JSON-LD), PDF/image OCR, and magic paste — with local market price scraping.",
+    "Import dishes from URLs (JSON-LD), PDF/image OCR, and magic paste — with local market price scraping.",
   local_market_pricing:
     "Compare ingredient costs against local supplier price feeds.",
   agent_tools:
-    "NBS AI chat assistant, local Ollama LLM for recipe parsing and Q&A.",
+    "NBS AI chat assistant, local Ollama LLM for menu parsing and Q&A.",
   market_pricing:
     "Aggregate market pricing analysis across regional suppliers and platforms.",
   educational_bank:

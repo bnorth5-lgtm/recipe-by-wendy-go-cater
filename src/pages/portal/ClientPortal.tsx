@@ -234,7 +234,7 @@ export default function ClientPortal() {
             <h1 className="text-2xl font-bold text-gray-900">Order Confirmed</h1>
             <p className="text-gray-600">
               Thank you{signerName ? `, ${signerName}` : ""}. Your proposal for{" "}
-              <strong>{doc.eventName}</strong> has been signed and sent to Catering By Wendy.
+              <strong>{doc.eventName}</strong> has been signed and sent to Delicious Catering & Events.
             </p>
           </div>
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-left space-y-1 text-emerald-800">
@@ -267,7 +267,7 @@ export default function ClientPortal() {
             <div>
               {/* Logo / branding */}
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-400 mb-2">
-                Catering By Wendy
+                Delicious Catering & Events
               </p>
               <h1 className="text-3xl font-bold tracking-tight">
                 Event Proposal
@@ -419,7 +419,7 @@ export default function ClientPortal() {
             <div className="px-6 pt-6 pb-4 border-b border-gray-100">
               <p className="text-sm text-gray-600 leading-relaxed">
                 By signing below, you confirm your agreement to the menu, timeline,
-                and pricing outlined in this proposal. Catering By Wendy will be
+                and pricing outlined in this proposal. Delicious Catering & Events will be
                 notified immediately upon finalization.
               </p>
             </div>
@@ -493,7 +493,7 @@ export default function ClientPortal() {
               <p className="text-[11px] text-gray-400 leading-relaxed">
                 By clicking "Finalize Order" you acknowledge that this constitutes a
                 legal electronic signature and agree to the terms outlined in this
-                proposal. Catering By Wendy · northbusinessservices@gmail.com
+                proposal. Delicious Catering & Events · northbusinessservices@gmail.com
               </p>
 
               {/* Submit */}
@@ -527,7 +527,7 @@ export default function ClientPortal() {
         {/* Footer */}
         <div className="pt-12 pb-8 text-center space-y-1.5">
           <p className="text-xs text-gray-400">
-            Catering By Wendy · Professional Catering Services
+            Delicious Catering & Events · Professional Catering Services
           </p>
           <p className="text-xs text-gray-400">
             Questions?{" "}

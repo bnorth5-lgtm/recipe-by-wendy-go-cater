@@ -392,7 +392,7 @@ const EducationalBank = () => {
         </div>
         <p className="text-xl text-muted-foreground max-w-2xl">
           Enterprise-level culinary training, cost-control modules, and catering best
-          practices — built for Catering By Wendy professionals.
+          practices — built for Delicious Catering & Events professionals.
         </p>
       </div>
 

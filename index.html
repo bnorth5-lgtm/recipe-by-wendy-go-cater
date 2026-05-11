@@ -473,6 +473,24 @@
           animation: none;
         }
       }
+
+      /* NBS Concierge (HTML widget): Visionary Map only — Layout toggles body.nbs-visionary-map-active */
+      body:not(.nbs-visionary-map-active) .nbs-chat {
+        display: none !important;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      body:not(.nbs-visionary-map-active) .elements-sidebar {
+        display: none !important;
+      }
+
+      /* /three-door: Dashboard toggles body.nbs-three-door — hard-hide Concierge even if visionary class was stale */
+      body.nbs-three-door .nbs-chat {
+        display: none !important;
+        visibility: hidden;
+        pointer-events: none;
+      }
     </style>
   </head>
 
@@ -480,7 +498,7 @@
     <div id="root"></div>
 
     <!-- NBS Concierge — Educational Bank-powered chat widget -->
-    <aside class="nbs-chat" aria-label="Catering By Wendy concierge chat">
+    <aside class="nbs-chat" aria-label="Delicious Catering & Events concierge chat">
       <input
         class="nbs-chat__toggle"
         type="checkbox"
@@ -515,7 +533,7 @@
       <section
         class="nbs-chat__panel"
         role="dialog"
-        aria-label="Chat with Catering By Wendy"
+        aria-label="Chat with Delicious Catering & Events"
       >
         <header class="nbs-chat__header">
           <div class="nbs-chat__brand">
@@ -524,7 +542,7 @@
               <span class="nbs-chat__kbBadge">&#10022; Educational Bank</span>
             </div>
             <div class="nbs-chat__subtitle">
-              Catering By Wendy &middot; Ask anything or route an inquiry
+              Delicious Catering & Events &middot; Ask anything or route an inquiry
             </div>
           </div>
           <label class="nbs-chat__close" for="nbs-chat-toggle">Close</label>
@@ -559,7 +577,7 @@
             </form>
             <div class="nbs-chat__meta">
               <span class="nbs-chat__pill">&#10022; Educational Bank active</span>
-              <span>Powered by Catering By Wendy</span>
+              <span>Powered by Delicious Catering & Events</span>
             </div>
           </footer>
         </div>
@@ -613,11 +631,11 @@
             "what do you offer","subscription","pricing plan","upgrade","plan difference",
             "what is included","features","educational bank"],
           response: "<strong>My pleasure &mdash; here is our full service level overview.</strong><br><br>" +
-            "Catering By Wendy offers three thoughtfully designed service levels:<br><br>" +
+            "Delicious Catering & Events offers three thoughtfully designed service levels:<br><br>" +
             "<strong>Basic &mdash; Browse &amp; Explore</strong><br>" +
-            "Full read access to our menu collection, recipe library, and ingredient search. Ideal for prospective clients and new team members reviewing our offerings.<br><br>" +
+            "Full read access to our menu collection, menu library, and ingredient search. Ideal for prospective clients and new team members reviewing our offerings.<br><br>" +
             "<strong>Professional &mdash; Price Intelligence</strong><br>" +
-            "Everything in Basic, plus recipe import from any URL, PDF, or image (OCR), live local market ingredient pricing, and full cost-per-serving analysis.<br><br>" +
+            "Everything in Basic, plus dish import from any URL, PDF, or image (OCR), live local market ingredient pricing, and full cost-per-serving analysis.<br><br>" +
             "<strong>Enterprise &mdash; Full Agent Suite</strong><br>" +
             "Everything in Professional, plus AI agent tools, broad market pricing analysis across regional suppliers, and exclusive access to the <em>Educational Bank</em> &mdash; the knowledge resource you are exploring right now.<br><br>" +
             "To discuss upgrading or to arrange a brief consultation, please contact us at <a href=\"mailto:northbusinessservices@gmail.com\">northbusinessservices@gmail.com</a>."
@@ -635,7 +653,7 @@
             "<li><strong>China, glassware &amp; silverware</strong> &mdash; 1&ndash;2 weeks out; final counts adjusted at 48 hours</li>" +
             "<li><strong>Audio/visual &amp; specialty items</strong> &mdash; Confirmed one week prior</li></ul>" +
             "<strong>What We Bring vs. What Is Rented:</strong><br>" +
-            "Catering By Wendy arrives with all food preparation equipment, chafing dishes, serving platters, and carving stations. Guest-facing items &mdash; tables, chairs, linens, and place settings &mdash; are typically rented separately unless explicitly included in your proposal.<br><br>" +
+            "Delicious Catering & Events arrives with all food preparation equipment, chafing dishes, serving platters, and carving stations. Guest-facing items &mdash; tables, chairs, linens, and place settings &mdash; are typically rented separately unless explicitly included in your proposal.<br><br>" +
             "<strong>Day-of Delivery:</strong><br>" +
             "All rentals arrive at least one hour before our crew begins setup. We receive, inventory, and stage every piece, and manage the return at event&rsquo;s end."
         },
@@ -757,7 +775,7 @@
       function conciergeGreeting() {
         var h = new Date().getHours();
         var period = h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
-        return "Good " + period + ". I am your <strong>Catering By Wendy</strong> concierge &mdash; at your service.<br><br>" +
+        return "Good " + period + ". I am your <strong>Delicious Catering & Events</strong> concierge &mdash; at your service.<br><br>" +
           "You may ask me about <strong>BEOs</strong>, <strong>service tiers</strong>, <strong>rental logistics</strong>, " +
           "<strong>setup timelines</strong>, <strong>staffing</strong>, <strong>pricing</strong>, or " +
           "<strong>dietary accommodations</strong>. I am here to assist.";
@@ -861,7 +879,7 @@
             messages: [
               {
                 role: "system",
-                content: "You are the EBW Concierge for Delicious Catering & Events by Wendy. Answer the user's question using ONLY the following knowledge base information. If the answer is not in the knowledge base, politely offer to connect them with the events team at northbusinessservices@gmail.com.\n\nKNOWLEDGE BASE:\n" + kbContext
+                content: "You are the DCE Concierge for Delicious Catering & Events by Wendy. Answer the user's question using ONLY the following knowledge base information. If the answer is not in the knowledge base, politely offer to connect them with the events team at northbusinessservices@gmail.com.\n\nKNOWLEDGE BASE:\n" + kbContext
               },
               {
                 role: "user",
@@ -928,6 +946,10 @@
 
     })();
     </script>
+
+    <style>
+      body:not(.nbs-visionary-map-active) .nbs-chat, body:not(.nbs-visionary-map-active) .elements-sidebar { display: none !important; }
+    </style>
 
     <script type="module" src="/src/main.tsx"></script>
   </body>

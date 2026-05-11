@@ -95,7 +95,7 @@ const SubscriptionSettings = () => {
       <div className="text-center mb-2">
         <h1 className="text-4xl font-bold mb-2">Subscription</h1>
         <p className="text-xl text-muted-foreground">
-          Manage your Catering By Wendy plan and track feature usage.
+          Manage your Delicious Catering & Events plan and track feature usage.
         </p>
       </div>
 
