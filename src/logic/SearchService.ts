@@ -3,14 +3,22 @@ import { logSystemAlert } from "@/lib/switchboardHook";
 // The Zero-Spend Guard: Build a 'Credit Watchdog' into the search logic. 
 // It must track our 1,000-call monthly limit and notify the Switchboard if we hit 90%.
 
+/** Scout / Brave lane caps — align OPS ethos (~$5 / 1000-call style windows in Masterpiece OPS). */
+function readMonthlyCallCap(): number {
+  const raw = import.meta.env.VITE_BRAVE_SEARCH_MONTHLY_CALL_CAP;
+  const n = raw !== undefined && raw !== "" ? Number.parseInt(String(raw), 10) : NaN;
+  return Number.isFinite(n) && n > 0 ? n : 1000;
+}
+
 class SearchService {
   private apiKey: string;
-  private monthlyLimit = 1000;
+  private monthlyLimit: number;
   private currentCalls = 0; // In a real app, this would be persisted to a DB
 
   constructor() {
     // Vite uses import.meta.env
     this.apiKey = import.meta.env.VITE_BRAVE_SEARCH_API_KEY || "";
+    this.monthlyLimit = readMonthlyCallCap();
   }
 
   async search(query: string) {
