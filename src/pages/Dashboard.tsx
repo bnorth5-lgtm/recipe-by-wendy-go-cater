@@ -64,6 +64,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import { useEventContext } from "@/context/EventContext";
+import { useBrand } from "@/context/BrandContext";
 import { generateProposalPDF } from "@/logic/PDFGenerator";
 import { saveToVault } from "@/logic/persistence";
 import { logSystemAlert } from "@/lib/switchboardHook";

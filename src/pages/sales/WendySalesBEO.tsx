@@ -7,6 +7,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { FileSignature, Mail, Phone, Sparkles } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
+import { PACKET_01_12_GOLD_DATA_URI } from "@/branding/packet-01-12-gold-data-uri";
 import { useEventContext } from "@/context/EventContext";
 
 export default function WendySalesBEO() {
@@ -39,7 +40,25 @@ export default function WendySalesBEO() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0f172a] via-slate-900 to-black text-white">
       <div className="mx-auto flex max-w-4xl flex-col gap-12 px-4 py-14">
-        <header className="text-center space-y-4 border-b border-amber-500/35 pb-8">
+        <header className="text-center space-y-6 border-b border-amber-500/35 pb-8">
+          <div className="flex flex-wrap items-center justify-center gap-8 px-2">
+            <img
+              src={PACKET_01_12_GOLD_DATA_URI}
+              alt="Delicious Catering & Events by Wendy — gold wordmark"
+              decoding="sync"
+              fetchPriority="high"
+              className="h-28 w-auto max-w-[min(460px,92vw)] object-contain drop-shadow-[0_0_28px_rgba(251,191,36,0.25)]"
+            />
+            <img
+              src="/wendylogo.jpg"
+              alt="Wendy — Delicious Catering &amp; Events"
+              width={112}
+              height={112}
+              decoding="sync"
+              fetchPriority="high"
+              className="h-28 w-28 shrink-0 rounded-full object-cover ring-2 ring-amber-400/65 shadow-[0_0_24px_rgba(251,191,36,0.35)]"
+            />
+          </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/70 bg-amber-500/10 px-5 py-1.5 text-xs font-semibold uppercase tracking-[0.32em] text-amber-200">
             <Sparkles className="h-3 w-3" aria-hidden />
             Delicious Catering · Wendy Narrative Desk

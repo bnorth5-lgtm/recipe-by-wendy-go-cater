@@ -173,6 +173,10 @@ function appendDiamondStaffRibbonGrid(
 
 /**
  * Strict post-pass applied after programmatic placement (Diamond Snap reconcile / drag recovery).
+ *
+ * **Production / Vercel:** canonical final mutation before Coordinate Lock payloads (`setElements`,
+ * `broadcastManifestCoordinateLock`, `harrison_build_manifest`). Keeps Portable bars, staging,
+ * and tables quantized to the 3′ Harrison grid inside the optimized Vite bundle.
  */
 export function reconcileDiamondManifestToGridStrict(
   elements: MapElementData[],

@@ -1777,6 +1777,15 @@ const VenueArchitectContent = () => {
           onMouseEnter={() => setIsHoveringMap(true)}
           onMouseLeave={() => setIsHoveringMap(false)}
         >
+          {salesMode && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute left-0 top-0 z-0 h-px w-px opacity-0"
+              style={{ contain: "strict" }}
+            >
+              <span className="shadow-[inset_0_0_12px_rgba(251,191,36,0.25)] shadow-[inset_0_0_22px_rgba(251,191,36,0.45)] shadow-[0_0_20px_rgba(251,191,36,1)] ring-amber-300/35 ring-1 ring-inset bg-amber-50 scale-125 transition-none" />
+            </div>
+          )}
           {/* Fullscreen Toggle */}
           <Button
             variant="secondary"
@@ -2481,23 +2490,23 @@ const VenueArchitectContent = () => {
                   isAnchor && isDiamondSnapActive && "shadow-[0_0_30px_rgba(251,191,36,0.6)] border-amber-400 z-30",
                   el.type === "string_lights" &&
                     salesMode &&
-                    "transition-[box-shadow] duration-500 ease-out ring-1 will-change-[box-shadow]",
-                  el.type === "string_lights" && salesMode && lightingLock7PM && "shadow-[inset_0_0_12px_rgba(251,191,36,0.25)] ring-amber-300/50",
-                  el.type === "string_lights" && salesMode && !lightingLock7PM && "ring-transparent shadow-none"
+                    (lightingLock7PM
+                      ? "transition-none shadow-[inset_0_0_12px_rgba(251,191,36,0.25)] ring-amber-300/50 ring-1"
+                      : "transition-[box-shadow] duration-500 ease-out ring-1 will-change-[box-shadow] ring-transparent shadow-none"),
                 )}>
                   {(el.type === "cake" || el.type === "bar" || el.type === "bar_portable") && salesMode && (
                     <>
                       <div
                         className={cn(
-                          "pointer-events-none absolute -top-3 left-1/2 z-[5] h-14 w-14 -translate-x-1/2 rounded-full bg-amber-100/55 blur-xl transition-opacity duration-500 motion-reduce:transition-none will-change-opacity",
-                          lightingLock7PM ? "opacity-100" : "opacity-0",
+                          "pointer-events-none absolute -top-3 left-1/2 z-[5] h-14 w-14 -translate-x-1/2 rounded-full bg-amber-100/55 blur-xl motion-reduce:transition-none will-change-opacity",
+                          lightingLock7PM ? "opacity-100 transition-none" : "opacity-0 transition-opacity duration-500",
                         )}
                         aria-hidden
                       />
                       <div
                         className={cn(
-                          "pointer-events-none absolute inset-[2px] z-[6] rounded-[inherit] shadow-[inset_0_0_22px_rgba(251,191,36,0.45)] ring-1 ring-inset transition-opacity duration-500 motion-reduce:transition-none will-change-[opacity,box-shadow]",
-                          lightingLock7PM ? "opacity-100 ring-amber-300/35" : "opacity-0 ring-transparent shadow-none",
+                          "pointer-events-none absolute inset-[2px] z-[6] rounded-[inherit] shadow-[inset_0_0_22px_rgba(251,191,36,0.45)] ring-1 ring-inset motion-reduce:transition-none will-change-[opacity,box-shadow]",
+                          lightingLock7PM ? "opacity-100 ring-amber-300/35 transition-none" : "opacity-0 ring-transparent shadow-none transition-opacity duration-500",
                         )}
                         aria-hidden
                       />
@@ -2521,7 +2530,7 @@ const VenueArchitectContent = () => {
                           key={i}
                           className={cn(
                             "w-2.5 h-2.5 rounded-full will-change-[transform,filter]",
-                            !salesMode || !lightingLock7PM ? "transition-all duration-1000" : "transition-colors duration-500 ease-out",
+                            !salesMode ? "transition-all duration-1000" : lightingLock7PM ? "transition-none" : "transition-colors duration-500 ease-out",
                             isSunset ? "bg-amber-100 shadow-[0_0_15px_rgba(251,191,36,1)] scale-125" : "bg-amber-700/50 shadow-none",
                             salesMode && lightingLock7PM && "bg-amber-50 shadow-[0_0_20px_rgba(251,191,36,1)] scale-125",
                           )}
