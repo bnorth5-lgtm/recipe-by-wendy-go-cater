@@ -2,6 +2,11 @@ import React, { useEffect, useLayoutEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { ElementType, MapElementData } from "@/utils/geoMath";
+import {
+  GRID_MAGNET_FT,
+  gridSnapBlueprintPx,
+  HARRISON_MASTER_ELEVATION_FT,
+} from "@/utils/geoMath";
 
 /** Pixel dimensions aligned with VenueArchitect.tsx ELEMENT_CONFIG */
 const ELEMENT_DIMS_PX: Record<ElementType, { w: number; h: number }> = {
@@ -47,24 +52,63 @@ function pxToFoot(px: number, ppf: number) {
   return px / ppf;
 }
 
+function quantizeWorldXZToFootGrid(ft: number, lock: boolean): number {
+  if (!lock) return ft;
+  return Math.round(ft / GRID_MAGNET_FT) * GRID_MAGNET_FT;
+}
+
+/** Blueprint-origin snap → center in feet → optional strict 3′ world grid (manifest lock). */
+function blueprintAnchoredCenterFt(
+  el: MapElementData,
+  dims: { w: number; h: number },
+  ppf: number,
+  coordinateLockManifest: boolean,
+  quantizeFootGrid: boolean,
+): { cxFt: number; czFt: number } {
+  const oxPx = coordinateLockManifest ? gridSnapBlueprintPx(el.x, ppf) : el.x;
+  const oyPx = coordinateLockManifest ? gridSnapBlueprintPx(el.y, ppf) : el.y;
+  let cxFt = pxToFoot(oxPx + dims.w / 2, ppf);
+  let czFt = pxToFoot(oyPx + dims.h / 2, ppf);
+  if (quantizeFootGrid) {
+    cxFt = quantizeWorldXZToFootGrid(cxFt, true);
+    czFt = quantizeWorldXZToFootGrid(czFt, true);
+  }
+  return { cxFt, czFt };
+}
+
 /** Matches VenueArchitect.tsx diamond runway ghost layer (five parallel diagonals). */
-function runwaySegmentsFromDiamond(ppf: number): [THREE.Vector3, THREE.Vector3][] {
+function runwaySegmentsFromDiamond(
+  ppf: number,
+  coordinateLockManifest: boolean,
+  groundPlaneYFt: number,
+): [THREE.Vector3, THREE.Vector3][] {
   const segs: [THREE.Vector3, THREE.Vector3][] = [];
+  const y = groundPlaneYFt + 0.045;
   for (let i = 0; i < 5; i++) {
-    const x1 = pxToFoot(180 + i * 140, ppf);
-    const z1 = pxToFoot(280, ppf);
-    const x2 = pxToFoot(180 + i * 140 + 400, ppf);
-    const z2 = pxToFoot(280 + 600, ppf);
-    const y = 0.04;
-    segs.push([
-      new THREE.Vector3(x1, y, z1),
-      new THREE.Vector3(x2, y, z2),
-    ]);
+    const pxXA = coordinateLockManifest ? gridSnapBlueprintPx(180 + i * 140, ppf) : 180 + i * 140;
+    const pxZA = coordinateLockManifest ? gridSnapBlueprintPx(280, ppf) : 280;
+    const pxXB = coordinateLockManifest ? gridSnapBlueprintPx(180 + i * 140 + 400, ppf) : 180 + i * 140 + 400;
+    const pxZB = coordinateLockManifest ? gridSnapBlueprintPx(280 + 600, ppf) : 280 + 600;
+    let x1 = pxToFoot(pxXA, ppf);
+    let z1 = pxToFoot(pxZA, ppf);
+    let x2 = pxToFoot(pxXB, ppf);
+    let z2 = pxToFoot(pxZB, ppf);
+    if (coordinateLockManifest) {
+      x1 = quantizeWorldXZToFootGrid(x1, true);
+      z1 = quantizeWorldXZToFootGrid(z1, true);
+      x2 = quantizeWorldXZToFootGrid(x2, true);
+      z2 = quantizeWorldXZToFootGrid(z2, true);
+    }
+    segs.push([new THREE.Vector3(x1, y, z1), new THREE.Vector3(x2, y, z2)]);
   }
   return segs;
 }
 
-function bboxFromElements(elements: MapElementData[], ppf: number): { cx: number; cz: number; span: number } {
+function bboxFromElements(
+  elements: MapElementData[],
+  ppf: number,
+  coordinateLockManifest: boolean,
+): { cx: number; cz: number; span: number } {
   let minX = Infinity;
   let minZ = Infinity;
   let maxX = -Infinity;
@@ -72,8 +116,10 @@ function bboxFromElements(elements: MapElementData[], ppf: number): { cx: number
   for (const el of elements) {
     const d = ELEMENT_DIMS_PX[el.type];
     if (!d) continue;
-    const x1 = pxToFoot(el.x, ppf);
-    const z1 = pxToFoot(el.y, ppf);
+    const oxPx = coordinateLockManifest ? gridSnapBlueprintPx(el.x, ppf) : el.x;
+    const oyPx = coordinateLockManifest ? gridSnapBlueprintPx(el.y, ppf) : el.y;
+    const x1 = pxToFoot(oxPx, ppf);
+    const z1 = pxToFoot(oyPx, ppf);
     const x2 = x1 + pxToFoot(d.w, ppf);
     const z2 = z1 + pxToFoot(d.h, ppf);
     minX = Math.min(minX, x1);
@@ -88,35 +134,56 @@ function bboxFromElements(elements: MapElementData[], ppf: number): { cx: number
   return { cx, cz, span };
 }
 
-function runwaySegmentsFallback(elements: MapElementData[], ppf: number): [THREE.Vector3, THREE.Vector3][] {
+function runwaySegmentsFallback(
+  elements: MapElementData[],
+  ppf: number,
+  coordinateLockManifest: boolean,
+  groundPlaneYFt: number,
+): [THREE.Vector3, THREE.Vector3][] {
   const kitchen = elements.find((e) => e.type === "staging_kitchen");
   const tent = elements.find((e) => e.type === "tent_40x60");
-  const { cx, cz, span } = bboxFromElements(elements, ppf);
+  const { cx, cz, span } = bboxFromElements(elements, ppf, coordinateLockManifest);
+  const yLift = groundPlaneYFt + 0.045;
   let kx = cx;
   let kz = cz + span * 0.35;
   if (kitchen) {
     const d = ELEMENT_DIMS_PX.staging_kitchen;
-    kx = pxToFoot(kitchen.x + d.w / 2, ppf);
-    kz = pxToFoot(kitchen.y + d.h / 2, ppf);
+    const { cxFt: kcx, czFt: kcz } = blueprintAnchoredCenterFt(
+      kitchen,
+      d,
+      ppf,
+      coordinateLockManifest,
+      coordinateLockManifest,
+    );
+    kx = kcx;
+    kz = kcz;
   }
   let tx = cx;
   let tz = cz - span * 0.2;
   if (tent) {
     const d = ELEMENT_DIMS_PX.tent_40x60;
-    tx = pxToFoot(tent.x + d.w / 2, ppf);
-    tz = pxToFoot(tent.y + d.h / 2, ppf);
+    const { cxFt: tcx, czFt: tcz } = blueprintAnchoredCenterFt(
+      tent,
+      d,
+      ppf,
+      coordinateLockManifest,
+      coordinateLockManifest,
+    );
+    tx = tcx;
+    tz = tcz;
   }
-  const tip = new THREE.Vector3(tx, 0.04, tz);
-  const y = 0.04;
+  const tip = new THREE.Vector3(tx, yLift, tz);
   const segs: [THREE.Vector3, THREE.Vector3][] = [];
   for (let i = -2; i <= 2; i++) {
     const spread = span * 0.12 * i;
-    const start = new THREE.Vector3(kx + spread, y, kz + spread * 0.3);
-    const end = new THREE.Vector3(
-      tip.x + spread * 0.6,
-      y,
-      tip.z - spread * 0.15,
-    );
+    const start = new THREE.Vector3(kx + spread, yLift, kz + spread * 0.3);
+    const end = new THREE.Vector3(tip.x + spread * 0.6, yLift, tip.z - spread * 0.15);
+    if (coordinateLockManifest) {
+      start.x = quantizeWorldXZToFootGrid(start.x, true);
+      start.z = quantizeWorldXZToFootGrid(start.z, true);
+      end.x = quantizeWorldXZToFootGrid(end.x, true);
+      end.z = quantizeWorldXZToFootGrid(end.z, true);
+    }
     segs.push([start, end]);
   }
   return segs;
@@ -135,6 +202,7 @@ function addRoundTableWithLegs(
   cz: number,
   diameterFt: number,
   rotationY: number,
+  floorContactYFt = 0,
 ) {
   const tabletopH = 0.085 * 3;
   const legH = Math.max(2.45, 2.92 - tabletopH);
@@ -145,17 +213,17 @@ function addRoundTableWithLegs(
   const topMat = new THREE.MeshStandardMaterial({ color: 0xe8dfd2, roughness: 0.45, metalness: 0.06 });
   const top = new THREE.Mesh(topGeom, topMat);
   top.rotation.y = THREE.MathUtils.degToRad(rotationY);
-  top.position.set(cx, legH + tabletopH / 2, cz);
+  top.position.set(cx, floorContactYFt + legH + tabletopH / 2, cz);
 
   const legMat = new THREE.MeshStandardMaterial({ color: 0x2a2b2f, roughness: 0.82, metalness: 0.08 });
   const pedGeom = new THREE.CylinderGeometry(pedestalR * 1.1, pedestalR * 1.32, legH * 0.92, 20);
   const ped = new THREE.Mesh(pedGeom, legMat);
   ped.rotation.y = THREE.MathUtils.degToRad(rotationY);
-  ped.position.set(cx, legH * 0.46, cz);
+  ped.position.set(cx, floorContactYFt + legH * 0.46, cz);
 
   const legGroup = new THREE.Group();
   legGroup.rotation.y = THREE.MathUtils.degToRad(rotationY);
-  legGroup.position.set(cx, 0, cz);
+  legGroup.position.set(cx, floorContactYFt, cz);
   const offset = radial * 0.62;
   for (let i = 0; i < 4; i++) {
     const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
@@ -223,6 +291,9 @@ export interface VenueArchitect3DProps {
   pixelsPerFoot: number;
   isDiamondSnapActive: boolean;
   guestSimulation: boolean;
+  coordinateLockManifest: boolean;
+  /** Stage deck datum (feet) — frozen while coordinateLockManifest avoids Y “shimmer”. */
+  masterElevationSurfaceFt?: number;
   isOutdoorMode: boolean;
   /** Decimal hours (16 = 4:00 PM). Dramatic evening lighting ramps 6:00–7:00 PM and holds from 7:00 PM. */
   globalTime: number;
@@ -233,6 +304,8 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
   pixelsPerFoot: ppf,
   isDiamondSnapActive,
   guestSimulation,
+  coordinateLockManifest,
+  masterElevationSurfaceFt = HARRISON_MASTER_ELEVATION_FT,
   isOutdoorMode,
   globalTime,
 }) => {
@@ -291,10 +364,12 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
     const root = new THREE.Group();
     scene.add(root);
 
-    const { cx, cz, span } = bboxFromElements(elements, ppf);
+    const groundLockYFt = coordinateLockManifest ? masterElevationSurfaceFt : 0;
+
+    const { cx, cz, span } = bboxFromElements(elements, ppf, coordinateLockManifest);
 
     const warmAccent = new THREE.PointLight(0xffb366, 0, span * 4.5, 2);
-    warmAccent.position.set(cx, span * 0.35, cz);
+    warmAccent.position.set(cx, groundLockYFt + span * 0.35, cz);
     scene.add(warmAccent);
     const groundSize = span * 1.85;
     const ground = new THREE.Mesh(
@@ -306,7 +381,7 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
       }),
     );
     ground.rotation.x = -Math.PI / 2;
-    ground.position.set(cx, 0, cz);
+    ground.position.set(cx, groundLockYFt, cz);
     ground.receiveShadow = true;
     root.add(ground);
 
@@ -317,13 +392,16 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
       depthWrite: false,
     });
 
-    const runways = isDiamondSnapActive ? runwaySegmentsFromDiamond(ppf) : runwaySegmentsFallback(elements, ppf);
+    const runways = isDiamondSnapActive
+      ? runwaySegmentsFromDiamond(ppf, coordinateLockManifest, groundLockYFt)
+      : runwaySegmentsFallback(elements, ppf, coordinateLockManifest, groundLockYFt);
 
     runways.forEach(([a, b]) => {
       const len = a.distanceTo(b);
       const mid = new THREE.Vector3().addVectors(a, b).multiplyScalar(0.5);
       const runway = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.015, len), runwayMat);
-      runway.position.copy(mid).setY(0.06);
+      runway.position.copy(mid);
+      runway.position.y = mid.y + 0.025;
       const dir = new THREE.Vector3().subVectors(b, a);
       runway.lookAt(mid.clone().add(dir));
       runway.rotateX(Math.PI / 2);
@@ -334,12 +412,23 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
       const dims = ELEMENT_DIMS_PX[el.type];
       const wFt = pxToFoot(dims.w, ppf);
       const hFt = pxToFoot(dims.h, ppf);
-      const cxw = pxToFoot(el.x + dims.w / 2, ppf);
-      const czh = pxToFoot(el.y + dims.h / 2, ppf);
+
+      /** Harrison lock: blueprint 3′ + strict world 3′ for tent & 60″ rounds only. */
+      const rigidGrid =
+        coordinateLockManifest && (el.type === "table_round_60" || el.type === "tent_40x60");
+      const { cxFt: cxw, czFt: czh } = rigidGrid
+        ? blueprintAnchoredCenterFt(el, dims, ppf, true, true)
+        : {
+            cxFt: pxToFoot(el.x + dims.w / 2, ppf),
+            czFt: pxToFoot(el.y + dims.h / 2, ppf),
+          };
+
+      /** Leg / pole bases sit on Harrison deck datum when manifest is locked (no hover). */
+      const deckContactY = rigidGrid ? masterElevationSurfaceFt : 0;
 
       if (el.type === "table_round_60") {
         const g = new THREE.Group();
-        addRoundTableWithLegs(g, cxw, czh, Math.min(wFt, hFt), el.rotation ?? 0);
+        addRoundTableWithLegs(g, cxw, czh, Math.min(wFt, hFt), el.rotation ?? 0, deckContactY);
         root.add(g);
         continue;
       }
@@ -355,11 +444,11 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
         const g = new THREE.Group();
         const legH = 3.2;
         const topR = Math.min(wFt, hFt) / 2 - 0.05;
-        const top = new THREE.Mesh(
+        const topMesh = new THREE.Mesh(
           new THREE.CylinderGeometry(topR - 0.02, topR - 0.02, 0.085, 32),
           new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.4, metalness: 0.15 }),
         );
-        top.position.set(cxw, legH + 0.045, czh);
+        topMesh.position.set(cxw, legH + 0.045, czh);
 
         const ped = new THREE.Mesh(
           new THREE.CylinderGeometry(topR * 0.06, topR * 0.09, legH - 0.1, 12),
@@ -373,7 +462,7 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
         );
         basePlate.position.set(cxw, 0.03, czh);
 
-        g.add(basePlate, ped, top);
+        g.add(basePlate, ped, topMesh);
         root.add(g);
         continue;
       }
@@ -381,11 +470,13 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
       if (el.type === "tent_40x60") {
         const polesH = Math.max(Math.min(Math.max(wFt, hFt) * 0.22, 18), 10);
         const frameMat = new THREE.MeshStandardMaterial({ color: 0xc4b896, transparent: true, opacity: 0.38, roughness: 0.55, metalness: 0.05, side: THREE.DoubleSide });
-        const canopy = new THREE.Mesh(
-          new THREE.BoxGeometry(wFt, polesH * 0.92, hFt),
-          frameMat,
-        );
-        canopy.position.set(cxw, polesH * 0.54, czh);
+        const tentGeomH = polesH * 0.92;
+        const canopy = new THREE.Mesh(new THREE.BoxGeometry(wFt, tentGeomH, hFt), frameMat);
+        if (coordinateLockManifest) {
+          canopy.position.set(cxw, deckContactY + tentGeomH / 2, czh);
+        } else {
+          canopy.position.set(cxw, polesH * 0.54, czh);
+        }
 
         const frame = new THREE.LineSegments(
           new THREE.WireframeGeometry(new THREE.BoxGeometry(wFt + 0.3, polesH, hFt + 0.3)),
@@ -406,7 +497,8 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
             roughness: 0.72,
           }),
         );
-        mesh.position.set(cxw, lift / 2 + 0.02, czh);
+        const deck = coordinateLockManifest ? masterElevationSurfaceFt : 0;
+        mesh.position.set(cxw, deck + lift / 2 + 0.02, czh);
         mesh.receiveShadow = true;
         root.add(mesh);
         continue;
@@ -414,7 +506,7 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
 
       if (el.type === "staff_member") {
         const capsule = guestFigure(0xfbbf24);
-        capsule.position.set(cxw, 0, czh);
+        capsule.position.set(cxw, coordinateLockManifest ? masterElevationSurfaceFt : 0, czh);
         root.add(capsule);
         continue;
       }
@@ -437,22 +529,23 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
         new THREE.BoxGeometry(wFt, avgHeightFt(el.type, wFt, hFt), hFt),
         new THREE.MeshStandardMaterial({ color: typeColor(el.type), roughness: 0.75 }),
       );
-      defaultMesh.position.set(cxw, avgHeightFt(el.type, wFt, hFt) / 2, czh);
+      const mh = avgHeightFt(el.type, wFt, hFt);
+      const deck = coordinateLockManifest ? masterElevationSurfaceFt : 0;
+      defaultMesh.position.set(cxw, deck + mh / 2, czh);
       root.add(defaultMesh);
     }
 
-    /** Social heatmap anchors — guests bias movement toward these zones (bar, floor, stage, etc.) */
+    /** Social heatmap anchors — locked layout uses hashed grid/snapped hotspots (no lerp in guest tick when coordinateLockManifest). */
     const socialHotspots: THREE.Vector3[] = [];
     for (const el of elements) {
       if (el.type === "bar" || el.type === "dance_floor" || el.type === "stage" || el.type === "buffet" || el.type === "high_top") {
-        const dims = ELEMENT_DIMS_PX[el.type];
-        const hx = pxToFoot(el.x + dims.w / 2, ppf);
-        const hz = pxToFoot(el.y + dims.h / 2, ppf);
-        socialHotspots.push(new THREE.Vector3(hx, 0, hz));
+        const sd = ELEMENT_DIMS_PX[el.type];
+        const { cxFt: hx, czFt: hz } = blueprintAnchoredCenterFt(el, sd, ppf, coordinateLockManifest, coordinateLockManifest);
+        socialHotspots.push(new THREE.Vector3(hx, groundLockYFt, hz));
       }
     }
     if (socialHotspots.length === 0) {
-      socialHotspots.push(new THREE.Vector3(cx, 0, cz));
+      socialHotspots.push(new THREE.Vector3(cx, groundLockYFt, cz));
     }
 
     /* Guest walkers along runways — simple “sprite” figures */
@@ -464,22 +557,23 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
       0x5b9bd5, 0x70ad47, 0xed7d31, 0xa078ff, 0xff6b85, 0x00c9b7,
     ];
     runways.forEach((seg, ri) => {
-      const occupants = guestSimulation ? 3 : 0;
+      const occupants = coordinateLockManifest ? 3 : guestSimulation ? 3 : 0;
       for (let j = 0; j < occupants; j++) {
         const fig = guestFigure(colorsUsed[(guestMeshes.length + j) % colorsUsed.length]);
         fig.position.copy(seg[0]);
         guestMeshes.push(fig);
         guestOffsets.push((j / Math.max(occupants, 1)) * Math.PI * 2);
-        guestSpeeds.push(0.22 + Math.random() * 0.12);
+        guestSpeeds.push(coordinateLockManifest ? 0 : 0.22 + Math.random() * 0.12);
         runwayIndex.push(ri);
         root.add(fig);
       }
     });
 
     const cameraDist = span * 0.95 + 35;
+    const gazeY = coordinateLockManifest ? groundLockYFt + span * 0.05 : span * 0.05;
     camera.position.set(cx - cameraDist * 0.92, span * 0.85 + 20, cz + cameraDist * 0.62);
-    camera.lookAt(cx, span * 0.05, cz);
-    controls.target.set(cx, 0.5, cz);
+    camera.lookAt(cx, gazeY, cz);
+    controls.target.set(cx, coordinateLockManifest ? groundLockYFt + 0.5 : 0.5, cz);
     controls.update();
 
     let raf = 0;
@@ -523,16 +617,23 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
 
       warmAccent.intensity = eveningT * 480 * (isOutdoorMode ? 0.85 : 1);
 
+      const lockSurface =
+        coordinateLockManifest && masterElevationSurfaceFt !== undefined
+          ? masterElevationSurfaceFt + 0.08
+          : null;
+
       guestMeshes.forEach((fig, i) => {
         const ri = runwayIndex[i];
         const seg = runways[ri];
         if (!seg) return;
         const [sa, sb] = seg;
-        const phase = (Math.sin(guestOffsets[i] + t * guestSpeeds[i]) + 1) / 2;
+        let phase =
+          coordinateLockManifest
+            ? THREE.MathUtils.euclideanModulo(guestOffsets[i] * 0.31 + i * 0.079 + ri * 0.11, 1)
+            : (Math.sin(guestOffsets[i] + t * guestSpeeds[i]) + 1) / 2;
         const pos = sa.clone().lerp(sb, phase);
-        pos.y = 0;
 
-        if (guestSimulation) {
+        if (guestSimulation && !coordinateLockManifest) {
           let nearest = socialHotspots[0];
           let best = pos.distanceToSquared(nearest);
           for (let k = 1; k < socialHotspots.length; k++) {
@@ -548,12 +649,11 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
           pos.z = THREE.MathUtils.lerp(pos.z, nearest.z, pullAmt);
         }
 
-        fig.rotation.y =
-          THREE.MathUtils.degToRad(rotationFromDirection(sb.x - sa.x, sb.z - sa.z)) +
-          Math.sin(t * 4 + i) * 0.08;
+        const baseYaw = THREE.MathUtils.degToRad(rotationFromDirection(sb.x - sa.x, sb.z - sa.z));
+        fig.rotation.y = coordinateLockManifest ? baseYaw : baseYaw + Math.sin(t * 4 + i) * 0.08;
 
-        const bob = Math.sin(t * 7 + guestOffsets[i]) * 0.08;
-        fig.position.set(pos.x, 0.12 + bob, pos.z);
+        const bob = coordinateLockManifest ? 0 : Math.sin(t * 7 + guestOffsets[i]) * 0.08;
+        fig.position.set(pos.x, lockSurface ?? 0.12 + bob, pos.z);
       });
 
       controls.update();
@@ -573,7 +673,15 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
       renderer.dispose();
       if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement);
     };
-  }, [elements, ppf, isDiamondSnapActive, guestSimulation, isOutdoorMode]);
+  }, [
+    elements,
+    ppf,
+    isDiamondSnapActive,
+    guestSimulation,
+    coordinateLockManifest,
+    masterElevationSurfaceFt,
+    isOutdoorMode,
+  ]);
 
   return <div ref={mountRef} className="absolute inset-0 z-[5]" style={{ cursor: "grab" }} />;
 };

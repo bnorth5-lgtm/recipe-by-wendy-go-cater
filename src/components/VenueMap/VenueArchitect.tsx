@@ -70,9 +70,10 @@ const BEOSidebar = (props: any) => null;
 import { useEventContext } from "@/context/EventContext";
 import { useCateringStore } from "@/store/cateringStore";
 import { cn } from "@/lib/utils";
-import { generateDiamondSnapElements } from "@/utils/geoMath";
+import { generateDiamondSnapElements, HARRISON_MASTER_ELEVATION_FT } from "@/utils/geoMath";
 
 import type { ElementType, MapElementData } from "@/utils/geoMath";
+import { broadcastManifestCoordinateLock } from "@/utils/manifestLockBroadcast";
 import {
   CRISIS_COMMAND_EVENT,
   LANGUAGE_BROADCAST_EVENT,
@@ -148,6 +149,8 @@ const VenueArchitectContent = () => {
   const [isBEODialogOpen, setIsBEODialogOpen] = useState(false);
   const [is3DView, setIs3DView] = useState(false);
   const [guestSimulation, setGuestSimulation] = useState(true);
+  /** Manifest lock: freezes rain/wind guest-shimmer pathways and snaps profit pipeline to pinned counts. */
+  const [manifestCoordinateLockActive, setManifestCoordinateLockActive] = useState(false);
 
   const navigate = useNavigate();
   const { eventState, updateEventState } = useEventContext();
@@ -273,12 +276,13 @@ const VenueArchitectContent = () => {
   }, []);
 
   useEffect(() => {
+    if (manifestCoordinateLockActive) return;
     if (!isRaining && !isStormMode) return;
     const id = window.setInterval(() => {
       setWindGust((g) => Math.min(1, Math.max(0, g + (Math.random() - 0.5) * 0.22)));
     }, 260);
     return () => clearInterval(id);
-  }, [isRaining, isStormMode]);
+  }, [isRaining, isStormMode, manifestCoordinateLockActive]);
 
   useEffect(() => {
     const onCrisis = (ev: Event) => {
@@ -415,47 +419,104 @@ const VenueArchitectContent = () => {
   };
 
   const handleTotalManifestDiamondSnap = () => {
-    toast.info("Initiating Diamond Snap", { description: "Calculating coordinates for 180 guests in background..." });
-    setIsLoading(true);
     const targetGuests = 180;
-    const tablesNeeded = Math.ceil(targetGuests / 10); // Using 60" rounds (10 guests each based on BEO logic)
-    const serversNeeded = Math.ceil(targetGuests / 20); // 1:20 ratio
-    
-    if (serversNeeded > 12) {
-       toast.error("Architecture Failure", { description: `Requires ${serversNeeded} servers, which exceeds the limit.` });
-       return;
+    const serversFloorCheck = Math.ceil(targetGuests / 20);
+
+    if (serversFloorCheck > 12) {
+      toast.error("Architecture Failure", {
+        description: `Requires ${serversFloorCheck} servers, which exceeds the limit.`,
+      });
+      return;
     }
 
-    startTransition(() => {
-      const snapElements = generateDiamondSnapElements(targetGuests);
+    toast.info("Initiating Diamond Snap", {
+      description: "State lock & 3′ grid reconcile — pausing Rain/Wind sim…",
+    });
+    setIsLoading(true);
 
-      // Bypass incremental rendering - drop all at once
+    setIsRaining(false);
+    setIsStormMode(false);
+    setWindGust(0.36);
+    setStaffCrisisPhase("idle");
+    setGuestSimulation(false);
+    setManifestCoordinateLockActive(true);
+
+    startTransition(() => {
+      const snapElements = generateDiamondSnapElements(targetGuests, PIXELS_PER_FOOT);
+
       setElements(snapElements);
-      
-      // Auto-enter fullscreen for visual confirmation
+
+      setIsFloorSnap(false);
+      setIsGridMagnetism(false);
+
       if (!document.fullscreenElement && containerRef.current) {
         containerRef.current.requestFullscreen().catch(() => {});
       }
 
-      toast.success("Diamond Snap Complete", { description: "100% Seating Achieved. 45-degree runways established." });
+      toast.success("Diamond Snap Complete", {
+        description: "Manifest locked: 180 guests + ribbon staff on 3′ grid. Profit scrape armed.",
+      });
 
-      // Sync to Supabase harrison_build_manifest asynchronously
+      const staffPlaced = snapElements.filter((e) => e.type === "staff_member").length;
+
+      broadcastManifestCoordinateLock({
+        eventId: eventState?.eventId ?? "demo-harrison",
+        snapMode: "Diamond",
+        guestCount: targetGuests,
+        staffCount: staffPlaced,
+        masterElevationFt: HARRISON_MASTER_ELEVATION_FT,
+        pinnedAt: Date.now(),
+        elements: snapElements,
+      });
+
+      const runScoutPins = async () => {
+        const itemsToScrape = new Set<string>();
+        snapElements.forEach((el: MapElementData) => {
+          if (el.type === "tent_40x60") itemsToScrape.add("clear-top tent");
+          if (el.type.startsWith("table")) itemsToScrape.add("banquet tables");
+          if (el.type === "staff_member") itemsToScrape.add("event staff");
+          if (el.type === "floral_arch") itemsToScrape.add("event florals");
+          if (el.type === "bar") itemsToScrape.add("portable bar");
+          if (el.type === "dance_floor") itemsToScrape.add("dance floor");
+          if (el.type === "staging_kitchen") itemsToScrape.add("mobile staging kitchen catering");
+        });
+        const itemsArray = Array.from(itemsToScrape);
+        if (itemsArray.length === 0) itemsArray.push("Maine event catering wholesale");
+
+        try {
+          await dropGlobalPin({
+            lat: 43.767,
+            lng: -70.758,
+            region: "Harrison, Maine",
+            items: itemsArray,
+          });
+          toast.success("Scout_NBS Pin-Point Armed", {
+            description: `${itemsArray.length} categories locked to Harrison corridor pricing.`,
+          });
+        } catch (err) {
+          console.error(err);
+          toast.error("Scout_NBS Warning", {
+            description: "Regional scrape deferred — manifest pins are still broadcast.",
+          });
+        }
+      };
+
       const syncManifest = async () => {
         try {
           const { supabase } = await import("@/logic/supabaseClient");
           const eventId = eventState?.eventId || "demo-harrison";
-          const result = await supabase.from('harrison_build_manifest').insert({
+          const result = await supabase.from("harrison_build_manifest").insert({
             event_id: eventId,
-            snap_mode: 'Diamond',
+            snap_mode: "Diamond",
             guest_count: targetGuests,
             elements: snapElements,
-            is_locked: true
+            is_locked: true,
           });
           if (result && result.error) {
-             console.error("Supabase Manifest Sync Error:", result.error);
-             toast.error("Manifest Sync Failed", { description: result.error.message });
+            console.error("Supabase Manifest Sync Error:", result.error);
+            toast.error("Manifest Sync Failed", { description: result.error.message });
           } else {
-             toast.success("Manifest Synced", { description: "Layout successfully committed to Supabase." });
+            toast.success("Manifest Synced", { description: "Layout committed to Supabase." });
           }
         } catch (e: any) {
           console.error(e);
@@ -463,10 +524,16 @@ const VenueArchitectContent = () => {
         }
       };
 
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => { syncManifest(); });
+      if ("requestIdleCallback" in window) {
+        requestIdleCallback(() => {
+          void runScoutPins();
+          void syncManifest();
+        });
       } else {
-        setTimeout(syncManifest, 100);
+        setTimeout(() => {
+          void runScoutPins();
+          void syncManifest();
+        }, 100);
       }
       setTimeout(() => setIsLoading(false), 500);
     });
@@ -497,6 +564,10 @@ const VenueArchitectContent = () => {
         if (data && data.elements && data.elements.length > 0 && data.is_locked) {
           setElements(data.elements);
           hasAutoSnapped.current = true;
+          setManifestCoordinateLockActive(true);
+          setGuestSimulation(false);
+          setIsRaining(false);
+          setIsStormMode(false);
           setIsLoading(false);
         } else {
           // If the map fails to render because of a missing is_locked value or null elements, fallback to snap
@@ -696,7 +767,7 @@ const VenueArchitectContent = () => {
           }
 
           // Muddy Paths
-          if (isRaining) {
+          if (isRaining && !manifestCoordinateLockActive) {
             let isMuddy = false;
             for (const tent of tents) {
               const rect = {
@@ -716,9 +787,10 @@ const VenueArchitectContent = () => {
       });
     }
     return { smokedElementIds: smoked, muddyPathTableIds: muddy, smokeTriangle: triangle };
-  }, [elements, windDirection, isRaining, windGust, isStormMode]);
+  }, [elements, windDirection, isRaining, windGust, isStormMode, manifestCoordinateLockActive]);
 
   const staffNudges = useMemo(() => {
+    if (manifestCoordinateLockActive) return {};
     const wallTypes: ElementType[] = ["pipe_drape", "bathroom", "tent_40x60", "staging_kitchen"];
 
     const closestPointOnRectPerimeter = (
@@ -886,7 +958,7 @@ const VenueArchitectContent = () => {
       out[s.id] = blendTowardWithWall(cx, cy, tx, ty, strength, wallW);
     }
     return out;
-  }, [elements, staffCrisisPhase, isStormMode, isRaining, windGust, ELEMENT_CONFIG]);
+  }, [elements, staffCrisisPhase, isStormMode, isRaining, windGust, ELEMENT_CONFIG, manifestCoordinateLockActive]);
 
   // Logistics & Setup Timer Math
   const {
@@ -1606,6 +1678,8 @@ const VenueArchitectContent = () => {
               pixelsPerFoot={PIXELS_PER_FOOT}
               isDiamondSnapActive={isDiamondSnapActive}
               guestSimulation={guestSimulation}
+              coordinateLockManifest={manifestCoordinateLockActive}
+              masterElevationSurfaceFt={HARRISON_MASTER_ELEVATION_FT}
               isOutdoorMode={isOutdoorMode}
               globalTime={globalTime}
             />
@@ -1629,7 +1703,7 @@ const VenueArchitectContent = () => {
             backgroundPosition: '-1px -1px, -1px -1px, -1px -1px, -1px -1px'
           }} />
 
-          {(isRaining || isStormMode) && (
+          {(isRaining || isStormMode) && !manifestCoordinateLockActive && (
             <>
               <div
                 className="pointer-events-none absolute inset-0 z-[6] isolate overflow-hidden contain-[paint]"
@@ -1663,7 +1737,7 @@ const VenueArchitectContent = () => {
           {/* Weather Overlay SVG */}
           <svg className="absolute inset-0 pointer-events-none z-10" style={{ width: '100%', height: '100%' }}>
             {/* Drip Zones */}
-            {isRaining && tents.map(tent => (
+            {isRaining && !manifestCoordinateLockActive && tents.map(tent => (
               <rect 
                 key={`drip-${tent.id}`}
                 x={tent.x - 40} y={tent.y - 40} 
@@ -1677,7 +1751,7 @@ const VenueArchitectContent = () => {
             ))}
 
             {/* Muddy Paths */}
-            {isRaining && kitchen && elements.filter(e => muddyPathTableIds.has(e.id)).map(table => {
+            {isRaining && !manifestCoordinateLockActive && kitchen && elements.filter(e => muddyPathTableIds.has(e.id)).map(table => {
               const kX = kitchen.x + ELEMENT_CONFIG.staging_kitchen.width / 2;
               const kY = kitchen.y + ELEMENT_CONFIG.staging_kitchen.height / 2;
               const tX = table.x + ELEMENT_CONFIG[table.type].width / 2;
@@ -1947,6 +2021,7 @@ const VenueArchitectContent = () => {
               onClick={(e) => {
                 e.stopPropagation();
                 console.log("RESET INTERACTION Triggered");
+                setManifestCoordinateLockActive(false);
                 setElements(prev => [...prev]);
                 setIsHoveringMap(false);
                 setTimeout(() => setIsHoveringMap(true), 50);
@@ -2143,7 +2218,15 @@ const VenueArchitectContent = () => {
             const tY = table.y + ELEMENT_CONFIG[table.type].height / 2;
             
             // Only show 1 worker dot per table for visual clarity
-            return (
+            const midX = kX + (tX - kX) * 0.42;
+            const midY = kY + (tY - kY) * 0.42;
+            return manifestCoordinateLockActive ? (
+              <div
+                key={`worker-static-${table.id}`}
+                className="absolute left-0 top-0 w-3 h-3 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)] z-40 pointer-events-none"
+                style={{ transform: `translate(${midX - 6}px, ${midY - 6}px)` }}
+              />
+            ) : (
               <motion.div
                 key={`worker-${table.id}`}
                 className="absolute w-3 h-3 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)] z-40 pointer-events-none"
@@ -2185,12 +2268,16 @@ const VenueArchitectContent = () => {
             const isSmoked = smokedElementIds.has(el.id);
             const isAnchor = el.type === "stage" || el.type === "power_drop";
             const staffPull =
-              el.type === "staff_member" ? staffNudges[el.id] ?? { x: 0, y: 0 } : { x: 0, y: 0 };
+              manifestCoordinateLockActive
+                ? { x: 0, y: 0 }
+                : el.type === "staff_member"
+                  ? staffNudges[el.id] ?? { x: 0, y: 0 }
+                  : { x: 0, y: 0 };
             
             return (
               <motion.div
                 key={el.id}
-                drag
+                drag={!manifestCoordinateLockActive}
                 dragMomentum={false}
                 dragConstraints={containerRef}
                 onDragEnd={(e, info) => {

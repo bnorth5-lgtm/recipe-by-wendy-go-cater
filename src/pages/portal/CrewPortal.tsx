@@ -4,6 +4,12 @@ import { CheckCircle2, Map as MapIcon, ListTodo, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExecutionProgress } from "@/components/ExecutionProgress";
 import { cn } from "@/lib/utils";
+import {
+  MANIFEST_COORDINATE_LOCK_CHANNEL,
+  MANIFEST_COORDINATE_LOCK_EVENT,
+  MANIFEST_COORDINATE_LOCK_STORAGE_KEY,
+  type ManifestCoordinateLockDetail,
+} from "@/lib/crisisEvents";
 
 // Simulated fetch for crew data
 const fetchCrewData = async (eventId: string) => {
@@ -26,6 +32,48 @@ export const CrewPortal = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const [tasks, setTasks] = useState<any[]>([]);
+  const [pins, setPins] = useState<ManifestCoordinateLockDetail | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(MANIFEST_COORDINATE_LOCK_STORAGE_KEY);
+      if (raw) setPins(JSON.parse(raw) as ManifestCoordinateLockDetail);
+    } catch {
+      // ignore malformed cache
+    }
+
+    const onWin = (ev: Event) => {
+      const d = (ev as CustomEvent<ManifestCoordinateLockDetail>).detail;
+      if (d) setPins(d);
+    };
+    window.addEventListener(MANIFEST_COORDINATE_LOCK_EVENT, onWin as EventListener);
+
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel(MANIFEST_COORDINATE_LOCK_CHANNEL);
+      bc.onmessage = (msg: MessageEvent<ManifestCoordinateLockDetail>) => {
+        if (msg.data) setPins(msg.data);
+      };
+    } catch {
+      bc = null;
+    }
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== MANIFEST_COORDINATE_LOCK_STORAGE_KEY || !e.newValue) return;
+      try {
+        setPins(JSON.parse(e.newValue) as ManifestCoordinateLockDetail);
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.removeEventListener(MANIFEST_COORDINATE_LOCK_EVENT, onWin as EventListener);
+      window.removeEventListener("storage", onStorage);
+      bc?.close();
+    };
+  }, []);
 
   useEffect(() => {
     if (eventId) {
@@ -58,6 +106,19 @@ export const CrewPortal = () => {
       {/* Sticky Progress Bar */}
       <div className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
         <ExecutionProgress percentage={progressPercentage} />
+        {!loading && pins ? (
+          <div className="border-b border-[#fbbf24]/30 bg-[#fbbf24]/10 px-4 py-3 text-[11px] text-slate-200">
+            <p className="font-bold uppercase tracking-wider text-[#fbbf24]">Manifest Coordinate Lock Active</p>
+            <p className="mt-1 text-slate-400">
+              {pins.guestCount} guests • {pins.staffCount} staff • deck elevation {pins.masterElevationFt} ft •{" "}
+              {pins.elements.length} snapped assets
+              {pins.snapMode === "Diamond" ? " (Diamond runway)" : ""}
+            </p>
+            <p className="mt-1 font-mono text-emerald-300/90">
+              on-site script handshake ready — pinned {new Date(pins.pinnedAt).toLocaleString()}
+            </p>
+          </div>
+        ) : null}
         <div className="px-4 py-3 flex justify-between items-center">
           <div>
             <h1 className="font-serif text-lg text-[#fbbf24] font-bold">{data.eventName}</h1>
