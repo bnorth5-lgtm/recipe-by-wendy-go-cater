@@ -746,6 +746,29 @@ const VenueArchitectContent = () => {
   const waiterServiceLoopActive = salesMode && lightingLock7PM;
   const freezeMapElementDrag = manifestCoordinateLockActive || isZenMode || salesMode;
   const freezeWorkersLayout = manifestCoordinateLockActive && !waiterServiceLoopActive;
+
+  /** Far-background grid — fades in Presentation / Zen so furniture reads as foreground */
+  const blueprintGridBackground = useMemo(() => {
+    const subtle = salesMode || isZenMode;
+    if (isOutdoorMode) {
+      const gold = subtle ? 0.07 : 0.15;
+      const coarse = subtle ? 0.09 : 0.2;
+      return `
+        linear-gradient(rgba(251, 191, 36, ${gold}) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(251, 191, 36, ${gold}) 1px, transparent 1px),
+        linear-gradient(rgba(0, 0, 0, ${coarse}) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, ${coarse}) 1px, transparent 1px)
+      `;
+    }
+    const gold = subtle ? 0.08 : 0.1;
+    const fine = subtle ? 0.05 : 0.03;
+    return `
+      linear-gradient(rgba(251, 191, 36, ${gold}) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(251, 191, 36, ${gold}) 1px, transparent 1px),
+      linear-gradient(rgba(255, 255, 255, ${fine}) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, ${fine}) 1px, transparent 1px)
+    `;
+  }, [isOutdoorMode, salesMode, isZenMode]);
   
   const tablesCount = elements.filter(e => e.type.startsWith("table") || e.type === "deuce" || e.type === "high_top").length;
   const tentsCount = elements.filter(e => e.type === "tent_40x60").length;
@@ -1843,22 +1866,16 @@ const VenueArchitectContent = () => {
           )}
           {!is3DView && (
           <>
-          {/* Blueprint Grid Background */}
-          <div className="absolute inset-0 pointer-events-none transition-all duration-700" style={{
-            backgroundImage: isOutdoorMode ? `
-              linear-gradient(rgba(251, 191, 36, 0.15) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(251, 191, 36, 0.15) 1px, transparent 1px),
-              linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px)
-            ` : `
-              linear-gradient(rgba(251, 191, 36, 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(251, 191, 36, 0.1) 1px, transparent 1px),
-              linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
-            `,
-            backgroundSize: isGridMagnetism ? '60px 60px, 60px 60px, 20px 20px, 20px 20px' : '100px 100px, 100px 100px, 20px 20px, 20px 20px',
-            backgroundPosition: '-1px -1px, -1px -1px, -1px -1px, -1px -1px'
-          }} />
+          {/* GridLayer — z-0, non-interactive; SVG + motion elements stack above */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-0 select-none transition-all duration-700"
+            style={{
+              backgroundImage: blueprintGridBackground,
+              backgroundSize: isGridMagnetism ? "60px 60px, 60px 60px, 20px 20px, 20px 20px" : "100px 100px, 100px 100px, 20px 20px, 20px 20px",
+              backgroundPosition: "-1px -1px, -1px -1px, -1px -1px, -1px -1px",
+            }}
+          />
 
           {(isRaining || isStormMode) && !manifestCoordinateLockActive && (
             <>
@@ -2129,7 +2146,7 @@ const VenueArchitectContent = () => {
 
           {/* Bathroom Heatmap (Infrastructure Overlay) */}
           {showInfraOverlay && elements.filter(e => e.type === "bathroom").map(b => (
-            <svg key={`heatmap-${b.id}`} className="absolute inset-0 pointer-events-none z-0" style={{ width: '100%', height: '100%' }}>
+            <svg key={`heatmap-${b.id}`} className="pointer-events-none absolute inset-0 z-[8]" style={{ width: '100%', height: '100%' }}>
               <defs>
                 <radialGradient id={`heat-${b.id}`}>
                   <stop offset="0%" stopColor="#22c55e" stopOpacity="0.4" />
