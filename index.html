@@ -15,7 +15,8 @@
         });
       }
     </script>
-    <link rel="preload" href="/wendylogo.jpg" as="image" type="image/jpeg" fetchpriority="high" />
+    <!-- as="image" is required for image preloads; avoid type= mismatch warnings with some devtools -->
+    <link rel="preload" href="/wendylogo.jpg" as="image" fetchpriority="high" />
     <meta name="application-name" content="Delicious Catering & Events by Wendy" />
     <!-- CSP: only unlock Supabase connections, Google Analytics/Tag Manager, and local OpenClaw -->
     <meta

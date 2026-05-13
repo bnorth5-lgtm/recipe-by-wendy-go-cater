@@ -68,6 +68,7 @@ const Switch = ({ checked, onCheckedChange, ...props }: any) => <input type="che
 
 import { ExecutionProgress } from "@/components/ExecutionProgress";
 import { VenueArchitect3D } from "@/components/VenueMap/VenueArchitect3D";
+import { VenueCinematicLayout } from "@/components/VenueMap/VenueCinematicLayout";
 const ProcurementHUD = (props: any) => null;
 const BEOSidebar = (props: any) => null;
 import { useEventContext } from "@/context/EventContext";
@@ -1668,12 +1669,20 @@ const VenueArchitectContent = () => {
         </div>
           </>
         )}
-        {/* Canvas Area */}
-        <div 
-          id="venue-map-canvas" 
-          className="flex-1 relative z-0 isolate overflow-hidden cursor-crosshair transition-colors duration-700 pointer-events-auto" 
-          style={{ backgroundColor: isOutdoorMode ? '#064e3b' : '#0f172a', pointerEvents: 'auto' }}
-          ref={containerRef} 
+        {/* Canvas Area — floor grid + stage stacking via VenueCinematicLayout */}
+        <VenueCinematicLayout
+          id="venue-map-canvas"
+          ref={containerRef}
+          className="flex-1"
+          salesMode={salesMode}
+          isZenMode={isZenMode}
+          blueprintGridCss={blueprintGridBackground}
+          gridBackgroundSize={
+            isGridMagnetism
+              ? "60px 60px, 60px 60px, 20px 20px, 20px 20px"
+              : "100px 100px, 100px 100px, 20px 20px, 20px 20px"
+          }
+          style={{ backgroundColor: isOutdoorMode ? "#064e3b" : "#0f172a", pointerEvents: "auto" }}
           onClick={(e) => {
             if (placementMode && is3DView) {
               toast.info("Switch to 2D blueprint to place elements on the grid.");
@@ -1807,6 +1816,7 @@ const VenueArchitectContent = () => {
           onMouseEnter={() => setIsHoveringMap(true)}
           onMouseLeave={() => setIsHoveringMap(false)}
         >
+          <div className="absolute inset-0 min-h-0 w-full min-w-0 overflow-hidden">
           {salesMode && (
             <div
               aria-hidden
@@ -1868,18 +1878,6 @@ const VenueArchitectContent = () => {
           )}
           {!is3DView && (
           <>
-          {/* GridLayer — z-0, non-interactive; SVG + motion elements stack above */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-0 select-none transition-all duration-700"
-            style={{
-              zIndex: 0,
-              backgroundImage: blueprintGridBackground,
-              backgroundSize: isGridMagnetism ? "60px 60px, 60px 60px, 20px 20px, 20px 20px" : "100px 100px, 100px 100px, 20px 20px, 20px 20px",
-              backgroundPosition: "-1px -1px, -1px -1px, -1px -1px, -1px -1px",
-            }}
-          />
-
           {(isRaining || isStormMode) && !manifestCoordinateLockActive && (
             <>
               <div
@@ -2690,7 +2688,8 @@ const VenueArchitectContent = () => {
             />
           </div>
         </div>
-      </div>
+        </div>
+        </VenueCinematicLayout>
       </div>
 
       <StormSummary
