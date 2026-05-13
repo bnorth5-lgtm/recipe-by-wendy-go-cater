@@ -202,13 +202,15 @@ const VenueArchitectContent = () => {
 
   useEffect(() => {
     if (typeof document === "undefined") return;
+    /** Layout + index.html concierge: strip chrome whenever Presentation OR Zen is active */
+    const cinematicStrip = salesMode || isZenMode;
     document.body.classList.toggle("nbs-sales-presentation", salesMode);
-    document.body.classList.toggle("nbs-venue-cinematic-sales", salesMode);
+    document.body.classList.toggle("nbs-venue-cinematic-sales", cinematicStrip);
     return () => {
       document.body.classList.remove("nbs-sales-presentation");
       document.body.classList.remove("nbs-venue-cinematic-sales");
     };
-  }, [salesMode]);
+  }, [salesMode, isZenMode]);
   const inventory = useCateringStore((state) => state.inventory);
   const recipes = useCateringStore((state) => state.recipes);
   const updateInventoryItem = useCateringStore((state) => state.updateInventoryItem);
@@ -747,7 +749,7 @@ const VenueArchitectContent = () => {
   const freezeMapElementDrag = manifestCoordinateLockActive || isZenMode || salesMode;
   const freezeWorkersLayout = manifestCoordinateLockActive && !waiterServiceLoopActive;
 
-  /** Far-background grid — fades in Presentation / Zen so furniture reads as foreground */
+  /** Far-background grid: opacity only from Presentation / Zen (`subtle`); layer always z-0 in DOM */
   const blueprintGridBackground = useMemo(() => {
     const subtle = salesMode || isZenMode;
     if (isOutdoorMode) {
@@ -1871,6 +1873,7 @@ const VenueArchitectContent = () => {
             aria-hidden
             className="pointer-events-none absolute inset-0 z-0 select-none transition-all duration-700"
             style={{
+              zIndex: 0,
               backgroundImage: blueprintGridBackground,
               backgroundSize: isGridMagnetism ? "60px 60px, 60px 60px, 20px 20px, 20px 20px" : "100px 100px, 100px 100px, 20px 20px, 20px 20px",
               backgroundPosition: "-1px -1px, -1px -1px, -1px -1px, -1px -1px",

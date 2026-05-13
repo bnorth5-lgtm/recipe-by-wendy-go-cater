@@ -183,8 +183,9 @@
   }
 }
 
-/* Venue Architect Presentation Mode — fully hide standalone HTML concierge FAB */
-body.nbs-sales-presentation .nbs-chat {
+/* Venue Architect: hide standalone HTML concierge FAB in Presentation or zen/cinematic chrome strip */
+body.nbs-sales-presentation .nbs-chat,
+body.nbs-venue-cinematic-sales .nbs-chat {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
