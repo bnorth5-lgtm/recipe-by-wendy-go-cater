@@ -1,11 +1,11 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { PACKET_01_12_GOLD_DATA_URI } from "@/branding/packet-01-12-gold-data-uri";
 import {
   Layers,
   Boxes,
   UsersRound,
   Presentation,
-  Wrench,
   MapPinned,
 } from "lucide-react";
 import {
@@ -46,13 +46,46 @@ export const ExecutionProgress: React.FC<ExecutionProgressProps> = ({
   onVenueTemplatePick,
   onCloseDeal,
 }) => {
+  /** Zen sales strip: DCE wordmark only — no “builder” progress chrome */
+  if (salesMode) {
+    return (
+      <header
+        className={cn(
+          "sticky top-0 z-50 w-full border-b backdrop-blur-md",
+          "border-[#fbbf24]/30 bg-slate-950/95 shadow-[inset_0_-1px_0_rgba(251,191,36,0.12)]",
+        )}
+      >
+        <div className="mx-auto flex max-w-[100vw] items-center justify-between gap-3 px-3 py-2 sm:px-4">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <img
+              src={PACKET_01_12_GOLD_DATA_URI}
+              alt="Delicious Catering & Events by Wendy"
+              className="pointer-events-none h-8 w-auto max-h-9 object-contain object-left sm:h-9"
+              decoding="sync"
+              fetchPriority="high"
+            />
+            <span className="sr-only">Delicious Catering and Events by Wendy</span>
+          </div>
+          {onSalesModeToggle ? (
+            <button
+              type="button"
+              title="Return to build tools"
+              onClick={onSalesModeToggle}
+              className="shrink-0 rounded border border-slate-700/80 bg-slate-900/90 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 transition-colors hover:border-[#fbbf24]/45 hover:text-[#fbbf24]"
+            >
+              Build
+            </button>
+          ) : null}
+        </div>
+      </header>
+    );
+  }
+
   return (
     <div
       className={cn(
         "w-full border-b px-4 py-3 sticky top-0 z-50 backdrop-blur-md flex flex-wrap items-center justify-between gap-3",
-        salesMode
-          ? "bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-[#fbbf24]/40 shadow-[inset_0_-1px_0_rgba(251,191,36,0.15)]"
-          : "bg-slate-900/80 border-amber-900/30",
+        "bg-slate-900/80 border-amber-900/30",
       )}
     >
       <div className="flex flex-1 min-w-[240px] max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
@@ -86,17 +119,12 @@ export const ExecutionProgress: React.FC<ExecutionProgressProps> = ({
         {onSalesModeToggle && (
           <button
             type="button"
-            title="Zero UI — collapses the Elements tray and NBS Concierge on Venue Architect"
+            title="Cinematic floor plan — hides Elements tray and app chrome"
             onClick={onSalesModeToggle}
-            className={cn(
-              "inline-flex items-center gap-2 font-semibold rounded-md px-3 py-2 text-sm shadow-sm transition-colors border",
-              salesMode
-                ? "bg-[#fbbf24] text-slate-950 border-amber-200 hover:bg-amber-300"
-                : "bg-slate-800 text-slate-100 border-slate-600 hover:border-[#fbbf24]/50 hover:text-[#fbbf24]",
-            )}
+            className="inline-flex items-center gap-2 rounded-md border border-slate-600 bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-100 shadow-sm transition-colors hover:border-[#fbbf24]/50 hover:text-[#fbbf24]"
           >
-            {salesMode ? <Presentation className="h-4 w-4 shrink-0" /> : <Wrench className="h-4 w-4 shrink-0" />}
-            {salesMode ? "Presentation Mode" : "Build Mode"}
+            <Presentation className="h-4 w-4 shrink-0" aria-hidden />
+            Presentation
           </button>
         )}
         {venueTemplates && venueTemplates.length > 0 && onVenueTemplatePick ? (

@@ -176,8 +176,9 @@ const Dashboard = () => {
   const suppressProfitRailsForSales = useMemo(
     () =>
       Boolean(eventState.eventName?.toLowerCase().includes("harrison")) ||
-      presentationSalesDashboard,
-    [eventState.eventName, presentationSalesDashboard],
+      presentationSalesDashboard ||
+      location.pathname.toLowerCase().includes("wendy-beo"),
+    [eventState.eventName, presentationSalesDashboard, location.pathname],
   );
 
   /** Event-level margin for header; null when guest count is 0 (no ghost %) */

@@ -203,7 +203,11 @@ const VenueArchitectContent = () => {
   useEffect(() => {
     if (typeof document === "undefined") return;
     document.body.classList.toggle("nbs-sales-presentation", salesMode);
-    return () => document.body.classList.remove("nbs-sales-presentation");
+    document.body.classList.toggle("nbs-venue-cinematic-sales", salesMode);
+    return () => {
+      document.body.classList.remove("nbs-sales-presentation");
+      document.body.classList.remove("nbs-venue-cinematic-sales");
+    };
   }, [salesMode]);
   const inventory = useCateringStore((state) => state.inventory);
   const recipes = useCateringStore((state) => state.recipes);
@@ -740,6 +744,7 @@ const VenueArchitectContent = () => {
 
   const lightingLock7PM = globalTime >= 19;
   const waiterServiceLoopActive = salesMode && lightingLock7PM;
+  const freezeMapElementDrag = manifestCoordinateLockActive || isZenMode || salesMode;
   const freezeWorkersLayout = manifestCoordinateLockActive && !waiterServiceLoopActive;
   
   const tablesCount = elements.filter(e => e.type.startsWith("table") || e.type === "deuce" || e.type === "high_top").length;
@@ -1803,8 +1808,8 @@ const VenueArchitectContent = () => {
             {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
           </Button>
 
-          {/* Floating Profit Bar (Only visible in fullscreen) */}
-          {isFullscreen && (
+          {/* Floating Profit Bar (only in fullscreen build mode — hidden for cinematic presentation) */}
+          {isFullscreen && !salesMode && !isZenMode && (
             <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-md border border-[#fbbf24]/50 p-4 rounded-full shadow-[0_0_30px_rgba(251,191,36,0.2)] z-50 flex items-center gap-6 pointer-events-auto">
               <div className="flex flex-col items-center">
                 <span className="text-[10px] text-slate-400 uppercase tracking-widest">Est. Revenue</span>
@@ -2137,7 +2142,7 @@ const VenueArchitectContent = () => {
           ))}
 
           {/* Precision Crosshair */}
-          {isHoveringMap && (
+          {isHoveringMap && !salesMode && !isZenMode && (
             <>
               <div ref={crosshairXRef} className="absolute top-0 bottom-0 border-l border-dashed border-[#fbbf24]/40 pointer-events-none z-30" />
               <div ref={crosshairYRef} className="absolute left-0 right-0 border-t border-dashed border-[#fbbf24]/40 pointer-events-none z-30" />
@@ -2146,6 +2151,7 @@ const VenueArchitectContent = () => {
           )}
 
           {/* Square Footage Counter */}
+          {!salesMode && !isZenMode && (
           <div className="absolute bottom-6 right-6 bg-slate-900/90 backdrop-blur-xl border border-slate-700 p-4 rounded-xl shadow-2xl z-40 pointer-events-none">
             <h4 className="font-serif text-[#fbbf24] text-sm mb-1">Space Utilization</h4>
             <div className="flex justify-between gap-4 text-xs">
@@ -2153,8 +2159,10 @@ const VenueArchitectContent = () => {
               <span className="font-bold text-white">{Math.round(occupiedSqFt)} sq ft</span>
             </div>
           </div>
+          )}
 
           {/* Manual Trigger / Reset Interaction */}
+          {!salesMode && !isZenMode && (
           <div className="absolute bottom-6 left-6 z-50">
             <Button
               variant="outline"
@@ -2173,11 +2181,13 @@ const VenueArchitectContent = () => {
               RESET INTERACTION
             </Button>
           </div>
+          )}
 
           {/* Right Elements Panel */}
         <div 
           className={cn(
             "elements-sidebar bg-slate-900/95 backdrop-blur-xl border-slate-700 flex flex-col z-50 shadow-2xl transition-all duration-300 relative",
+            salesMode && "hidden border-0 overflow-hidden",
             (isElementsPanelOpen && !isZenMode && !salesMode) ? "w-64 border-l" : "w-0 border-l-0"
           )}
         >
@@ -2424,7 +2434,7 @@ const VenueArchitectContent = () => {
             return (
               <SalesAssetEconomicsHover key={el.id} salesMode={salesMode} el={el}>
               <motion.div
-                drag={!manifestCoordinateLockActive}
+                drag={!freezeMapElementDrag}
                 dragMomentum={false}
                 dragConstraints={containerRef}
                 onDragEnd={(e, info) => {
@@ -2437,7 +2447,10 @@ const VenueArchitectContent = () => {
                   e.stopPropagation();
                   setSelectedId(el.id);
                 }}
-                className="absolute cursor-move origin-center"
+                className={cn(
+                  "absolute origin-center",
+                  freezeMapElementDrag ? "cursor-default" : "cursor-move",
+                )}
                 style={{
                   x: el.x + staffPull.x,
                   y: el.y + staffPull.y,
