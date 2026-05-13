@@ -212,14 +212,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, onClose, isColl
                 >
                   {locked ? (
                     <span className="flex items-center w-full">
-                      {Icon && <Icon className="mr-3 h-5 w-5" />}
-                      {item.name}
+                      {Icon && <Icon className="mr-3 h-5 w-5 shrink-0" />}
+                      {item.href === "/educational-bank" ? (
+                        <span className="flex flex-col items-start gap-0.5 leading-snug font-serif">
+                          <span className="text-[13px] font-semibold tracking-tight">Delicious Catering</span>
+                          <span className="text-[11px] font-medium text-[#fbbf24]">&amp; Events · by Wendy</span>
+                        </span>
+                      ) : (
+                        item.name
+                      )}
                       <Lock className="ml-auto h-3.5 w-3.5 opacity-60" />
                     </span>
                   ) : (
                     <Link to={item.href}>
-                      {Icon && <Icon className="mr-3 h-5 w-5" />}
-                      {item.name}
+                      {Icon && <Icon className="mr-3 h-5 w-5 shrink-0" />}
+                      {item.href === "/educational-bank" ? (
+                        <span className="flex flex-col items-start gap-0.5 leading-snug font-serif">
+                          <span className="text-[13px] font-semibold tracking-tight text-sidebar-foreground">Delicious Catering</span>
+                          <span className="text-[11px] font-medium text-[#fbbf24]">&amp; Events · by Wendy</span>
+                        </span>
+                      ) : (
+                        item.name
+                      )}
                       {hasChildren && (isActiveParent ? <ChevronDown className="ml-auto h-4 w-4" /> : <ChevronRight className="ml-auto h-4 w-4" />)}
                     </Link>
                   )}

@@ -179,14 +179,14 @@ function ConciergeChat() {
             <Bot className="h-5 w-5 text-amber-700 dark:text-amber-400" />
           </div>
           <div>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-base flex flex-wrap items-center gap-2">
               Ask the Concierge
               <Badge
                 variant="outline"
-                className="text-[10px] font-semibold bg-amber-100/60 text-amber-700 border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700"
+                className="text-[10px] font-semibold bg-amber-100/60 text-amber-700 border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700 font-serif tracking-tight"
               >
-                <Sparkles className="h-2.5 w-2.5 mr-1" />
-                Educational Bank
+                <Sparkles className="h-2.5 w-2.5 mr-1 shrink-0" aria-hidden />
+                Delicious Catering &amp; Events · by Wendy
               </Badge>
             </CardTitle>
             <CardDescription className="text-xs">
@@ -386,9 +386,16 @@ const EducationalBank = () => {
   return (
     <div className="min-h-full flex flex-col items-center bg-background text-foreground p-3 gap-6">
       <div className="text-center mb-2">
-        <div className="flex items-center justify-center gap-3 mb-3">
-          <GraduationCap className="h-10 w-10 text-amber-600" />
-          <h1 className="text-4xl font-bold">Educational Bank</h1>
+        <div className="flex flex-col items-center gap-2 mb-3">
+          <GraduationCap className="h-10 w-10 text-amber-600 shrink-0" aria-hidden />
+          <div className="text-center space-y-1">
+            <p className="font-serif text-sm font-semibold uppercase tracking-[0.25em] text-amber-600/95">
+              Delicious Catering &amp; Events
+            </p>
+            <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground tracking-tight">
+              by Wendy · Knowledge Desk
+            </h1>
+          </div>
         </div>
         <p className="text-xl text-muted-foreground max-w-2xl">
           Enterprise-level culinary training, cost-control modules, and catering best

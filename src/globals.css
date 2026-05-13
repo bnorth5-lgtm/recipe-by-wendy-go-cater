@@ -182,3 +182,10 @@
     will-change: opacity;
   }
 }
+
+/* Venue Architect Presentation Mode — fully hide standalone HTML concierge FAB */
+body.nbs-sales-presentation .nbs-chat {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

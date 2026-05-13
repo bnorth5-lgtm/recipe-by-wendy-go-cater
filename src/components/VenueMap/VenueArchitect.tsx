@@ -13,6 +13,9 @@ import { TARGET_MARGIN, REVENUE_PER_GUEST_DEFAULT, LABOR_PER_STAFF, FOOD_PER_TAB
 const EBW_HARRISON_TEMPLATE_KEY = "ebw_harrison_template";
 const LEGACY_RBW_HARRISON_TEMPLATE_KEY = "rbw_harrison_template";
 
+/** Harrison Diamond deck — presenter mode suppresses fire-clearance chatter in Concierge bubbles. */
+const HARRISON_DIAMOND_SALES_TEMPLATE_ID = "harrison_180_diamond";
+
 // De-coupled UI elements for Vercel build isolation
 const Tabs = ({ value, onValueChange, children, ...props }: any) => (
   <div {...props}>{React.Children.map(children, (child: any) => child ? React.cloneElement(child, { activeTab: value, onValueChange }) : null)}</div>
@@ -70,7 +73,13 @@ const BEOSidebar = (props: any) => null;
 import { useEventContext } from "@/context/EventContext";
 import { useCateringStore } from "@/store/cateringStore";
 import { cn } from "@/lib/utils";
-import { generateDiamondSnapElements, HARRISON_MASTER_ELEVATION_FT } from "@/utils/geoMath";
+import {
+  generateDiamondSnapElements,
+  GRID_MAGNET_FT,
+  HARRISON_MASTER_ELEVATION_FT,
+  reconcileDiamondManifestToGridStrict,
+  serviceLaneWidthPx,
+} from "@/utils/geoMath";
 
 import type { ElementType, MapElementData } from "@/utils/geoMath";
 import { broadcastManifestCoordinateLock } from "@/utils/manifestLockBroadcast";
@@ -81,6 +90,10 @@ import {
   type LanguageBroadcastDetail,
   type StaffCrisisPhase,
 } from "@/lib/crisisEvents";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { SalesAssetEconomicsHover } from "@/components/VenueMap/SalesAssetHover";
+import { StormSummary } from "@/components/VenueMap/StormSummary";
+import { SALES_VENUE_TEMPLATES, resolveSalesVenueTemplate } from "@/data/salesVenueTemplates";
 
 const VenueArchitectContent = () => {
   const { PIXELS_PER_FOOT, ELEMENT_CONFIG, CONST_DEMO_STATE } = useMemo(() => {
@@ -92,6 +105,14 @@ const VenueArchitectContent = () => {
       deuce: { label: "2-Top Deuce", icon: Users, width: 60, height: 60, shape: "rect", color: "bg-slate-700" },
       dance_floor: { label: "Dance Tile", icon: Square, width: 80, height: 80, shape: "rect", color: "bg-indigo-950 border-indigo-500/50" },
       bar: { label: "Bar Station", icon: Wine, width: 120, height: 40, shape: "rect", color: "bg-indigo-900/80" },
+      bar_portable: {
+        label: "Portable Bar",
+        icon: Wine,
+        width: 120,
+        height: 40,
+        shape: "rect",
+        color: "bg-indigo-950/85 border-indigo-400/35",
+      },
       buffet: { label: "Buffet", icon: Utensils, width: 160, height: 60, shape: "rect", color: "bg-emerald-900/80" },
       cake: { label: "Cake Table", icon: Utensils, width: 60, height: 60, shape: "circle", color: "bg-pink-900/80" },
       stage: { label: "Stage", icon: Users, width: 240, height: 120, shape: "rect", color: "bg-amber-900/50" },
@@ -151,9 +172,39 @@ const VenueArchitectContent = () => {
   const [guestSimulation, setGuestSimulation] = useState(true);
   /** Manifest lock: freezes rain/wind guest-shimmer pathways and snaps profit pipeline to pinned counts. */
   const [manifestCoordinateLockActive, setManifestCoordinateLockActive] = useState(false);
+  const [salesMode, setSalesMode] = useState(false);
+  const [salesVenueTemplateId, setSalesVenueTemplateId] = useState(
+    SALES_VENUE_TEMPLATES[0]?.id ?? "harrison_180_diamond",
+  );
+  const stormRevealDismissedRef = useRef(false);
+  const [stormBriefOpen, setStormBriefOpen] = useState(false);
 
   const navigate = useNavigate();
   const { eventState, updateEventState } = useEventContext();
+
+  const handleCloseDeal = () => {
+    const q = new URLSearchParams({
+      eventId: eventState?.eventId ?? "preview-harrison-sale",
+      event: eventState?.eventName ?? "Delicious Catering Visionary Showcase",
+    });
+    navigate(`/present/wendy-beo?${q.toString()}`);
+  };
+
+  const handleSalesVenueTemplatePick = (id: string) => {
+    setSalesVenueTemplateId(id);
+    setElements(resolveSalesVenueTemplate(id));
+    setSalesMode(true);
+    if (typeof window !== "undefined" && id === HARRISON_DIAMOND_SALES_TEMPLATE_ID) {
+      window.dispatchEvent(new CustomEvent("nbs-clear-fire-alerts"));
+    }
+    toast.success("Venue deck loaded", { description: "Presentation Mode is active — clean HUD for client view." });
+  };
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.body.classList.toggle("nbs-sales-presentation", salesMode);
+    return () => document.body.classList.remove("nbs-sales-presentation");
+  }, [salesMode]);
   const inventory = useCateringStore((state) => state.inventory);
   const recipes = useCateringStore((state) => state.recipes);
   const updateInventoryItem = useCateringStore((state) => state.updateInventoryItem);
@@ -236,8 +287,16 @@ const VenueArchitectContent = () => {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // Visionary Thought Bubbles (Safety Checks)
+  // Visionary Thought Bubbles (Safety Checks) — suppressed for Harrison Diamond sales deck / clean presenter story
   useEffect(() => {
+    if (salesVenueTemplateId === HARRISON_DIAMOND_SALES_TEMPLATE_ID) {
+      warnedTablesRef.current.clear();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("nbs-clear-fire-alerts"));
+      }
+      return;
+    }
+
     const kitchen = elements.find(e => e.type === "staging_kitchen");
     if (!kitchen) return;
 
@@ -262,7 +321,7 @@ const VenueArchitectContent = () => {
         }
       }
     });
-  }, [elements]);
+  }, [elements, salesVenueTemplateId]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -362,6 +421,7 @@ const VenueArchitectContent = () => {
     }));
     
     setElements(newElements);
+    setSalesMode(false);
     toast.success("Global Drop Initiated", { description: `Dropping blueprint onto ${region}...` });
 
     const itemsToScrape = new Set<string>();
@@ -370,7 +430,7 @@ const VenueArchitectContent = () => {
       if (el.type.startsWith("table")) itemsToScrape.add("banquet tables");
       if (el.type === "staff_member") itemsToScrape.add("event staff");
       if (el.type === "floral_arch") itemsToScrape.add("event florals");
-      if (el.type === "bar") itemsToScrape.add("portable bar");
+      if (el.type === "bar" || el.type === "bar_portable") itemsToScrape.add("portable bar");
       if (el.type === "dance_floor") itemsToScrape.add("dance floor");
     });
 
@@ -442,7 +502,15 @@ const VenueArchitectContent = () => {
     setManifestCoordinateLockActive(true);
 
     startTransition(() => {
-      const snapElements = generateDiamondSnapElements(targetGuests, PIXELS_PER_FOOT);
+      /** Diamond core (tables, staff ribbons, staging, etc.) — then merge deck bars before strict grid pass. */
+      const diamondCore = generateDiamondSnapElements(targetGuests, PIXELS_PER_FOOT);
+      const portableBarsFromDeck = elements.filter(
+        (e) => e.type === "bar_portable" || e.type === "bar",
+      );
+      const snapElements = reconcileDiamondManifestToGridStrict(
+        [...diamondCore, ...portableBarsFromDeck],
+        PIXELS_PER_FOOT,
+      );
 
       setElements(snapElements);
 
@@ -476,7 +544,7 @@ const VenueArchitectContent = () => {
           if (el.type.startsWith("table")) itemsToScrape.add("banquet tables");
           if (el.type === "staff_member") itemsToScrape.add("event staff");
           if (el.type === "floral_arch") itemsToScrape.add("event florals");
-          if (el.type === "bar") itemsToScrape.add("portable bar");
+          if (el.type === "bar" || el.type === "bar_portable") itemsToScrape.add("portable bar");
           if (el.type === "dance_floor") itemsToScrape.add("dance floor");
           if (el.type === "staging_kitchen") itemsToScrape.add("mobile staging kitchen catering");
         });
@@ -590,6 +658,16 @@ const VenueArchitectContent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventState?.eventName]);
 
+  const RAIN_STORM_BRIEF_THRESHOLD = 0.74;
+  useEffect(() => {
+    const tripped =
+      isStormMode || (isRaining && windGust >= RAIN_STORM_BRIEF_THRESHOLD);
+    if (!tripped) stormRevealDismissedRef.current = false;
+    if (tripped && !stormRevealDismissedRef.current) {
+      setStormBriefOpen(true);
+    }
+  }, [isStormMode, isRaining, windGust]);
+
   const [placementMode, setPlacementMode] = useState<ElementType | null>(null);
 
   const handleAddElement = (type: ElementType) => {
@@ -659,6 +737,10 @@ const VenueArchitectContent = () => {
   const kitchen = elements.find(e => e.type === "staging_kitchen");
   const timelineEvents = elements.filter(e => e.timeEventTime !== undefined && e.timeEventName).sort((a, b) => a.timeEventTime! - b.timeEventTime!);
   const isSunset = globalTime >= 20.25; // 8:15 PM
+
+  const lightingLock7PM = globalTime >= 19;
+  const waiterServiceLoopActive = salesMode && lightingLock7PM;
+  const freezeWorkersLayout = manifestCoordinateLockActive && !waiterServiceLoopActive;
   
   const tablesCount = elements.filter(e => e.type.startsWith("table") || e.type === "deuce" || e.type === "high_top").length;
   const tentsCount = elements.filter(e => e.type === "tent_40x60").length;
@@ -759,7 +841,7 @@ const VenueArchitectContent = () => {
       };
 
       elements.forEach(el => {
-        if (el.type.startsWith("table") || el.type === "bar" || el.type === "high_top" || el.type === "deuce") {
+        if (el.type.startsWith("table") || el.type === "bar" || el.type === "bar_portable" || el.type === "high_top" || el.type === "deuce") {
           const cX = el.x + ELEMENT_CONFIG[el.type].width / 2;
           const cY = el.y + ELEMENT_CONFIG[el.type].height / 2;
           if (isPointInTriangle({x: cX, y: cY}, triangle.p1, triangle.p2, triangle.p3)) {
@@ -1062,6 +1144,60 @@ const VenueArchitectContent = () => {
     return elements.length > 5 && elements.some(e => e.type === "table_round_60" && e.rotation === 45);
   }, [elements]);
 
+  /** 3′-wide dashed guides aligned with the diamond grain (shown only during manifest CAD lock). */
+  const diamondServiceRunwayGeometry = useMemo(() => {
+    if (!manifestCoordinateLockActive || !isDiamondSnapActive) return [];
+
+    const tables = elements.filter(
+      (e) => e.type === "table_round_60" && Math.abs(e.rotation - 45) < 0.5,
+    );
+    if (tables.length < 6) return [];
+
+    let sumCx = 0;
+    let sumCy = 0;
+    tables.forEach((t) => {
+      sumCx += t.x + ELEMENT_CONFIG.table_round_60.width / 2;
+      sumCy += t.y + ELEMENT_CONFIG.table_round_60.height / 2;
+    });
+    const centroidX = sumCx / tables.length;
+    const centroidY = sumCy / tables.length;
+
+    const CELL = PIXELS_PER_FOOT * GRID_MAGNET_FT * 3;
+    const ROW_STAGGER = CELL / 2;
+    const runwayAngleRad = Math.atan2(CELL, ROW_STAGGER);
+    const ux = Math.cos(runwayAngleRad);
+    const uy = Math.sin(runwayAngleRad);
+
+    /** Match tent canvas span for graceful runway truncation. */
+    const HALF_SCAN = Math.max(windowSize.height, windowSize.width, 760) / 2;
+
+    const lw = serviceLaneWidthPx(PIXELS_PER_FOOT);
+
+    /** Seven bundled 3′ service mats offset perpendicular to banquet grain. */
+    return [-3, -2, -1, 0, 1, 2, 3].map((lane) => {
+      const lateral = lane * (lw + PIXELS_PER_FOOT * GRID_MAGNET_FT * 2);
+      const nx = -uy;
+      const ny = ux;
+      const cx = centroidX + nx * lateral;
+      const cy = centroidY + ny * lateral;
+      return {
+        key: lane,
+        x1: cx - ux * HALF_SCAN,
+        y1: cy - uy * HALF_SCAN,
+        x2: cx + ux * HALF_SCAN,
+        y2: cy + uy * HALF_SCAN,
+      };
+    });
+  }, [
+    manifestCoordinateLockActive,
+    isDiamondSnapActive,
+    elements,
+    PIXELS_PER_FOOT,
+    ELEMENT_CONFIG,
+    windowSize.height,
+    windowSize.width,
+  ]);
+
   const formatDuration = (mins: number) => {
     const h = Math.floor(mins / 60);
     const m = Math.round(mins % 60);
@@ -1128,6 +1264,7 @@ const VenueArchitectContent = () => {
   */
 
   return (
+    <TooltipProvider delayDuration={110}>
     <div className="flex flex-col h-full bg-slate-950 text-slate-50 min-h-screen">
       <ExecutionProgress
         percentage={progressPercentage}
@@ -1136,10 +1273,16 @@ const VenueArchitectContent = () => {
         onToggle3D={() => setIs3DView((v) => !v)}
         guestSimulation={guestSimulation}
         onToggleGuestSimulation={() => setGuestSimulation((g) => !g)}
+        salesMode={salesMode}
+        onSalesModeToggle={() => setSalesMode((v) => !v)}
+        venueTemplates={SALES_VENUE_TEMPLATES}
+        venueTemplateSelectedId={salesVenueTemplateId}
+        onVenueTemplatePick={handleSalesVenueTemplatePick}
+        onCloseDeal={handleCloseDeal}
       />
       
       <div className="flex flex-1 overflow-hidden">
-        {!isZenMode && (
+        {!salesMode && !isZenMode && (
           <>
             {/* Left Toolbar - Now the Live BEO Sidebar */}
         <BEOSidebar elements={elements} />
@@ -1184,7 +1327,7 @@ const VenueArchitectContent = () => {
                         <Input 
                           type="number" 
                           min={0} 
-                          max={12} 
+                          max={manifestCoordinateLockActive ? 22 : 12} 
                           value={selectedElement.guests}
                           onChange={(e) => updateElement(selectedElement.id, { guests: parseInt(e.target.value) || 0 })}
                           className="bg-slate-800 border-slate-700 text-white"
@@ -1781,31 +1924,21 @@ const VenueArchitectContent = () => {
           {/* Power Drop Connections */}
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: '100%', height: '100%' }}>
             {/* High-Speed Service Runways (Diamond Snap Ghost Layer) */}
-            {isDiamondSnapActive && Array.from({ length: 5 }).map((_, i) => (
-              <g key={`runway-${i}`}>
-                <line 
-                  x1={180 + (i * 140)} 
-                  y1={280} 
-                  x2={180 + (i * 140) + 400} 
-                  y2={280 + 600} 
-                  stroke="#FFD700" 
-                  strokeWidth="30" 
-                  strokeDasharray="20,20" 
-                  opacity="0.1" 
+            {manifestCoordinateLockActive &&
+              diamondServiceRunwayGeometry.map((lane) => (
+                <line
+                  key={`runway-lock-${lane.key}`}
+                  x1={lane.x1}
+                  y1={lane.y1}
+                  x2={lane.x2}
+                  y2={lane.y2}
+                  stroke="#fbbf24"
+                  strokeWidth={serviceLaneWidthPx(PIXELS_PER_FOOT)}
+                  strokeDasharray="24,26"
+                  strokeLinecap="round"
+                  opacity="0.095"
                 />
-                <text 
-                  x={180 + (i * 140) + 100} 
-                  y={280 + 100 + 40} 
-                  fill="#FFD700" 
-                  fontSize="14" 
-                  fontWeight="bold" 
-                  opacity="0.3" 
-                  transform={`rotate(56 ${180 + (i * 140) + 100} ${280 + 100 + 40})`}
-                >
-                  HIGH-SPEED SERVICE RUNWAY
-                </text>
-              </g>
-            ))}
+              ))}
 
             {/* Draw Red Gap Lines */}
             {elements.map((el1, i) => {
@@ -1887,7 +2020,7 @@ const VenueArchitectContent = () => {
 
             {/* Draw Water Access Lines */}
             {elements.filter(e => e.type === "water_access").map(water => {
-              const targets = elements.filter(e => e.type === "staging_kitchen" || e.type === "bar");
+              const targets = elements.filter(e => e.type === "staging_kitchen" || e.type === "bar" || e.type === "bar_portable");
               if (targets.length === 0) return null;
               
               let nearest = targets[0];
@@ -2022,6 +2155,7 @@ const VenueArchitectContent = () => {
                 e.stopPropagation();
                 console.log("RESET INTERACTION Triggered");
                 setManifestCoordinateLockActive(false);
+                setSalesMode(false);
                 setElements(prev => [...prev]);
                 setIsHoveringMap(false);
                 setTimeout(() => setIsHoveringMap(true), 50);
@@ -2035,10 +2169,10 @@ const VenueArchitectContent = () => {
         <div 
           className={cn(
             "elements-sidebar bg-slate-900/95 backdrop-blur-xl border-slate-700 flex flex-col z-50 shadow-2xl transition-all duration-300 relative",
-            (isElementsPanelOpen && !isZenMode) ? "w-64 border-l" : "w-0 border-l-0"
+            (isElementsPanelOpen && !isZenMode && !salesMode) ? "w-64 border-l" : "w-0 border-l-0"
           )}
         >
-          <div className={cn("absolute top-4 -left-10 z-50 transition-opacity duration-300", !isZenMode ? "opacity-100" : "opacity-0 pointer-events-none")}>
+          <div className={cn("absolute top-4 -left-10 z-50 transition-opacity duration-300", (!isZenMode && !salesMode) ? "opacity-100" : "opacity-0 pointer-events-none")}>
             <Button
               variant="secondary"
               size="icon"
@@ -2049,7 +2183,7 @@ const VenueArchitectContent = () => {
             </Button>
           </div>
 
-          <div className={cn("flex flex-col gap-4 h-full transition-opacity duration-300", (isElementsPanelOpen && !isZenMode) ? "opacity-100 p-4 overflow-y-auto" : "opacity-0 p-0 overflow-hidden")}>
+          <div className={cn("flex flex-col gap-4 h-full transition-opacity duration-300", (isElementsPanelOpen && !isZenMode && !salesMode) ? "opacity-100 p-4 overflow-y-auto" : "opacity-0 p-0 overflow-hidden")}>
             <h3 className="font-serif text-xl text-[#fbbf24] font-bold sticky top-0 bg-slate-900/95 z-10 pb-2 border-b border-slate-800">Elements</h3>
             
             <div className="grid grid-cols-2 gap-2">
@@ -2209,8 +2343,12 @@ const VenueArchitectContent = () => {
             </div>
           )}
 
-          {/* Worker Dots (Yellow) Animation */}
-          {elements.find(e => e.type === "staging_kitchen") && elements.filter(e => e.type.startsWith("table") || e.type === "high_top" || e.type === "deuce").map((table, index) => {
+          {/* Worker Dots (Yellow) Animation — suppressed during CAD manifest; lane staff glyphs carry service nodes. */}
+          {!manifestCoordinateLockActive &&
+            elements.find((e) => e.type === "staging_kitchen") &&
+            elements
+              .filter((e) => e.type.startsWith("table") || e.type === "high_top" || e.type === "deuce")
+              .map((table, index) => {
             const kitchen = elements.find(e => e.type === "staging_kitchen")!;
             const kX = kitchen.x + ELEMENT_CONFIG[kitchen.type].width / 2;
             const kY = kitchen.y + ELEMENT_CONFIG[kitchen.type].height / 2;
@@ -2220,7 +2358,7 @@ const VenueArchitectContent = () => {
             // Only show 1 worker dot per table for visual clarity
             const midX = kX + (tX - kX) * 0.42;
             const midY = kY + (tY - kY) * 0.42;
-            return manifestCoordinateLockActive ? (
+            return freezeWorkersLayout ? (
               <div
                 key={`worker-static-${table.id}`}
                 className="absolute left-0 top-0 w-3 h-3 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)] z-40 pointer-events-none"
@@ -2275,8 +2413,8 @@ const VenueArchitectContent = () => {
                   : { x: 0, y: 0 };
             
             return (
+              <SalesAssetEconomicsHover key={el.id} salesMode={salesMode} el={el}>
               <motion.div
-                key={el.id}
                 drag={!manifestCoordinateLockActive}
                 dragMomentum={false}
                 dragConstraints={containerRef}
@@ -2297,7 +2435,26 @@ const VenueArchitectContent = () => {
                   rotate: el.rotation,
                   width: config.width,
                   height: config.height,
-                  zIndex: isSelected ? 50 : (el.type === 'tent_40x60' ? 0 : 20), // Increased base z-index for elements
+                  zIndex:
+                    isSelected
+                      ? 56
+                      : manifestCoordinateLockActive
+                        ? el.type === "tent_40x60"
+                          ? 12
+                          : el.type === "stage" || el.type === "staging_kitchen"
+                            ? 26
+                            : el.type === "table_round_60"
+                              ? 30
+                              : el.type === "power_drop"
+                                ? 36
+                                : el.type === "staff_member"
+                                  ? 44
+                                  : el.type === "string_lights" || el.type === "exit_sign"
+                                    ? 8
+                                    : 24
+                        : el.type === "tent_40x60"
+                          ? 0
+                          : 20,
                 }}
                 initial={false}
                 animate={{
@@ -2307,14 +2464,45 @@ const VenueArchitectContent = () => {
               >
                 <div className={cn(
                   "w-full h-full flex items-center justify-center transition-colors relative",
-                  el.type !== "tent_40x60" && el.type !== "string_lights" && el.type !== "exit_sign" && "border-2 border-slate-600",
-                  el.type === "tent_40x60" && el.hasSidewalls ? "bg-amber-50/5 border-4 border-solid border-white backdrop-blur-[2px]" : config.color,
+                  el.type !== "tent_40x60" &&
+                    el.type !== "string_lights" &&
+                    el.type !== "exit_sign" &&
+                    !(el.type === "staff_member" && manifestCoordinateLockActive) &&
+                    "border-2 border-slate-600",
+                  el.type === "tent_40x60" && el.hasSidewalls
+                    ? "bg-amber-50/5 border-4 border-solid border-white backdrop-blur-[2px]"
+                    : el.type === "staff_member" && manifestCoordinateLockActive
+                      ? "border-2 border-yellow-500 bg-yellow-400 text-slate-900 shadow-[0_0_12px_rgba(250,204,21,0.9)]"
+                      : config.color,
                   el.type === "tent_40x60" && isStormMode && "ring-2 ring-cyan-400/50 motion-safe:animate-pulse",
                   config.shape === "circle" ? "rounded-full" : "rounded-md",
                   isSelected && "border-[#fbbf24] border-solid border-2",
                   isSmoked && "border-orange-500 border-4 shadow-[0_0_20px_rgba(249,115,22,0.6)] bg-orange-900/50",
-                  isAnchor && isDiamondSnapActive && "shadow-[0_0_30px_rgba(251,191,36,0.6)] border-amber-400 z-30"
+                  isAnchor && isDiamondSnapActive && "shadow-[0_0_30px_rgba(251,191,36,0.6)] border-amber-400 z-30",
+                  el.type === "string_lights" &&
+                    salesMode &&
+                    "transition-[box-shadow] duration-500 ease-out ring-1 will-change-[box-shadow]",
+                  el.type === "string_lights" && salesMode && lightingLock7PM && "shadow-[inset_0_0_12px_rgba(251,191,36,0.25)] ring-amber-300/50",
+                  el.type === "string_lights" && salesMode && !lightingLock7PM && "ring-transparent shadow-none"
                 )}>
+                  {(el.type === "cake" || el.type === "bar" || el.type === "bar_portable") && salesMode && (
+                    <>
+                      <div
+                        className={cn(
+                          "pointer-events-none absolute -top-3 left-1/2 z-[5] h-14 w-14 -translate-x-1/2 rounded-full bg-amber-100/55 blur-xl transition-opacity duration-500 motion-reduce:transition-none will-change-opacity",
+                          lightingLock7PM ? "opacity-100" : "opacity-0",
+                        )}
+                        aria-hidden
+                      />
+                      <div
+                        className={cn(
+                          "pointer-events-none absolute inset-[2px] z-[6] rounded-[inherit] shadow-[inset_0_0_22px_rgba(251,191,36,0.45)] ring-1 ring-inset transition-opacity duration-500 motion-reduce:transition-none will-change-[opacity,box-shadow]",
+                          lightingLock7PM ? "opacity-100 ring-amber-300/35" : "opacity-0 ring-transparent shadow-none",
+                        )}
+                        aria-hidden
+                      />
+                    </>
+                  )}
                   {el.type === "staging_kitchen" && el.showSafetyRadius && (
                     <div 
                       className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500/10 border-2 border-dashed border-red-500/50 pointer-events-none" 
@@ -2322,9 +2510,22 @@ const VenueArchitectContent = () => {
                     />
                   )}
                   {el.type === "string_lights" && (
-                    <div className="absolute inset-0 flex items-center justify-between px-2">
+                    <div
+                      className={cn(
+                        "absolute inset-0 flex items-center justify-between px-2",
+                        salesMode && !lightingLock7PM && "[contain:paint]",
+                      )}
+                    >
                       {Array.from({ length: 12 }).map((_, i) => (
-                        <div key={i} className={cn("w-2.5 h-2.5 rounded-full transition-all duration-1000", isSunset ? "bg-amber-100 shadow-[0_0_15px_rgba(251,191,36,1)] scale-125" : "bg-amber-700/50 shadow-none")} />
+                        <div
+                          key={i}
+                          className={cn(
+                            "w-2.5 h-2.5 rounded-full will-change-[transform,filter]",
+                            !salesMode || !lightingLock7PM ? "transition-all duration-1000" : "transition-colors duration-500 ease-out",
+                            isSunset ? "bg-amber-100 shadow-[0_0_15px_rgba(251,191,36,1)] scale-125" : "bg-amber-700/50 shadow-none",
+                            salesMode && lightingLock7PM && "bg-amber-50 shadow-[0_0_20px_rgba(251,191,36,1)] scale-125",
+                          )}
+                        />
                       ))}
                     </div>
                   )}
@@ -2365,12 +2566,21 @@ const VenueArchitectContent = () => {
                 {el.guests > 0 && (
                   <div className="absolute inset-[-15px] pointer-events-none">
                     {Array.from({ length: el.guests }).map((_, i) => {
-                      let dotX, dotY;
+                      let dotX = 0;
+                      let dotY = 0;
                       if (config.shape === "circle") {
-                        const angle = (i / el.guests) * Math.PI * 2;
-                        const radius = config.width / 2 + 10;
-                        dotX = config.width / 2 + Math.cos(angle) * radius - 4;
-                        dotY = config.height / 2 + Math.sin(angle) * radius - 4;
+                        const cadRing =
+                          manifestCoordinateLockActive &&
+                          el.type === "table_round_60" &&
+                          Math.abs(el.rotation - 45) < 0.5;
+                        const angle = cadRing
+                          ? -Math.PI / 2 + (i / el.guests) * Math.PI * 2
+                          : (i / el.guests) * Math.PI * 2;
+                        const radialPx = cadRing
+                          ? Math.max(config.width / 2 - 9, 16)
+                          : config.width / 2 + 10;
+                        dotX = config.width / 2 + Math.cos(angle) * radialPx - 4;
+                        dotY = config.height / 2 + Math.sin(angle) * radialPx - 4;
                       } else {
                         // Rectangular perimeter distribution
                         const w = config.width + 20;
@@ -2404,6 +2614,7 @@ const VenueArchitectContent = () => {
                   </div>
                 )}
               </motion.div>
+              </SalesAssetEconomicsHover>
             );
           });
           } catch (e) {
@@ -2440,6 +2651,19 @@ const VenueArchitectContent = () => {
       </div>
       </div>
 
+      <StormSummary
+        open={stormBriefOpen}
+        onOpenChange={(open) => {
+          setStormBriefOpen(open);
+          if (!open) stormRevealDismissedRef.current = true;
+        }}
+        windDirection={windDirection}
+        windGustPct={windGust * 100}
+        muddyPathCount={muddyPathTableIds.size}
+        smokedTableCount={smokedElementIds.size}
+        stormModeActive={isStormMode}
+      />
+
       
       <Dialog open={isBEODialogOpen} onOpenChange={setIsBEODialogOpen}>
         <DialogContent className="max-w-5xl h-[90vh] overflow-y-auto bg-slate-100">
@@ -2472,6 +2696,7 @@ const VenueArchitectContent = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </TooltipProvider>
   );
 };
 

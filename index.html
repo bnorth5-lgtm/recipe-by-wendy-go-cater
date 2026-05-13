@@ -497,7 +497,7 @@
   <body>
     <div id="root"></div>
 
-    <!-- NBS Concierge — Educational Bank-powered chat widget -->
+    <!-- NBS Concierge — Delicious Catering & Events by Wendy -->
     <aside class="nbs-chat" aria-label="Delicious Catering & Events concierge chat">
       <input
         class="nbs-chat__toggle"
@@ -539,7 +539,7 @@
           <div class="nbs-chat__brand">
             <div class="nbs-chat__title">
               NBS Concierge
-              <span class="nbs-chat__kbBadge">&#10022; Educational Bank</span>
+              <span class="nbs-chat__kbBadge">Delicious Catering &amp; Events <span style="opacity:.92">&#183;</span> by Wendy</span>
             </div>
             <div class="nbs-chat__subtitle">
               Delicious Catering & Events &middot; Ask anything or route an inquiry
@@ -576,7 +576,7 @@
               <button class="nbs-chat__send" type="submit">Send</button>
             </form>
             <div class="nbs-chat__meta">
-              <span class="nbs-chat__pill">&#10022; Educational Bank active</span>
+              <span class="nbs-chat__pill">DCE concierge · Wendy brand voice</span>
               <span>Powered by Delicious Catering & Events</span>
             </div>
           </footer>
@@ -930,6 +930,19 @@
         if (!message) return;
         if (msgInput) msgInput.value = "";
         handleMessage(message);
+      });
+
+      // ── Clear Fire-code bubbles (presenter / Harrison Diamond deck)
+      window.addEventListener("nbs-clear-fire-alerts", function() {
+        if (!messagesEl) return;
+        var bubbles = messagesEl.querySelectorAll(".nbs-chat__bubble");
+        for (var i = bubbles.length - 1; i >= 0; i--) {
+          var el = bubbles[i];
+          var txt = el.textContent || "";
+          if (/fire\s*code\s*violation/i.test(txt)) {
+            el.remove();
+          }
+        }
       });
 
       // ── Visionary Thought Bubbles (Custom Event Listener) ───────────────────

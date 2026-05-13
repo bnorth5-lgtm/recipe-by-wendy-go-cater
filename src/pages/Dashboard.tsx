@@ -31,6 +31,7 @@ import {
   MapPin,
   Shield,
   CircleDollarSign,
+  Presentation,
 } from "lucide-react";
 import { useCateringStore, Client, CriticalTask, Note } from "@/store/cateringStore";
 import { getVaultStatus } from "@/lib/cloudVault";
@@ -52,7 +53,6 @@ import { NotesCard } from "@/components/NotesCard";
 import { DateDisplay } from "@/components/DateDisplay";
 import { TimeDisplay } from "@/components/TimeDisplay";
 import { TwoMonthCalendar } from "@/components/TwoMonthCalendar";
-import { OverdueSidebar } from "@/components/OverdueSidebar";
 import { VendorsCard } from "@/components/VendorsCard";
 import { YouTubePlayerCard } from "@/components/YouTubePlayerCard";
 import { SEED_PROSPECTS } from "@/logic/ProspectingEngine";
@@ -63,7 +63,6 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
-import { useBrand } from "@/context/BrandContext";
 import { useEventContext } from "@/context/EventContext";
 import { generateProposalPDF } from "@/logic/PDFGenerator";
 import { saveToVault } from "@/logic/persistence";
@@ -132,6 +131,24 @@ const Dashboard = () => {
   const { brand } = useBrand();
   const { eventState, updateEventState } = useEventContext();
 
+  const STORAGE_KEY_DASH_PRESENTATION = "dce_dashboard_presentation_sales";
+  const [presentationSalesDashboard, setPresentationSalesDashboard] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return sessionStorage.getItem(STORAGE_KEY_DASH_PRESENTATION) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY_DASH_PRESENTATION, presentationSalesDashboard ? "1" : "0");
+    } catch {
+      /* sessionStorage unavailable */
+    }
+  }, [presentationSalesDashboard]);
+
   const [isAuditDialogOpen, setIsAuditDialogOpen] = useState(false);
   const [actualCostsInput, setActualCostsInput] = useState<number>(0);
   const [lessonsLearnedInput, setLessonsLearnedInput] = useState<string>("");
@@ -155,6 +172,13 @@ const Dashboard = () => {
     return margin < (item.margin_goal || 70.00);
   });
 
+  const suppressProfitRailsForSales = useMemo(
+    () =>
+      Boolean(eventState.eventName?.toLowerCase().includes("harrison")) ||
+      presentationSalesDashboard,
+    [eventState.eventName, presentationSalesDashboard],
+  );
+
   /** Event-level margin for header; null when guest count is 0 (no ghost %) */
   const headerProfitMarginPct = useMemo((): number | null => {
     const activeEventName = eventState.eventName;
@@ -174,25 +198,24 @@ const Dashboard = () => {
     return ((estimatedRevenue - totalCost) / estimatedRevenue) * 100;
   }, [eventState]);
 
-  // Trigger Switchboard hook for Profit Alerts
+  // Trigger Switchboard hook for Profit Alerts — skip on Harrison/demo narrative or dashboard Presentation mode
   useEffect(() => {
-    if (profitWarnings.length > 0) {
-      logSystemAlert({
-        alert_type: 'Profit Alert',
-        severity: 'warning',
-        message: `${profitWarnings.length} item(s) are threatening the target margin.`,
-        metadata: {
-          items: profitWarnings.map(item => ({
-            id: item.id,
-            name: item.name,
-            currentCost: item.costPerUnit,
-            marketScrapedCost: item.market_scraped_cost,
-            targetMargin: item.margin_goal || 70.00
-          }))
-        }
-      });
-    }
-  }, [profitWarnings.length]);
+    if (profitWarnings.length === 0 || suppressProfitRailsForSales) return;
+    logSystemAlert({
+      alert_type: 'Profit Alert',
+      severity: 'warning',
+      message: `${profitWarnings.length} item(s) are threatening the target margin.`,
+      metadata: {
+        items: profitWarnings.map(item => ({
+          id: item.id,
+          name: item.name,
+          currentCost: item.costPerUnit,
+          marketScrapedCost: item.market_scraped_cost,
+          targetMargin: item.margin_goal || 70.00
+        }))
+      }
+    });
+  }, [profitWarnings.length, suppressProfitRailsForSales]);
 
   // /three-door: force-hide global HTML Concierge (sibling of #root); never activate Visionary-only widgets here
   useEffect(() => {
@@ -351,15 +374,30 @@ const Dashboard = () => {
     <div
       className="space-y-6 px-6 pb-6 pt-16 sm:pt-[4.5rem] relative min-h-screen flex flex-col bg-slate-950 text-slate-50"
     >
-      {/* Global Status Badges */}
-      {vaultStatus.isLocalOnly && (
-        <div className="relative z-10 flex justify-end">
+      {/* Presentation / Ops strip */}
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 px-1">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          title="Hides dense operations rail (proposal drawer, shortcuts, alerts) for showroom dashboard"
+          onClick={() => setPresentationSalesDashboard((v) => !v)}
+          className={cn(
+            "flex items-center gap-2 border-[#fbbf24]/35 bg-[#0a1628]/80 text-slate-100 shadow-sm hover:bg-[#0d1f38] hover:border-[#fbbf24]/55",
+            presentationSalesDashboard &&
+              "border-emerald-500/40 bg-emerald-950/25 text-emerald-100 hover:bg-emerald-950/35",
+          )}
+        >
+          <Presentation className="h-4 w-4 text-[#fbbf24] shrink-0" aria-hidden />
+          {presentationSalesDashboard ? "Show operations dashboard" : "Presentation dashboard"}
+        </Button>
+        {vaultStatus.isLocalOnly && !presentationSalesDashboard && (
           <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-600 dark:text-amber-400 backdrop-blur-sm shadow-sm">
             <Lock className="h-3.5 w-3.5" />
             <span>Secure: Local Only</span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <Header
         totalGuests={eventState.totalGuests}
@@ -367,8 +405,8 @@ const Dashboard = () => {
         heroImageError={heroImageError}
         onHeroImageError={() => setHeroImageError(true)}
       />
-
       {/* Client Proposal Portal — drawer expands for Live Event Feed */}
+      {!presentationSalesDashboard && (
       <div className="w-full max-w-6xl mx-auto mb-8">
         <Collapsible
           open={proposalPortalOpen}
@@ -596,6 +634,7 @@ const Dashboard = () => {
           </Card>
         </Collapsible>
       </div>
+      )}
 
       {/* Post-Event Audit Dialog */}
       <Dialog open={isAuditDialogOpen} onOpenChange={setIsAuditDialogOpen}>
@@ -726,6 +765,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {!presentationSalesDashboard && (
       <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto w-full">
         {/* Quick Actions (Smaller Cards) */}
         <Link to="/quoting/proposals" className="block">
@@ -777,9 +817,10 @@ const Dashboard = () => {
           </Card>
         </Link>
       </div>
+      )}
 
       {/* NBS Intelligence: Profit Monitoring */}
-      {profitWarnings.length > 0 && (
+      {profitWarnings.length > 0 && !suppressProfitRailsForSales && (
         <div className="max-w-6xl mx-auto w-full mt-6">
           <Card className="bg-red-950/20 border-red-900/50">
             <CardHeader className="pb-2">

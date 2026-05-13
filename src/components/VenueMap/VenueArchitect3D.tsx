@@ -16,6 +16,7 @@ const ELEMENT_DIMS_PX: Record<ElementType, { w: number; h: number }> = {
   deuce: { w: 60, h: 60 },
   dance_floor: { w: 80, h: 80 },
   bar: { w: 120, h: 40 },
+  bar_portable: { w: 120, h: 40 },
   buffet: { w: 160, h: 60 },
   cake: { w: 60, h: 60 },
   stage: { w: 240, h: 120 },
@@ -433,7 +434,7 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
         continue;
       }
 
-      if (el.type === "table_rect" || el.type === "deuce" || el.type === "bar" || el.type === "buffet") {
+      if (el.type === "table_rect" || el.type === "deuce" || el.type === "bar" || el.type === "bar_portable" || el.type === "buffet") {
         const g = new THREE.Group();
         addRectTableWithLegs(g, cxw, czh, wFt, hFt, el.rotation ?? 0);
         root.add(g);
@@ -538,7 +539,14 @@ export const VenueArchitect3D: React.FC<VenueArchitect3DProps> = ({
     /** Social heatmap anchors — locked layout uses hashed grid/snapped hotspots (no lerp in guest tick when coordinateLockManifest). */
     const socialHotspots: THREE.Vector3[] = [];
     for (const el of elements) {
-      if (el.type === "bar" || el.type === "dance_floor" || el.type === "stage" || el.type === "buffet" || el.type === "high_top") {
+      if (
+        el.type === "bar" ||
+        el.type === "bar_portable" ||
+        el.type === "dance_floor" ||
+        el.type === "stage" ||
+        el.type === "buffet" ||
+        el.type === "high_top"
+      ) {
         const sd = ELEMENT_DIMS_PX[el.type];
         const { cxFt: hx, czFt: hz } = blueprintAnchoredCenterFt(el, sd, ppf, coordinateLockManifest, coordinateLockManifest);
         socialHotspots.push(new THREE.Vector3(hx, groundLockYFt, hz));

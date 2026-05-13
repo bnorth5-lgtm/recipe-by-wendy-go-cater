@@ -48,6 +48,7 @@ import { CrewPortal } from "./pages/portal/CrewPortal.tsx";
 import { ChefView } from "./pages/portal/ChefView.tsx";
 import { ClientQuote } from "./pages/portal/ClientQuote.tsx";
 import SignBEO from "./pages/public/SignBEO.tsx";
+import WendySalesBEO from "./pages/sales/WendySalesBEO.tsx";
 import Welcome from "./pages/public/Welcome.tsx"; // NEW Import
 import { Onboarding } from "./pages/Onboarding.tsx";
 
@@ -189,6 +190,17 @@ const App = () => {
            * No sidebar, no auth. Client receives a link like /sign/<uuid>.
            */}
           <Route path="/sign/:eventId" element={<SignBEO />} />
+
+          <Route
+            path="/present/wendy-beo"
+            element={
+              <BrandProvider>
+                <EventProvider>
+                  <WendySalesBEO />
+                </EventProvider>
+              </BrandProvider>
+            }
+          />
 
           {/*
            * Same Dashboard page as /dashboard but without Layout (no sidebar, top action bar, or mobile bottom nav).
